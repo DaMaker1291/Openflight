@@ -35,3 +35,7 @@ checkpoints/
 experiment_results/
 experiment_results_v2/
 experiment_results_v3/
+
+# Separate render projects (not part of this repo's tracked work)
+landauer_render/
+blender_landauer/
