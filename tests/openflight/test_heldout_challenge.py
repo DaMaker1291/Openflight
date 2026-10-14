@@ -65,7 +65,10 @@ def build_valid(rng):
     n = rng.randint(2, 6)
     qtys = [rng.choice(sorted(QTY_DIM)) for _ in range(n)]
     sensor = {"state": {}, "imu": {}}
-    for q in set(qtys):
+    # sorted(set(...)), never bare set(): set iteration order is
+    # hash-randomized per process (PYTHONHASHSEED), which would consume the
+    # rng in a different order each run and break report reproducibility.
+    for q in sorted(set(qtys)):
         node = sensor
         for k in QTY_PATH[q][:-1]:
             node = node.setdefault(k, {})
@@ -109,10 +112,14 @@ def run_case(category, fault, sensor, model, expect, expect_code=None):
             "ok": ok, "diag_ok": diag_ok}
 
 
-def mutate_invalid(rng, sensor, model):
-    """Return (fault_name, expected_code, mutated_model, mutated_sensor)."""
-    kind = rng.choice(["dim_clash", "frame", "off_layout", "unknown_qty",
-                       "bad_norm", "size", "euler", "swap_units"])
+def mutate_invalid(rng, sensor, model, kind=None):
+    """Return (fault_name, expected_code, mutated_model, mutated_sensor).
+
+    kind=None keeps the old draw-at-random behaviour; build_suite passes a
+    deterministic kind from fault_cycle() so the report is reproducible."""
+    if kind is None:
+        kind = rng.choice(["dim_clash", "frame", "off_layout", "unknown_qty",
+                           "bad_norm", "size", "euler", "swap_units"])
     m = json.loads(json.dumps(model))
     s = json.loads(json.dumps(sensor))
     f0 = m["features"][0]
@@ -157,9 +164,10 @@ def mutate_invalid(rng, sensor, model):
     return "swapped units", "E101", m, s
 
 
-def mutate_ambiguous(rng, sensor, model):
-    kind = rng.choice(["drop_units", "drop_frame", "drop_ordering",
-                       "unknown_unit", "bias_required"])
+def mutate_ambiguous(rng, sensor, model, kind=None):
+    if kind is None:
+        kind = rng.choice(["drop_units", "drop_frame", "drop_ordering",
+                           "unknown_unit", "bias_required"])
     m = json.loads(json.dumps(model))
     s = json.loads(json.dumps(sensor))
     f0 = m["features"][0]
@@ -193,6 +201,26 @@ def mutate_ambiguous(rng, sensor, model):
     return "bias required, unconfigured", "E302", m, s
 
 
+def fault_cycle(rng, kinds, n):
+    """Deterministic stream of n fault kinds, each kind guaranteed coverage.
+
+    Repeated shuffled rounds, not rng.choice, so the held-out report is
+    byte-identical across runs (pilot reproducibility) and every fault
+    kind appears the same number of times (no sampling lottery)."""
+    stream = []
+    while len(stream) < n:
+        round_ = list(kinds)
+        rng.shuffle(round_)
+        stream.extend(round_)
+    return stream[:n]
+
+
+INVALID_KINDS = ["dim_clash", "frame", "off_layout", "unknown_qty",
+                 "bad_norm", "size", "euler", "swap_units"]
+AMBIGUOUS_KINDS = ["drop_units", "drop_frame", "drop_ordering",
+                   "unknown_unit", "bias_required"]
+
+
 def build_suite():
     rng = random.Random(SEED)
     cases = []
@@ -201,9 +229,10 @@ def build_suite():
         s, m = build_valid(rng)
         valid_pairs.append((s, m))
         cases.append(run_case("valid", f"combo-{i}", s, m, "pass"))
-    for i in range(64):
+    invalid_kinds = fault_cycle(rng, INVALID_KINDS, 64)
+    for i, kind in enumerate(invalid_kinds):
         s, m = valid_pairs[rng.randrange(len(valid_pairs))]
-        fault, code, m2, s2 = mutate_invalid(rng, s, m)
+        fault, code, m2, s2 = mutate_invalid(rng, s, m, kind=kind)
         kw = {"model_input_size": 10 ** 6} if code == "E203" else {}
         rep = checker.check(s2, m2, **kw)
         ok = (rep["status"] == "blocked")
@@ -214,9 +243,10 @@ def build_suite():
                       "expected_code": code,
                       "codes": [e["code"] for e in rep["errors"]],
                       "ok": ok and diag_ok, "diag_ok": diag_ok})
-    for i in range(32):
+    ambiguous_kinds = fault_cycle(rng, AMBIGUOUS_KINDS, 32)
+    for i, kind in enumerate(ambiguous_kinds):
         s, m = valid_pairs[rng.randrange(len(valid_pairs))]
-        fault, code, m2, s2 = mutate_ambiguous(rng, s, m)
+        fault, code, m2, s2 = mutate_ambiguous(rng, s, m, kind=kind)
         cases.append(run_case("ambiguous", f"{fault}-{i}", s2, m2,
                               "blocked", code))
     return cases, valid_pairs
@@ -253,7 +283,6 @@ def test_heldout_rates():
 def test_heldout_pipeline_parity(tmp_path):
     """Subsample of held-out valid cases: generated C++ matches Python."""
     import subprocess
-    rng = random.Random(SEED + 1)
     cases, pairs = build_suite()
     valids = [(s, m) for (s, m) in pairs][:5]
     for vi, (s, m) in enumerate(valids):

@@ -8,7 +8,7 @@
     "min_us": 6.0,
     "median_us": 7.0,
     "p95_us": 8.0,
-    "max_observed_us": 26.0,
+    "max_observed_us": 35.0,
     "max_abs_err": 3.5762786865234375e-07,
     "mean_abs_err": 8.761882781982422e-08
   },
