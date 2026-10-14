@@ -49,5 +49,7 @@ blender_landauer/
 firmware/esp32/gen_build/
 firmware/esp32/main/gen/
 
-# OpenFlight packaging artifact
-dist-openflight/
+# OpenFlight packaging build output (pyproject.toml + README.md are tracked
+# source — a fresh clone must be able to `pip install ./dist-openflight`)
+dist-openflight/build/
+dist-openflight/*.egg-info/
