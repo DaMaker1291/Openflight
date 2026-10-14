@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-10-14T20:27:22Z",
+  "recorded_at": "2026-10-14T23:36:07Z",
   "artifacts": {
     "model_weights": {
       "examples/quadrotor_adapter/example_weights.pt": "165ad21af864d5418623d4e95def9b5d01e5ceb1d71bc2906d9fa9b5447f2a59"

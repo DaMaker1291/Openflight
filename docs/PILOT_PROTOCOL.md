@@ -23,10 +23,10 @@ Everything runs on a laptop in ~10–15 minutes of compute; the human task is
 ## Phase 0 — install
 
 ```bash
-pip install .[dev]            # core (torch, numpy)
-pip install .[dev]  # + pyyaml, pytest
-openflight doctor                        # must exit 0, no errors
-openflight version                       # expect 0.2.0
+pip install -r requirements-lock.txt  # exact verified set (recommended)
+pip install -e . --no-deps            # the package itself
+openflight doctor                     # must exit 0, no errors
+openflight version                    # expect 0.2.0
 ```
 
 If `doctor` fails, stop and report — that is a finding, not a setup problem.

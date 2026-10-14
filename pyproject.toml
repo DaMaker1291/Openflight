@@ -18,20 +18,26 @@ dependencies = []
 
 [project.optional-dependencies]
 # Weight loading + the compiler/benchmark path (inspect/compile/benchmark/deploy).
-# Lower bounds are the versions the test suite was last verified against
-# (see requirements-lock.txt for the exact verified set).
-torch = ["torch>=2.0,<3.0", "numpy>=1.24,<3.0"]
+# Bounds are narrowed to versions the test suite was actually verified against
+# on 2026-10-14 (Python 3.10.16 / 3.11.13 / 3.12.9, macOS arm64):
+#   torch 2.14.1, numpy 2.2.6 / 2.4.6 / 2.5.4, pyyaml 6.0.3, pytest 9.1.1,
+#   matplotlib 3.11.2.
+# Lower bounds below those versions are promises that were NOT tested.
+# requirements-lock.txt pins the exact verified environment.
+torch = ["torch>=2.14.1,<3.0", "numpy>=2.2.6,<3.0"]
 # YAML contract files (validate/confirm on .yaml contracts).
-yaml = ["pyyaml>=6.0,<7.0"]
+yaml = ["pyyaml>=6.0.3,<7.0"]
 # Everything needed to run the full test suite and reproduce every result.
 dev = [
-    "torch>=2.0,<3.0",
-    "numpy>=1.24,<3.0",
-    "pyyaml>=6.0,<7.0",
-    "pytest>=7.0,<10.0",
-    "matplotlib>=3.7,<4.0",
+    "torch>=2.14.1,<3.0",
+    "numpy>=2.2.6,<3.0",
+    "pyyaml>=6.0.3,<7.0",
+    "pytest>=9.1.1,<10.0",
+    "matplotlib>=3.11.2,<4.0",
 ]
-# Serial flashing for physical hardware targets.
+# Serial flashing for physical hardware targets. NOTE: pyserial was never
+# exercised in this environment (no device attached); this range is
+# untested — flashing remains opt-in and out of scope for v0.2.0-pilot.
 hardware = ["pyserial>=3.5,<4.0"]
 
 [project.scripts]

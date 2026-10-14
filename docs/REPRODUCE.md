@@ -5,12 +5,26 @@ engineering-time claims are tested here.
 
 ## Prerequisites
 
-- Python 3.11+ with `torch`, `numpy`, `pytest`, `matplotlib`, `pyyaml`
-  (`pip install torch numpy pytest matplotlib pyyaml`)
+- Python 3.10+ (verified on 3.10.16, 3.11.13, 3.12.9)
 - A host C++ compiler (`c++`) and C compiler (`cc`) for the harness tests
 - The model files at the repo root: `learned_observer.pt`, `ppo_best.pt`,
   `examples/mlp_observer/model_weights.pt`
-- ~10 minutes on a laptop; no network, no MCU, no cross-toolchain
+- ~10 minutes on a laptop; no network after install, no MCU, no
+  cross-toolchain
+
+## Installing dependencies
+
+Two options:
+
+1. **Pinned (recommended):** `pip install -r requirements-lock.txt`
+   — the exact set verified for this release (torch 2.14.1, numpy 2.5.4,
+   matplotlib 3.11.2, pyyaml 6.0.3, pytest 9.1.1 + transitives, captured
+   2026-10-14 from a clean 3.12.9 venv).
+2. **Ranges:** `pip install '.[dev]'` — uses the bounded ranges in
+   `pyproject.toml`, which are narrowed to versions actually tested;
+   anything below those lower bounds is untested.
+
+Then install the project itself: `pip install -e . --no-deps`.
 
 ## Steps
 
