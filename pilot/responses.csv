@@ -1,1 +1,0 @@
-participant,date,commit,doctor_ok,repro_ok,evidence_fresh,deploy_ok,minutes_to_deploy,blocked_unit,blocked_offlayout,blocked_undoc,any_deployed_anyway,score_time,score_confidence,score_diag,score_reuse,consent

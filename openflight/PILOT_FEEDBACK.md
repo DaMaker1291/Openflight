@@ -57,13 +57,15 @@ undocumented units), answer 7a–7d.
 
 ## 5. Consent
 
-12. May we quote your answers (anonymized by your participant ID) in the
-    pilot report? (yes / no)
+12. Consent: I understand my answers will be recorded, stored privately by
+    the researcher, and used only to assess OpenFlight's usability — never
+    published with my name or student ID. May we quote them anonymized by my
+    participant ID? (yes / no)
 
-## Machine-readable summary
+## Sending your responses
 
-Copy the line below into `pilot/responses.csv` (one row per participant) so
-responses aggregate:
+Responses are collected **privately, outside the repository** — do not commit
+them. Email the completed form, plus the CSV row below, to the researcher.
 
 ```csv
 participant,date,commit,doctor_ok,repro_ok,evidence_fresh,deploy_ok,minutes_to_deploy,blocked_unit,blocked_offlayout,blocked_undoc,any_deployed_anyway,score_time,score_confidence,score_diag,score_reuse,consent
