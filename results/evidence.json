@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-14T16:00:47Z",
+  "artifacts": {
+    "model_weights": {
+      "examples/quadrotor_adapter/example_weights.pt": "165ad21af864d5418623d4e95def9b5d01e5ceb1d71bc2906d9fa9b5447f2a59"
+    },
+    "model_contract": {
+      "examples/quadrotor_adapter/model_contract.yaml": "d57b9f6850d9655e442f1d774a839b473773a4d8b71cfa62ebb318783fc845ed"
+    },
+    "sensor_contract": {
+      "examples/quadrotor_adapter/drone_contract.yaml": "30048cddd6ad1d8cddd748fc456e7ab276a48f1c51030f129703bf19901877d6"
+    },
+    "checker_source": {
+      "openflight/contract/checker.py": "f4a88247959a81eb326d0214b8b6f82c491d716b16f91f08f8acf6f17543a1d2",
+      "openflight/contract/units.py": "a8d26ba2c390b998be53ec840a2f62a26a992f6dacfd5db3af8a7ebd47cf2d55",
+      "openflight/contract/pipeline.py": "05e30d6bbc72a4fa88ce879b0b2540725659a7baa3cea34d39a85bbdc83ac9b5",
+      "openflight/contract/model_contract.py": "8bddc530733630f13857107b0f5c7ea0c67bee9c1abff344c5748317877a58c0"
+    },
+    "compiler_flags": {
+      "results/example_disturbance12/experiment_manifest.json": "f36c7bbbb4e334310a7b4db15a111e60782fc7d9017346a36aaabb33c1fc5b4c"
+    },
+    "generated_cxx": {
+      "build/model_adapters.cpp": null
+    },
+    "firmware_binary": {
+      "firmware/esp32/build/openflight_bench.bin": null
+    }
+  },
+  "checks": {
+    "battery": {
+      "reads": [
+        "model_weights",
+        "model_contract",
+        "sensor_contract",
+        "checker_source"
+      ]
+    },
+    "heldout": {
+      "reads": [
+        "model_weights",
+        "model_contract",
+        "sensor_contract",
+        "checker_source"
+      ]
+    },
+    "independent": {
+      "reads": [
+        "model_weights",
+        "model_contract",
+        "sensor_contract",
+        "checker_source"
+      ]
+    },
+    "workflows": {
+      "reads": [
+        "model_weights",
+        "model_contract",
+        "sensor_contract",
+        "checker_source"
+      ]
+    },
+    "parity": {
+      "reads": [
+        "model_weights",
+        "generated_cxx",
+        "compiler_flags",
+        "firmware_binary"
+      ]
+    },
+    "build": {
+      "reads": [
+        "model_weights",
+        "model_contract",
+        "generated_cxx",
+        "compiler_flags"
+      ]
+    },
+    "qemu": {
+      "reads": [
+        "firmware_binary",
+        "compiler_flags"
+      ]
+    }
+  }
+}

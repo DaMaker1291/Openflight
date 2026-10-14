@@ -624,20 +624,43 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-0",
+      "fault": "euler vs quaternion-0",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E101",
+      "expected_code": "E402",
       "codes": [
-        "E101",
-        "E102"
+        "E402"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "size mismatch-1",
+      "fault": "unknown quantity-1",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-2",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-3",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E203",
@@ -649,7 +672,31 @@
     },
     {
       "category": "invalid",
-      "fault": "bad normalization-2",
+      "fault": "off-layout binding-4",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-5",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-6",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E201",
@@ -661,111 +708,60 @@
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-3",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E401",
-      "codes": [
-        "E401"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "frame mismatch-4",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E301",
-      "codes": [
-        "E301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "unknown quantity-5",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E401",
-      "codes": [
-        "E401"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "dimension clash-6",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E101",
-      "codes": [
-        "E101",
-        "E102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "dimension clash-7",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E101",
-      "codes": [
-        "E101",
-        "E102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "dimension clash-8",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E101",
-      "codes": [
-        "E101",
-        "E102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "size mismatch-9",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E203",
-      "codes": [
-        "E203"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "frame mismatch-10",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E301",
-      "codes": [
-        "E301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "off-layout binding-11",
+      "fault": "euler vs quaternion-7",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
       "codes": [
         "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-8",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-9",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-10",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-11",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
       ],
       "ok": true,
       "diag_ok": true
@@ -797,36 +793,37 @@
     },
     {
       "category": "invalid",
-      "fault": "frame mismatch-14",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E301",
-      "codes": [
-        "E301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "bad normalization-15",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E201",
-      "codes": [
-        "E201"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "euler vs quaternion-16",
+      "fault": "off-layout binding-14",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
       "codes": [
         "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-15",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-16",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
       ],
       "ok": true,
       "diag_ok": true
@@ -845,24 +842,24 @@
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-18",
+      "fault": "off-layout binding-18",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E401",
+      "expected_code": "E402",
       "codes": [
-        "E401"
+        "E402"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-19",
+      "fault": "frame required but undocumented-19",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E401",
+      "expected_code": "U301",
       "codes": [
-        "E401"
+        "U301"
       ],
       "ok": true,
       "diag_ok": true
@@ -906,67 +903,7 @@
     },
     {
       "category": "invalid",
-      "fault": "bad normalization-23",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E201",
-      "codes": [
-        "E201"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "size mismatch-24",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E203",
-      "codes": [
-        "E203"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "bad normalization-25",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E201",
-      "codes": [
-        "E201"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "size mismatch-26",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E203",
-      "codes": [
-        "E203"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "size mismatch-27",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E203",
-      "codes": [
-        "E203"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "unknown quantity-28",
+      "fault": "unknown quantity-23",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E401",
@@ -978,57 +915,19 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-29",
+      "fault": "frame required but undocumented-24",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E101",
+      "expected_code": "U301",
       "codes": [
-        "E101",
-        "E102"
+        "U301"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "bad normalization-30",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E201",
-      "codes": [
-        "E201"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "dimension clash-31",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E101",
-      "codes": [
-        "E101",
-        "E102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "off-layout binding-32",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E402",
-      "codes": [
-        "E402"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "unknown quantity-33",
+      "fault": "unknown quantity-25",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E401",
@@ -1040,7 +939,7 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-34",
+      "fault": "dimension clash-26",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1053,19 +952,7 @@
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-35",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E401",
-      "codes": [
-        "E401"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "dimension clash-36",
+      "fault": "dimension clash-27",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1078,7 +965,7 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-37",
+      "fault": "dimension clash-28",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1091,7 +978,19 @@
     },
     {
       "category": "invalid",
-      "fault": "frame mismatch-38",
+      "fault": "size mismatch-29",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-30",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E301",
@@ -1103,7 +1002,7 @@
     },
     {
       "category": "invalid",
-      "fault": "euler vs quaternion-39",
+      "fault": "off-layout binding-31",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
@@ -1115,7 +1014,56 @@
     },
     {
       "category": "invalid",
-      "fault": "off-layout binding-40",
+      "fault": "unknown quantity-32",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-33",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-34",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-35",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-36",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
@@ -1127,12 +1075,61 @@
     },
     {
       "category": "invalid",
-      "fault": "off-layout binding-41",
+      "fault": "euler vs quaternion-37",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
       "codes": [
         "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-38",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-39",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-40",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-41",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
       ],
       "ok": true,
       "diag_ok": true
@@ -1163,37 +1160,36 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-44",
+      "fault": "size mismatch-44",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E101",
+      "expected_code": "E203",
       "codes": [
-        "E101",
-        "E102"
+        "E203"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "euler vs quaternion-45",
+      "fault": "bad normalization-45",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E402",
+      "expected_code": "E201",
       "codes": [
-        "E402"
+        "E201"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "off-layout binding-46",
+      "fault": "size mismatch-46",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E402",
+      "expected_code": "E203",
       "codes": [
-        "E402"
+        "E203"
       ],
       "ok": true,
       "diag_ok": true
@@ -1224,7 +1220,7 @@
     },
     {
       "category": "invalid",
-      "fault": "dimension clash-49",
+      "fault": "swapped units-49",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1237,12 +1233,12 @@
     },
     {
       "category": "invalid",
-      "fault": "frame mismatch-50",
+      "fault": "bad normalization-50",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E301",
+      "expected_code": "E201",
       "codes": [
-        "E301"
+        "E201"
       ],
       "ok": true,
       "diag_ok": true
@@ -1262,7 +1258,7 @@
     },
     {
       "category": "invalid",
-      "fault": "euler vs quaternion-52",
+      "fault": "off-layout binding-52",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E402",
@@ -1274,24 +1270,25 @@
     },
     {
       "category": "invalid",
-      "fault": "euler vs quaternion-53",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E402",
-      "codes": [
-        "E402"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "unknown quantity-54",
+      "fault": "unknown quantity-53",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E401",
       "codes": [
         "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-54",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
       ],
       "ok": true,
       "diag_ok": true
@@ -1310,31 +1307,7 @@
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-56",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E401",
-      "codes": [
-        "E401"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "unknown quantity-57",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E401",
-      "codes": [
-        "E401"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "invalid",
-      "fault": "swapped units-58",
+      "fault": "dimension clash-56",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1347,7 +1320,7 @@
     },
     {
       "category": "invalid",
-      "fault": "swapped units-59",
+      "fault": "swapped units-57",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E101",
@@ -1360,7 +1333,19 @@
     },
     {
       "category": "invalid",
-      "fault": "frame mismatch-60",
+      "fault": "unknown quantity-58",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-59",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E301",
@@ -1372,36 +1357,48 @@
     },
     {
       "category": "invalid",
-      "fault": "size mismatch-61",
+      "fault": "euler vs quaternion-60",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E203",
+      "expected_code": "E402",
       "codes": [
-        "E203"
+        "E402"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "size mismatch-62",
+      "fault": "off-layout binding-61",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E203",
+      "expected_code": "E402",
       "codes": [
-        "E203"
+        "E402"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "invalid",
-      "fault": "unknown quantity-63",
+      "fault": "off-layout binding-62",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E401",
+      "expected_code": "E402",
       "codes": [
-        "E401"
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-63",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
       ],
       "ok": true,
       "diag_ok": true
@@ -1420,20 +1417,33 @@
     },
     {
       "category": "ambiguous",
-      "fault": "sensor frame missing-1",
+      "fault": "unknown unit string-1",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "U301",
+      "expected_code": "U101",
       "codes": [
-        "U301",
-        "U301"
+        "U101",
+        "U101",
+        "U101"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "ambiguous",
-      "fault": "unknown unit string-2",
+      "fault": "bias required, unconfigured-2",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-3",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "U101",
@@ -1446,36 +1456,27 @@
     },
     {
       "category": "ambiguous",
-      "fault": "bias required, unconfigured-3",
+      "fault": "sensor frame missing-4",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E302",
+      "expected_code": "U301",
       "codes": [
-        "E302"
+        "U301",
+        "U301",
+        "U301",
+        "U301"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "ambiguous",
-      "fault": "quat ordering missing-4",
+      "fault": "quat ordering missing-5",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "U102",
       "codes": [
         "U102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "unknown unit string-5",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U101",
-      "codes": [
-        "U101"
       ],
       "ok": true,
       "diag_ok": true
@@ -1487,7 +1488,6 @@
       "got": "blocked",
       "expected_code": "U301",
       "codes": [
-        "U301",
         "U301"
       ],
       "ok": true,
@@ -1495,109 +1495,109 @@
     },
     {
       "category": "ambiguous",
-      "fault": "sensor frame missing-7",
+      "fault": "sensor units missing-7",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "U301",
+      "expected_code": "U101",
       "codes": [
-        "U301"
+        "U101"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "ambiguous",
-      "fault": "unknown unit string-8",
+      "fault": "quat ordering missing-8",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-9",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-10",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-11",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-12",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-13",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-14",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-15",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "U101",
       "codes": [
         "U101",
         "U101"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "sensor units missing-9",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U101",
-      "codes": [
-        "U101"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "quat ordering missing-10",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U102",
-      "codes": [
-        "U102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "quat ordering missing-11",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U102",
-      "codes": [
-        "U102"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "sensor frame missing-12",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U301",
-      "codes": [
-        "U301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "bias required, unconfigured-13",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E302",
-      "codes": [
-        "E302"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "bias required, unconfigured-14",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E302",
-      "codes": [
-        "E302"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "frame required but undocumented-15",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U301",
-      "codes": [
-        "U301"
       ],
       "ok": true,
       "diag_ok": true
@@ -1616,24 +1616,24 @@
     },
     {
       "category": "ambiguous",
-      "fault": "sensor units missing-17",
+      "fault": "bias required, unconfigured-17",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "U101",
+      "expected_code": "E302",
       "codes": [
-        "U101"
+        "E302"
       ],
       "ok": true,
       "diag_ok": true
     },
     {
       "category": "ambiguous",
-      "fault": "quat ordering missing-18",
+      "fault": "sensor frame missing-18",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "U102",
+      "expected_code": "U301",
       "codes": [
-        "U102"
+        "U301"
       ],
       "ok": true,
       "diag_ok": true
@@ -1664,13 +1664,12 @@
     },
     {
       "category": "ambiguous",
-      "fault": "sensor frame missing-21",
+      "fault": "bias required, unconfigured-21",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "U301",
+      "expected_code": "E302",
       "codes": [
-        "U301",
-        "U301"
+        "E302"
       ],
       "ok": true,
       "diag_ok": true
@@ -1689,7 +1688,21 @@
     },
     {
       "category": "ambiguous",
-      "fault": "bias required, unconfigured-23",
+      "fault": "unknown unit string-23",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-24",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "E302",
@@ -1701,7 +1714,31 @@
     },
     {
       "category": "ambiguous",
-      "fault": "unknown unit string-24",
+      "fault": "bias required, unconfigured-25",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-26",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-27",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "U101",
@@ -1714,7 +1751,20 @@
     },
     {
       "category": "ambiguous",
-      "fault": "sensor frame missing-25",
+      "fault": "unknown unit string-28",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "frame required but undocumented-29",
       "expected": "blocked",
       "got": "blocked",
       "expected_code": "U301",
@@ -1726,64 +1776,13 @@
     },
     {
       "category": "ambiguous",
-      "fault": "bias required, unconfigured-26",
+      "fault": "sensor units missing-30",
       "expected": "blocked",
       "got": "blocked",
-      "expected_code": "E302",
+      "expected_code": "U101",
       "codes": [
-        "E302"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "sensor frame missing-27",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U301",
-      "codes": [
-        "U301",
-        "U301",
-        "U301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "bias required, unconfigured-28",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "E302",
-      "codes": [
-        "E302"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "sensor frame missing-29",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U301",
-      "codes": [
-        "U301",
-        "U301",
-        "U301"
-      ],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "ambiguous",
-      "fault": "quat ordering missing-30",
-      "expected": "blocked",
-      "got": "blocked",
-      "expected_code": "U102",
-      "codes": [
-        "U102"
+        "U101",
+        "U101"
       ],
       "ok": true,
       "diag_ok": true

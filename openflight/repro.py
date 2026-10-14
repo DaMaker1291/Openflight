@@ -73,6 +73,14 @@ def main():
             print(f"  - {f}")
         return 1
     print("REPRODUCTION OK: all reported results regenerated and verified.")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from openflight import evidence as EV
+        EV.record(root=str(ROOT))
+        print("evidence graph: recorded results/evidence.json")
+    except Exception as e:  # evidence must never mask a successful repro
+        print(f"evidence graph: record failed ({e})")
     return 0
 
 

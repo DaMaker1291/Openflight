@@ -105,7 +105,7 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 
 | Field | Value |
 |---|---|
-| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; 150/150 tests pass; all seven result JSONs regenerate with expected values. |
+| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; 162/162 tests pass; all seven result JSONs regenerate with expected values; the run records `results/evidence.json` (per-check artifact hashes). |
 | **Assumptions** | Same dependency assumptions as C9. The working tree has diverged from the freeze by design (v0.2 branch); repro.py's count fix is a v0.2 change. |
 | **Evidence** | `reproduction/workingtree_reproduction.log`. |
 | **Status** | measured. |
@@ -120,6 +120,16 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 | **Evidence** | `tests/openflight/test_draft_layer.py`, `tests/openflight/test_importers.py`; external golden cases with source citations in fixture headers. |
 | **Status** | measured (host). |
 | **Invalidated by** | A field appearing in an emitted contract without a provenance entry; a confirm emitting a schema-invalid contract; the checker accepting an unconfirmed ambiguous draft; a golden case that should block passing or that should pass blocking. |
+
+## C12. Evidence graph (staleness detection)
+
+| Field | Value |
+|---|---|
+| **Claim** | `openflight evidence record` hashes the artifact groups each check reads into `results/evidence.json`; `openflight evidence status` re-hashes and reports exactly the checks whose inputs changed, plus the CLAIMS.md claim ids that depend on them. Mutating one input (weights, a contract unit, one line of checker.py, compiler flags, a confirmed field, generated C++, the firmware binary) stales exactly the checks that read it — verified per-artifact by mutation tests. Provenance sidecars and blanket confirmations appear in status output under unresolved limitations. |
+| **Assumptions** | (a) The declared check→artifact dependency map (`openflight/evidence.py`) matches what the checks actually read; a check reading an undeclared artifact is invisible to staleness. (b) Hashes are SHA-256. (c) `repro.py` records evidence only after a fully successful run. |
+| **Evidence** | `tests/openflight/test_evidence.py` (12 mutation/status tests); `results/evidence.json` (recorded by each successful repro). |
+| **Status** | measured (host). |
+| **Invalidated by** | A mutation leaving a dependent check reported fresh; a stale check whose claims are missing from claims_at_risk; the dependency map diverging from what the tests actually read. |
 
 ---
 

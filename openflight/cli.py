@@ -488,6 +488,45 @@ def cmd_contract_confirm(a):
     return 0
 
 
+def cmd_evidence_record(a):
+    from openflight import evidence as EV
+    EV.record(root=a.root)
+    print(f"evidence recorded: {os.path.join(a.root, 'results', 'evidence.json')}")
+    return 0
+
+
+def cmd_evidence_status(a):
+    from openflight import evidence as EV
+    st = EV.status(root=a.root)
+    if st.get("error"):
+        print(f"error: {st['error']}", file=sys.stderr)
+        return 2
+    if a.format == "json":
+        print(json.dumps(st, indent=2))
+        return 0 if not st["stale_checks"] else 1
+    print(f"evidence record from {st['recorded_at']}")
+    for check, info in sorted(st["checks"].items()):
+        mark = "STALE" if info["stale"] else "fresh"
+        print(f"  {check}: {mark}")
+        for r in info["reasons"]:
+            print(f"    - {r}")
+    if st["stale_checks"]:
+        print("stale checks: " + ", ".join(st["stale_checks"]))
+        print("claims at risk: " + ", ".join(st["claims_at_risk"]))
+    else:
+        print("all checks fresh")
+    if st["unresolved_limitations"]:
+        print("unresolved limitations (provenance sidecars / blanket "
+              "confirmations):")
+        for lim in st["unresolved_limitations"]:
+            print(f"  {lim['sidecar']} (confirm_mode={lim['confirm_mode']})")
+            for b in lim["not_individually_verified"]:
+                print(f"    not individually verified: {b}")
+            for l in lim["limitations"]:
+                print(f"    [{l.get('code', '?')}] {l.get('reason', '')}")
+    return 0 if not st["stale_checks"] else 1
+
+
 def build_parser():
     p = argparse.ArgumentParser(prog="openflight", description="OpenFlight Deploy")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -543,6 +582,15 @@ def build_parser():
     c.add_argument("--confirm-all", action="store_true")
     c.add_argument("--kind", choices=("model", "sensor"), default="model")
     c.set_defaults(fn=cmd_contract_confirm)
+    s = sub.add_parser("evidence", help="evidence graph: record + staleness")
+    esub = s.add_subparsers(dest="eact", required=True)
+    e = esub.add_parser("record")
+    e.add_argument("--root", default=".")
+    e.set_defaults(fn=cmd_evidence_record)
+    e = esub.add_parser("status")
+    e.add_argument("--root", default=".")
+    e.add_argument("--format", choices=("text", "json"), default="text")
+    e.set_defaults(fn=cmd_evidence_status)
     return p
 
 
