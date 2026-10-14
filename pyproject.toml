@@ -21,19 +21,22 @@ dependencies = []
 # Bounds are narrowed to versions the test suite was actually verified against
 # on 2026-10-14 (Python 3.10.16 / 3.11.13 / 3.12.9, macOS arm64):
 #   torch 2.14.1, numpy 2.2.6 / 2.4.6 / 2.5.4, pyyaml 6.0.3, pytest 9.1.1,
-#   matplotlib 3.11.2.
+#   matplotlib 3.11.2 (py3.11+) / 3.10.9 (py3.10).
 # Lower bounds below those versions are promises that were NOT tested.
 # requirements-lock.txt pins the exact verified environment.
 torch = ["torch>=2.14.1,<3.0", "numpy>=2.2.6,<3.0"]
 # YAML contract files (validate/confirm on .yaml contracts).
 yaml = ["pyyaml>=6.0.3,<7.0"]
 # Everything needed to run the full test suite and reproduce every result.
+# matplotlib dropped Python 3.10 support after 3.10.x, so the bound is
+# marker-split: 3.10 installs the verified 3.10.9, 3.11+ the verified 3.11.2.
 dev = [
     "torch>=2.14.1,<3.0",
     "numpy>=2.2.6,<3.0",
     "pyyaml>=6.0.3,<7.0",
     "pytest>=9.1.1,<10.0",
-    "matplotlib>=3.11.2,<4.0",
+    "matplotlib>=3.11.2,<4.0; python_version >= '3.11'",
+    "matplotlib>=3.10.9,<3.11; python_version < '3.11'",
 ]
 # Serial flashing for physical hardware targets. NOTE: pyserial was never
 # exercised in this environment (no device attached); this range is
