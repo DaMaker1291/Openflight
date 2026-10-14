@@ -1,12 +1,12 @@
-# Reproducing OpenFlight v0.1 (independent reproduction guide)
+# Reproducing OpenFlight (independent reproduction guide)
 
 For a reviewer reproducing from a clean checkout. No hardware needed; no
 engineering-time claims are tested here.
 
 ## Prerequisites
 
-- Python 3.11+ with `torch`, `numpy`, `pytest`, `matplotlib`
-  (`pip install torch numpy pytest matplotlib`)
+- Python 3.11+ with `torch`, `numpy`, `pytest`, `matplotlib`, `pyyaml`
+  (`pip install torch numpy pytest matplotlib pyyaml`)
 - A host C++ compiler (`c++`) and C compiler (`cc`) for the harness tests
 - The model files at the repo root: `learned_observer.pt`, `ppo_best.pt`,
   `examples/mlp_observer/model_weights.pt`
@@ -20,9 +20,14 @@ engineering-time claims are tested here.
    `source_files` hashes and `models` hashes against
    `results/freeze_v0.1.json`. Any source change shows up as a hash mismatch.
 3. Run the full evaluation: `python3 openflight/repro.py`.
-   This executes all 95 regression tests plus the held-out challenge, then
+   This executes all 162 regression tests plus the held-out challenge, then
    verifies each JSON report in `results/` against the claimed result.
-   Expected final line: `REPRODUCTION OK`.
+   Expected final line: `REPRODUCTION OK`. On success it also records the
+   evidence graph to `results/evidence.json`.
+4. (Optional) Inspect staleness: `python3 -m openflight.cli evidence status`.
+   Expected: `all checks fresh`, exit 0. Mutate any input artifact (a weight
+   file, a contract, one line of checker code) and re-run — exactly the
+   checks that read it report `stale`.
 
 ## What is verified
 
