@@ -1,0 +1,30 @@
+name: openflight
+on:
+  push:
+    paths: ["openflight/**", "firmware/**", "tests/openflight/**",
+            "examples/mlp_observer/**", "examples/quadrotor_adapter/**"]
+  pull_request:
+    paths: ["openflight/**", "firmware/**", "tests/openflight/**"]
+  workflow_dispatch:
+
+jobs:
+  host-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install numpy pytest
+      - run: python3 openflight/repro.py
+
+  firmware-cross:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install numpy
+      - run: sh firmware/check_cross.sh --require

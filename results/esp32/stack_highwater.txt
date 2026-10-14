@@ -1,0 +1,2 @@
+STACK_HIGHWATER_BYTES=6152 (after 200-window selftest, before protocol loop)
+

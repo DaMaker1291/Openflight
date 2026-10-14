@@ -1,0 +1,43 @@
+<html><head><title>OpenFlight benchmark</title></head><body>
+<h1>OpenFlight benchmark report</h1>
+<h2>Latency (us)</h2><pre>{
+  "n": 1000,
+  "min_us": 1.0,
+  "median_us": 1.0,
+  "p95_us": 2.0,
+  "p99_us": 2.0,
+  "max_us": 2.0,
+  "mean_us": 1.461,
+  "std_us": 0.49847667949463803,
+  "deadline_us": 1000.0,
+  "deadline_misses": 0,
+  "deadline_miss_rate": 0.0,
+  "timer": "clock_gettime(CLOCK_MONOTONIC); predict-only, serial excluded"
+}</pre>
+<h2>Correctness</h2><pre>{
+  "max_abs_err": 7.450580596923828e-08,
+  "mean_abs_err": 1.0490873059154637e-08,
+  "atol": 0.001,
+  "pass": true
+}</pre>
+<h2>Memory</h2><pre>{
+  "weight_bytes": 20748,
+  "activation_bytes": 512,
+  "source": "estimated (compiler plan; verify with target linker map)",
+  "target": "host",
+  "timer": "clock_gettime(CLOCK_MONOTONIC)",
+  "target_measured": "not measured (no hardware attached in this run)"
+}</pre>
+<h2>Manifest</h2><pre>{
+  "schema_version": 1,
+  "model_sha": "b02e4c9be568bf122543bd10cf442a085a61bd23ae092648fc58b7df3a151f80",
+  "header_sha": "d28ee2118940d68f",
+  "source_sha": "039f5684d613cf5f",
+  "target": "host",
+  "timer": "clock_gettime(CLOCK_MONOTONIC)",
+  "runs": 1000,
+  "deadline_us": 1000.0,
+  "toolchain": "c++",
+  "note": "host Level-1 benchmark; MCU timing requires --flash on hardware"
+}</pre>
+</body></html>

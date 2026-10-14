@@ -1,0 +1,9 @@
+# Wokwi simulation project for the OpenFlight ESP32 bench firmware.
+# Run:  WOKWI_CLI_TOKEN=<token> wokwi-cli firmware/esp32/wokwi --timeout 120
+# The firmware speaks the binary OpenFlight protocol on UART0; the boot
+# SELFTEST line ("SELFTEST ... PASS") is the CI-parseable health signal.
+[wokwi]
+version = 1
+# Built by firmware/esp32/build.sh (idf.py build, ESP-IDF v5.3.2, esp32).
+firmware = "../build/openflight_bench.bin"
+elf = "../build/openflight_bench.elf"

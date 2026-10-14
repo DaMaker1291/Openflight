@@ -1,0 +1,62 @@
+name: openflight-esp32
+# ESP32 target: real toolchain build + emulated execution + (opt-in) Wokwi.
+# QEMU job needs no secrets (Espressif QEMU is open tooling). The Wokwi job
+# needs a WOKWI_CLI_TOKEN secret and skips gracefully without it.
+on:
+  push:
+    paths: ["openflight/**", "firmware/**", "tests/openflight/**",
+            "examples/**", ".github/workflows/openflight-esp32.yml"]
+  pull_request:
+    paths: ["openflight/**", "firmware/**", "tests/openflight/**"]
+  workflow_dispatch:
+
+jobs:
+  esp32-build-and-qemu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install torch numpy --index-url https://download.pytorch.org/whl/cpu
+      - name: Install ESP-IDF toolchain (esp32 + qemu)
+        run: |
+          git clone --depth 1 --branch v5.3.2 https://github.com/espressif/esp-idf.git /tmp/esp-idf
+          (cd /tmp/esp-idf && ./install.sh esp32)
+          /tmp/esp-idf/tools/idf_tools.py --non-interactive install qemu-xtensa || true
+      - name: Build bench firmware
+        run: |
+          export IDF_PATH=/tmp/esp-idf
+          bash firmware/esp32/build.sh
+      - name: Run emulated firmware (scenarios A-D + parity)
+        run: |
+          export PATH="$HOME/.espressif/tools/qemu-xtensa/esp_develop_9.0.0_20240606/qemu/bin:$PATH"
+          python3 firmware/esp32/qemu_test.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esp32-evidence
+          path: |
+            results/esp32/
+            firmware/esp32/build/openflight_bench.map
+
+  wokwi:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.WOKWI_CLI_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install torch numpy --index-url https://download.pytorch.org/whl/cpu
+      - name: Install ESP-IDF toolchain
+        run: |
+          git clone --depth 1 --branch v5.3.2 https://github.com/espressif/esp-idf.git /tmp/esp-idf
+          (cd /tmp/esp-idf && ./install.sh esp32)
+      - name: Build bench firmware
+        run: |
+          export IDF_PATH=/tmp/esp-idf
+          bash firmware/esp32/build.sh
+      - name: Install wokwi-cli
+        run: curl -L https://wokwi.com/ci/install.sh | sh
+      - name: Run Wokwi simulation
+        env:
+          WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+        run: python3 firmware/esp32/sim_test.py

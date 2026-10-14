@@ -1,0 +1,261 @@
+{
+  "seed": 999,
+  "summary": {
+    "valid": {
+      "n": 9,
+      "correct": 9,
+      "diag_correct": 9
+    },
+    "invalid": {
+      "n": 8,
+      "correct": 8,
+      "diag_correct": 8
+    },
+    "ambiguous": {
+      "n": 4,
+      "correct": 4,
+      "diag_correct": 4
+    }
+  },
+  "cases": [
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=kilometres_per_hour aff=False q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=metres_per_second aff=True q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=metres vel=kilometres_per_hour aff=False q=wxyz gyro=rad/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=kilometres_per_hour aff=True q=xyzw gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=metres vel=kilometres_per_hour aff=True q=xyzw gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=metres_per_second aff=True q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=metres_per_second aff=False q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=metres vel=metres_per_second aff=False q=xyzw gyro=rad/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "body-frame velocity agreement",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash on px",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch on vx",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "wx bound off-layout",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity barometer",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad norm on px",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "width sum 10 vs model 12",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "wx reads accel channel",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler sensor vs quat model",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "position units undocumented",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "velocity frame undocumented, model requires body",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering undocumented",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "gyro bias required, unconfigured",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    }
+  ]
+}

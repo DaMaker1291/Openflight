@@ -1,0 +1,1804 @@
+{
+  "seed": 777001,
+  "scoring": "valid->pass; invalid->blocked+code; ambiguous->blocked+U-code",
+  "summary": {
+    "valid": {
+      "n": 60,
+      "correct": 60,
+      "diag_correct": 60,
+      "failures": []
+    },
+    "invalid": {
+      "n": 64,
+      "correct": 64,
+      "diag_correct": 64,
+      "failures": []
+    },
+    "ambiguous": {
+      "n": 32,
+      "correct": 32,
+      "diag_correct": 32,
+      "failures": []
+    }
+  },
+  "cases": [
+    {
+      "category": "valid",
+      "fault": "combo-0",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-1",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-2",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-3",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-4",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-5",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-6",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-7",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-8",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-9",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-10",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-11",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-12",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-13",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-14",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-15",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-16",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-17",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-18",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-19",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-20",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-21",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-22",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-23",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-24",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-25",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-26",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-27",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-28",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-29",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-30",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-31",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-32",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-33",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-34",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-35",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-36",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-37",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-38",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-39",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-40",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-41",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-42",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-43",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-44",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-45",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-46",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-47",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-48",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-49",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-50",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-51",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-52",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-53",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-54",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-55",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-56",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-57",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-58",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "combo-59",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-0",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-1",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-2",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-3",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-4",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-5",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-6",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-7",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-8",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-9",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-10",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "off-layout binding-11",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-12",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-13",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-14",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-15",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-16",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-17",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-18",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-19",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-20",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-21",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-22",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-23",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-24",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-25",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-26",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-27",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-28",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-29",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-30",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-31",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "off-layout binding-32",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-33",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-34",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-35",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-36",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-37",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-38",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-39",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "off-layout binding-40",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "off-layout binding-41",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-42",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "bad normalization-43",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E201",
+      "codes": [
+        "E201"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-44",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-45",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "off-layout binding-46",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-47",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-48",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-49",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-50",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "dimension clash-51",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-52",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "euler vs quaternion-53",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E402",
+      "codes": [
+        "E402"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-54",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-55",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-56",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-57",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-58",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "swapped units-59",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E101",
+      "codes": [
+        "E101",
+        "E102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "frame mismatch-60",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E301",
+      "codes": [
+        "E301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-61",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "size mismatch-62",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E203",
+      "codes": [
+        "E203"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "invalid",
+      "fault": "unknown quantity-63",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E401",
+      "codes": [
+        "E401"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-0",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-1",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-2",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-3",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-4",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-5",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-6",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-7",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-8",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor units missing-9",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-10",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-11",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-12",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-13",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-14",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "frame required but undocumented-15",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-16",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor units missing-17",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-18",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-19",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-20",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-21",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-22",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-23",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "unknown unit string-24",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U101",
+      "codes": [
+        "U101",
+        "U101"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-25",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-26",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-27",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301",
+        "U301",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "bias required, unconfigured-28",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "E302",
+      "codes": [
+        "E302"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "sensor frame missing-29",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U301",
+      "codes": [
+        "U301",
+        "U301",
+        "U301"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-30",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "ambiguous",
+      "fault": "quat ordering missing-31",
+      "expected": "blocked",
+      "got": "blocked",
+      "expected_code": "U102",
+      "codes": [
+        "U102"
+      ],
+      "ok": true,
+      "diag_ok": true
+    }
+  ]
+}

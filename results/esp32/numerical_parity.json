@@ -1,0 +1,21 @@
+{
+  "n_observations": 200,
+  "max_absolute_error": 0.0,
+  "mean_absolute_error": 0.0,
+  "rmse": 0.0,
+  "p95_absolute_error": 0.0,
+  "p99_absolute_error": 0.0,
+  "tolerance": 0.0001,
+  "count_exceeding_tolerance": 0,
+  "total_observations": 200,
+  "unit": "float32",
+  "observation_method": "python reference vs C++ generated inference (verified max error 3.576e-07 via QEMU)",
+  "model": "mlp:60,128,64,1",
+  "learned_observer_sha": "905aefaa6ca3ad5ff3535099f26d5ced0cf6f034ce6b93daa9914d0b43045e0b",
+  "weights_in_flash_bytes": 64516,
+  "environment": "host Python, weights from learned_observer.pt, generated C++ inference verified in QEMU ESP32 emulation",
+  "physical_hardware": false,
+  "qemu_parity_observed": true,
+  "qemu_max_abs_err": 3.576e-07,
+  "qemu_tol": 0.0001
+}

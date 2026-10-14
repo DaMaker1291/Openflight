@@ -1,0 +1,30 @@
+{
+  "latency": {
+    "n": 2000,
+    "min_us": 5.0,
+    "median_us": 6.0,
+    "p95_us": 7.0,
+    "p99_us": 18.0,
+    "max_us": 60.0,
+    "mean_us": 6.308,
+    "std_us": 2.4558371281499918,
+    "deadline_us": 1000.0,
+    "deadline_misses": 0,
+    "deadline_miss_rate": 0.0,
+    "timer": "clock_gettime(CLOCK_MONOTONIC); predict-only, serial excluded"
+  },
+  "correctness": {
+    "max_abs_err": 1.7881393432617188e-07,
+    "mean_abs_err": 2.8901267157266375e-08,
+    "atol": 0.001,
+    "pass": true
+  },
+  "memory": {
+    "weight_bytes": 64516,
+    "activation_bytes": 1024,
+    "source": "estimated (compiler plan; verify with target linker map)",
+    "target": "host",
+    "timer": "clock_gettime(CLOCK_MONOTONIC)",
+    "target_measured": "not measured (no hardware attached in this run)"
+  }
+}

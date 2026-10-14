@@ -1,0 +1,44 @@
+schema_version: 2
+model:
+  name: quad_imu6
+  input_size: 6
+  dtype: float32
+# Flat raw sensor vector as the firmware provides it.
+raw_layout:
+  - {quantity: acceleration, component: x}
+  - {quantity: acceleration, component: y}
+  - {quantity: acceleration, component: z}
+  - {quantity: angular_velocity, component: x}
+  - {quantity: angular_velocity, component: y}
+  - {quantity: angular_velocity, component: z}
+features:
+  - name: acc_x
+    source: {quantity: acceleration, component: x}
+    units: metres_per_second_squared
+    frame: null
+    normalization: {method: affine, scale: 0.05, offset: 0.0}
+  - name: acc_y
+    source: {quantity: acceleration, component: y}
+    units: metres_per_second_squared
+    frame: null
+    normalization: {method: affine, scale: 0.05, offset: 0.0}
+  - name: acc_z
+    source: {quantity: acceleration, component: z}
+    units: metres_per_second_squared
+    frame: null
+    normalization: {method: affine, scale: 0.05, offset: 0.0}
+  - name: gyro_x
+    source: {quantity: angular_velocity, component: x}
+    units: radians_per_second
+    frame: body
+    normalization: {method: affine, scale: 0.1, offset: 0.0}
+  - name: gyro_y
+    source: {quantity: angular_velocity, component: y}
+    units: radians_per_second
+    frame: body
+    normalization: {method: affine, scale: 0.1, offset: 0.0}
+  - name: gyro_z
+    source: {quantity: angular_velocity, component: z}
+    units: radians_per_second
+    frame: body
+    normalization: {method: affine, scale: 0.1, offset: 0.0}

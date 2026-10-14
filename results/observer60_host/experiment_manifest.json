@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "model_sha": "905aefaa6ca3ad5ff3535099f26d5ced0cf6f034ce6b93daa9914d0b43045e0b",
+  "header_sha": "ef647ef961d223d9",
+  "source_sha": "1e447605178c8cb3",
+  "target": "host",
+  "timer": "clock_gettime(CLOCK_MONOTONIC)",
+  "runs": 2000,
+  "deadline_us": 1000.0,
+  "toolchain": "c++",
+  "note": "host Level-1 benchmark; MCU timing requires --flash on hardware"
+}

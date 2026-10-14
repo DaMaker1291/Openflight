@@ -1,0 +1,11 @@
+# OpenFlight ESP32 bench firmware defaults (ESP32 devkit, Wokwi-compatible).
+CONFIG_IDF_TARGET="esp32"
+# Quiet boot + no console on UART0: the binary OpenFlight protocol owns the
+# UART. ROM-mask output (~6 lines) still prints at reset; the host driver
+# resyncs by scanning for a valid frame (see firmware/esp32/README.md).
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
+CONFIG_ESP_CONSOLE_NONE=y
+CONFIG_LOG_DEFAULT_LEVEL_NONE=y
+# Main task needs headroom for the 60->128->64->1 inference stack buffers.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y

@@ -1,0 +1,19 @@
+schema_version: 1
+state:
+  position:
+    frame: world
+    units: metres
+  velocity:
+    frame: world
+    units: metres_per_second
+  orientation:
+    representation: quaternion
+    ordering: wxyz
+  angular_velocity:
+    frame: body
+    units: radians_per_second
+imu:
+  accelerometer:
+    units: metres_per_second_squared
+  gyroscope:
+    units: radians_per_second
