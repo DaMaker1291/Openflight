@@ -74,7 +74,39 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from macondo_hover import Airframe, drag_force, pick_gains, G
-from openrescue.metrics import bootstrap_ci
+
+
+# Local statistics helpers. Originally imported from openrescue.metrics
+# (bootstrap_ci / interquartile_mean, IQM + 95% bootstrap CI, Agarwal et al.
+# 2021). Inlined here so this fixture module is self-contained and does not
+# import across the OpenRescue/OpenFlight repo boundary; the aggregation
+# method is unchanged.
+def interquartile_mean(values):
+    """Trimmed mean over the interquartile range."""
+    v = np.asarray(values, dtype=np.float64)
+    if v.size == 0:
+        return float("nan")
+    if v.size < 4:
+        return float(np.mean(v))
+    q1, q3 = np.quantile(v, [0.25, 0.75])
+    iqr = v[(v >= q1) & (v <= q3)]
+    if iqr.size == 0:
+        return float(np.mean(v))
+    return float(np.mean(iqr))
+
+
+def bootstrap_ci(values, n_resamples=1000, alpha=0.05, seed=42):
+    """Percentile bootstrap CI of the IQM. Returns (iqm, ci_low, ci_high)."""
+    v = np.asarray(values, dtype=np.float64)
+    if v.size == 0:
+        return (float("nan"), float("nan"), float("nan"))
+    rng = np.random.default_rng(seed)
+    n = v.size
+    stats = np.empty(n_resamples)
+    for b in range(n_resamples):
+        stats[b] = interquartile_mean(v[rng.integers(0, n, size=n)])
+    lo, hi = np.quantile(stats, [alpha / 2, 1 - alpha / 2])
+    return (float(np.mean(stats)), float(lo), float(hi))
 
 LOOP_HZ = 1000
 W = 20          # feature window (steps, = ms at 1 kHz)
@@ -949,7 +981,7 @@ def main() -> None:
             protocol=dict(seeds=args.seeds,
                           identical_draws=True,
                           aggregation="IQM + 95% bootstrap CI "
-                                     "(openrescue.metrics.bootstrap_ci, "
+                                     "(local bootstrap_ci, "
                                      "Agarwal et al. 2021)",
                           scenarios=list(SCENARIOS.keys())),
             retrain_loop=retrain_info,

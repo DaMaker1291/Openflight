@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openflight"
+version = "0.2.0"
+description = "Fail-closed deployment toolkit: PyTorch policies to microcontrollers with sensor-contract validation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+# Core is dependency-light on purpose: the contract checker, the draft layer,
+# the gym/ros2 importers, and the evidence graph are torch- and numpy-free, so
+# `openflight validate` / `import` / `evidence` run without a 1.5 GB download.
+# PyTorch is only needed to load weights (inspect/compile/benchmark/deploy).
+dependencies = []
+
+[project.optional-dependencies]
+# Weight loading + the compiler/benchmark path (inspect/compile/benchmark/deploy).
+# Lower bounds are the versions the test suite was last verified against
+# (see requirements-lock.txt for the exact verified set).
+torch = ["torch>=2.0,<3.0", "numpy>=1.24,<3.0"]
+# YAML contract files (validate/confirm on .yaml contracts).
+yaml = ["pyyaml>=6.0,<7.0"]
+# Everything needed to run the full test suite and reproduce every result.
+dev = [
+    "torch>=2.0,<3.0",
+    "numpy>=1.24,<3.0",
+    "pyyaml>=6.0,<7.0",
+    "pytest>=7.0,<10.0",
+    "matplotlib>=3.7,<4.0",
+]
+# Serial flashing for physical hardware targets.
+hardware = ["pyserial>=3.5,<4.0"]
+
+[project.scripts]
+openflight = "openflight.cli:console_main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["openflight*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/openflight"]

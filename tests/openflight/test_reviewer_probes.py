@@ -156,6 +156,7 @@ def test_probe6_units_and_norm_have_distinct_codes():
 def test_probe7_deploy_without_contracts_warns_loudly(tmp_path, capsys):
     """The contract gate is opt-in; deploying without contracts must print
     an explicit WARNING to stderr (and still record 'skipped')."""
+    pytest.importorskip("torch")  # full deploy (rc 0) compiles + runs the model
     import json
     import os
     from openflight import cli

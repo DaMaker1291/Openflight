@@ -108,5 +108,5 @@ the three model files; no network/MCU/toolchain. Steps:
 `git clone`, optionally verify `openflight/freeze.py` hashes against
 `results/freeze_v0.1.json`, then `python3 openflight/repro.py` — expected
 final line `REPRODUCTION OK` (verified this environment).
-Full instructions + failure-reporting checklist: `openflight/REPRODUCE.md`.
-Hardware run when available: `openflight/HARDWARE_PLAN.md`.
+Full instructions + failure-reporting checklist: `docs/REPRODUCE.md`.
+Hardware run when available: `docs/HARDWARE_PLAN.md`.

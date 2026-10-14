@@ -2,12 +2,21 @@
 
 > **Correction (2026-10-14): the tarball below was never created.** The
 > freeze that actually exists and is verified is the manifest
-> `results/freeze_v0.1.json` (62 SHA-256s). Verified against the tree:
-> 47 files unchanged, 15 diverged (the documented v0.2 changes), 0
-> missing — see `reproduction/freeze_v0.1_manifest_verification.log`.
-> The "do not modify this archive" policy is void; from here, git tags
-> are the freeze mechanism. The remainder of this file is retained as
-> the originally intended snapshot description.
+> `results/freeze_v0.1.json` — 65 SHA-256 hashes (62 `source_files` +
+> 3 `models`), not 62. Verified against the original repo tree: 48 files
+> unchanged, 17 diverged (the documented v0.2 development), 0 missing.
+>
+> The v0.1 tree was **never committed**: the manifest records
+> `git_head: d0d070a` with every OpenFlight path still untracked (`??`).
+> The freeze is a content-addressed snapshot, not a git commit, so no tag
+> can point at it. Two tags in the original repo record what exists:
+> `openflight-v0.1-freeze-tree` → `d0d070a` (the commit the freeze was
+> taken at) and `openflight-v0.2-first-tracked` → `fce517a` (first commit
+> tracking the tree). See `docs/COMMIT_MAP.md`.
+>
+> The "do not modify this archive" policy is void; from here, git tags are
+> the freeze mechanism. The remainder of this file is retained as the
+> originally intended snapshot description.
 
 Archive (never created): `openflight-v0.1.tar.gz`
 SHA-256 (of a file that does not exist): `121f421e885fd86c67c61022d14b865c8c25e3dc77154e45d048a38aa731c18f`
@@ -25,8 +34,9 @@ all seven `results/*.json` reports, `results/freeze_v0.1.json`,
 
 ## Verification performed
 
-1. All 62 `freeze_v0.1.json` source hashes match archive bytes exactly
-   (0 missing, 0 mismatched).
+1. All 65 `freeze_v0.1.json` hashes (62 `source_files` + 3 `models`)
+   match the original repo tree exactly (48 unchanged, 17 diverged from
+   documented v0.2 work, 0 missing).
 2. Archive extracted to an empty directory and `openflight/repro.py` run
    there: full suite passes and every reported result regenerates —
    `REPRODUCTION OK`. This check caught and fixed one real omission (the

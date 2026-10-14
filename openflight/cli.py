@@ -6,15 +6,74 @@ import json
 import os
 import sys
 
-import torch
-
 from openflight.errors import OpenFlightError
+
+
+def _require_torch(stage: str):
+    """Diagnose a missing PyTorch for the subcommands that need to load
+    weights (inspect/compile/benchmark/deploy). Contract validation, the
+    importers, and the evidence graph are torch-free and never call this.
+
+    Returns the imported torch module so callers can bind it locally.
+    """
+    try:
+        import torch
+    except ImportError as e:
+        raise OpenFlightError(
+            stage, "E050",
+            f"PyTorch is required for `{stage}` but is not installed",
+            "this environment",
+            f"importing torch failed: {e}. `{stage}` loads model weights, "
+            "which needs torch; contract validation, import, and evidence "
+            "do not.",
+            "pip install 'openflight[torch]' (or pip install torch), "
+            "then re-run.",
+            exit_code=5) from e
+    return torch
+
+
+def _validate_arch(name):
+    """Parse/validate an --arch string without importing torch.
+
+    Returns None for named example arches, or the parsed dims for mlp:.
+    Raises ValueError for malformed/unknown arch strings.
+    """
+    if not name or name in ("observer60", "disturbance12"):
+        return
+    if name.startswith("mlp:"):
+        try:
+            dims = [int(d) for d in name[4:].split(",")]
+            if len(dims) < 2 or not all(d > 0 for d in dims):
+                raise ValueError
+        except ValueError:
+            raise ValueError(f"bad --arch {name!r}; want mlp:d0,d1,...,dn")
+        return
+    raise ValueError(f"unknown --arch {name} (observer60|disturbance12|mlp:dims)")
+
+
+def _arch_error(name, exc):
+    return OpenFlightError("cli", "E012", f"unknown architecture: {exc}",
+                           where=f"--arch {name}",
+                           why="Arch must be observer60, disturbance12, or "
+                               "mlp:d0,d1,...,dn.",
+                           action="Run with a supported --arch value.")
+
+
+def _check_arch(name):
+    """Torch-free --arch validation (E012) for pre-torch-gate checks."""
+    if not name:
+        return
+    try:
+        _validate_arch(name)
+    except ValueError as e:
+        raise _arch_error(name, e) from e
 
 
 def _arch_for_example(name: str):
     import torch.nn as nn
+    _validate_arch(name)
     if name == "observer60":
-        return torch.nn.Sequential(
+        return nn.Sequential(
             nn.Linear(60, 128), nn.ReLU(), nn.Linear(128, 64), nn.ReLU(),
             nn.Linear(64, 1))
     if name == "disturbance12":
@@ -27,22 +86,16 @@ def _arch_for_example(name: str):
             def forward(self, x):
                 return self.network(x)
         return DisturbanceObserver()
-    if name.startswith("mlp:"):
-        # generic MLP, e.g. mlp:6,16,2 -> Linear(6,16)+ReLU+Linear(16,2).
-        # Lets any feed-forward researcher model reach the contract gate
-        # without editing the CLI.
-        try:
-            dims = [int(d) for d in name[4:].split(",")]
-            assert len(dims) >= 2 and all(d > 0 for d in dims)
-        except Exception:
-            raise ValueError(f"bad --arch {name!r}; want mlp:d0,d1,...,dn")
-        layers = []
-        for k in range(len(dims) - 1):
-            layers.append(nn.Linear(dims[k], dims[k + 1]))
-            if k < len(dims) - 2:
-                layers.append(nn.ReLU())
-        return nn.Sequential(*layers)
-    raise ValueError(f"unknown --arch {name} (observer60|disturbance12|mlp:dims)")
+    # mlp:d0,d1,...,dn -> Linear(d0,d1)+ReLU+...+Linear(dn-1,dn).
+    # Lets any feed-forward researcher model reach the contract gate
+    # without editing the CLI.
+    dims = [int(d) for d in name[4:].split(",")]
+    layers = []
+    for k in range(len(dims) - 1):
+        layers.append(nn.Linear(dims[k], dims[k + 1]))
+        if k < len(dims) - 2:
+            layers.append(nn.ReLU())
+    return nn.Sequential(*layers)
 
 
 def _resolve_arch(name):
@@ -51,21 +104,19 @@ def _resolve_arch(name):
     try:
         return _arch_for_example(name)
     except ValueError as e:
-        raise OpenFlightError("cli", "E012", f"unknown architecture: {e}",
-                              where=f"--arch {name}",
-                              why="Arch must be observer60, disturbance12, or "
-                                  "mlp:d0,d1,...,dn.",
-                              action="Run with a supported --arch value.") from e
+        raise _arch_error(name, e) from e
 
 
 def cmd_inspect(a):
-    from openflight.compiler import loader, graph as G, validation as V
-    arch = _resolve_arch(a.arch)
     if not os.path.exists(a.model):
         raise OpenFlightError("inspect", "E010", f"model file not found: {a.model}",
                               where=a.model,
                               why="inspect needs a weights file (.pt state_dict).",
                               action="Check the path, or run the quickstart example.")
+    _check_arch(a.arch)
+    torch = _require_torch("inspect")
+    arch = _resolve_arch(a.arch)
+    from openflight.compiler import loader, graph as G, validation as V
     try:
         model, meta = loader.load_model(arch, a.model)
     except ValueError as e:
@@ -94,13 +145,15 @@ def cmd_inspect(a):
 
 
 def cmd_compile(a):
-    from openflight.compiler.api import compile_model
     if not os.path.exists(a.model):
         raise OpenFlightError("compile", "E010", f"model file not found: {a.model}",
                               where=a.model,
                               why="compile needs a weights file.",
                               action="Check the path or run the quickstart example.")
+    _check_arch(a.arch)
+    torch = _require_torch("compile")
     arch = _resolve_arch(a.arch)
+    from openflight.compiler.api import compile_model
     ex = None
     if a.input_size:
         ex = torch.zeros(1, a.input_size)
@@ -129,8 +182,6 @@ def cmd_compile(a):
 
 
 def cmd_benchmark(a):
-    from openflight.compiler.api import compile_model
-    from openflight.benchmark import runner, memory as M, reports as R
     from openflight.targets.registry import get
     try:
         tgt = get(a.target)
@@ -139,7 +190,16 @@ def cmd_benchmark(a):
                               where=f"--target {a.target}",
                               why="Unknown deployment target.",
                               action="Choose a listed target.") from e
+    if not os.path.exists(a.model):
+        raise OpenFlightError("benchmark", "E010", f"model file not found: {a.model}",
+                              where=a.model,
+                              why="benchmark needs a weights file.",
+                              action="Check the path or run the quickstart example.")
+    _check_arch(a.arch)
+    torch = _require_torch("benchmark")
     arch = _resolve_arch(a.arch)
+    from openflight.compiler.api import compile_model
+    from openflight.benchmark import runner, memory as M, reports as R
     builddir = a.build or os.path.join("build", "bench")
     ex = torch.zeros(1, a.input_size) if a.input_size else None
     out = compile_model(arch, a.model, builddir, ex)
@@ -268,23 +328,43 @@ def cmd_doctor(a):
     print("  - A missing cross-compiler means cross-compilation was NOT performed,")
     print("    not that the target is supported. Hardware flashing is opt-in.")
     print("  - Host-only checks are marked as such in every report.")
-    missing_core = [n for n, s in rows[:3] if s == "missing"]
+    missing_core = [n for n, s in rows[:1] if s == "missing"]
+    optional_missing = [n for n, s in rows[1:8] if s == "missing"]
+    _opt_hint = {
+        "torch": "weight-loading (inspect/compile/benchmark/deploy); "
+                 "pip install 'openflight[torch]'",
+        "numpy": "weight-loading and numeric adapters; "
+                 "pip install 'openflight[torch]'",
+        "pyyaml (optional, contracts)": "YAML contract parsing; "
+                                        "pip install 'openflight[yaml]'",
+        "pyserial (optional, hardware)": "hardware flashing; "
+                                         "pip install 'openflight[hardware]'",
+        "host C++ compiler": "host_sim firmware build",
+        "arm-none-eabi-g++ (Cortex-M)": "Cortex-M cross-compile",
+        "xtensa-esp32-elf-g++ (ESP32)": "ESP32 cross-compile",
+    }
+    if optional_missing:
+        print("\nOptional components not installed (some features unavailable):")
+        for n in optional_missing:
+            print(f"  - {n}: {_opt_hint.get(n, 'optional feature')}")
     if missing_core:
         raise OpenFlightError("doctor", "E050",
                               f"missing core dependencies: {', '.join(missing_core)}",
                               where="python environment",
-                              why="torch and numpy are required.",
-                              action="pip install ./dist-openflight", exit_code=5)
+                              why="python itself is unavailable, so no "
+                                  "OpenFlight command can run.",
+                              action="Install Python 3.10+ and re-run doctor.",
+                              exit_code=5)
     return 0
 
 
 def cmd_deploy(a):
     # gated pipeline with explicit per-stage outcomes (see stages.py).
     # A pass at one stage never implies later stages.
+    # The contract-validation stage is torch-free and runs first; the
+    # torch gate only applies to weight loading (inference codegen).
     import hashlib
     import json as J
-    from openflight.compiler.api import compile_model
-    from openflight.benchmark import runner, memory as M, reports as R
     from openflight.stages import StageReport
     stages = StageReport()
 
@@ -353,7 +433,10 @@ def cmd_deploy(a):
         raise OpenFlightError("deploy", "E010", f"model file not found: {a.model}",
                               where=a.model, why="deploy needs a weights file.",
                               action="Check the path or run the quickstart.")
+    _check_arch(a.arch)
+    torch = _require_torch("deploy")
     arch = _resolve_arch(a.arch)
+    from openflight.compiler.api import compile_model
     ex = torch.zeros(1, a.input_size) if a.input_size else None
     try:
         out = compile_model(arch, a.model, a.output, ex)
@@ -384,6 +467,7 @@ def cmd_deploy(a):
                          {"model": a.model})
             return 2
     try:
+        from openflight.benchmark import runner
         res = runner.run_host(out["model"], a.output, runs=1000,
                               deadline_us=a.deadline_us)
         stages.record("host_compilation", "pass", evidence="host c++ -O2 build")

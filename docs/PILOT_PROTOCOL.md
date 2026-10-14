@@ -23,8 +23,8 @@ Everything runs on a laptop in ~10–15 minutes of compute; the human task is
 ## Phase 0 — install
 
 ```bash
-pip install ./dist-openflight            # core (torch, numpy)
-pip install ./dist-openflight[yaml,dev]  # + pyyaml, pytest
+pip install .[dev]            # core (torch, numpy)
+pip install .[dev]  # + pyyaml, pytest
 openflight doctor                        # must exit 0, no errors
 openflight version                       # expect 0.2.0
 ```

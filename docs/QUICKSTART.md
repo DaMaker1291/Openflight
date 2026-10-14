@@ -1,7 +1,7 @@
 # OpenFlight quickstart (~5 minutes, no hardware)
 
 ```bash
-pip install ./dist-openflight
+pip install .[dev]
 openflight doctor     # confirm torch, numpy, host compiler
 openflight version
 

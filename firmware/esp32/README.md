@@ -32,5 +32,5 @@ Wokwi job skips gracefully without the token).
 
 ## Evidence
 
-`openflight/ESP32_SIM_EVALUATION.md`, `results/esp32/`. Simulator timing is
+`docs/ESP32_SIM_EVALUATION.md`, `results/esp32/`. Simulator timing is
 NOT a silicon performance claim.

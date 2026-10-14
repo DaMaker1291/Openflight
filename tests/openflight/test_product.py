@@ -6,8 +6,8 @@ the documented structure, and generation is deterministic.
 """
 import json
 import os
-import subprocess
-import sys
+
+import pytest
 
 from openflight.cli import main as cli_main
 from openflight.errors import OpenFlightError
@@ -44,6 +44,21 @@ def test_missing_files_diagnosed_not_traceback(capsys):
                    "--model-contract", MODEL_C) == 2
     assert run_cli("compile", "/nope.pt") == 2
     assert run_cli("deploy", "--model", "/nope.pt") == 2
+
+
+def test_deploy_contract_warning_fires_before_torch_gate(capsys, tmp_path):
+    """The no-contracts WARNING must fire even without torch: the contract
+    gate is torch-free and runs before weight loading (E050)."""
+    try:
+        import torch  # noqa: F401
+        pytest.skip("torch present; E050 path not reachable in this env")
+    except ImportError:
+        pass
+    rc = run_cli("deploy", "--model", W6, "--arch", "mlp:6,16,2",
+                 "--output", str(tmp_path))
+    captured = capsys.readouterr()
+    assert "WARNING: no contracts supplied" in captured.err
+    assert rc == 5  # E050: torch missing, diagnosed not traceback
 
 
 def test_unknown_arch_and_bad_args(capsys):
@@ -99,6 +114,8 @@ def _dump_yaml(path, obj):
 
 
 def test_deploy_report_structure(tmp_path):
+    # a full deploy compiles and runs the model — needs torch
+    pytest.importorskip("torch")
     outdir = str(tmp_path / "dep")
     rc = run_cli("deploy", "--model", W6, "--arch", "mlp:6,16,2",
                  "--contract", SENSOR, "--model-contract", MODEL_C,
@@ -124,6 +141,8 @@ def test_deploy_report_structure(tmp_path):
 
 
 def test_deterministic_generation(tmp_path):
+    # two full deploys compare generated artifacts — needs torch
+    pytest.importorskip("torch")
     outs = []
     for i in (1, 2):
         d = str(tmp_path / f"b{i}")

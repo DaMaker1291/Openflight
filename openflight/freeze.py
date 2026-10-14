@@ -83,7 +83,7 @@ def main():
         "models": {m: (sha256_file(ROOT / m) if (ROOT / m).exists()
                        else "missing") for m in MODEL_FILES},
         "toolchain_note": "no MCU hardware or cross-toolchain in this env; "
-                          "host-only (see openflight/HARDWARE_PLAN.md)",
+                          "host-only (see docs/HARDWARE_PLAN.md)",
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w") as f:
