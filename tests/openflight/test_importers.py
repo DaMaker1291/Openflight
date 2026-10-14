@@ -147,48 +147,62 @@ def test_ros2_unknown_type_skipped_not_crashed(tmp_path):
 
 # ---------------------------------------------------------- external golden
 
-# Transcribed from legged_gym (Rudin et al., 2022) default configuration:
-# obs = base_ang_vel (rad/s) ++ projected_gravity ++ commands
-# (lin_vel_x, lin_vel_y, ang_vel_yaw) ++ actions. Public source:
-# https://github.com/leggedrobotics/legged_gym — get_observations().
+# Transcribed VERBATIM from leggedrobotics/legged_gym master@8fa29acc6fd191
+# 0c3d9659eef6310bdd301cde0a:
+#   envs/base/legged_robot.py compute_observations() (lines 212-219):
+#     cat(base_lin_vel*2.0, base_ang_vel*0.25, projected_gravity,
+#         commands[:, :3]*commands_scale, (dof_pos-default)*1.0,
+#         dof_vel*0.05, actions)
+#   envs/base/legged_robot_config.py: obs_scales.lin_vel=2.0, ang_vel=0.25,
+#     dof_pos=1.0, dof_vel=0.05; clip_observations=100. (nonzero!);
+#     num_actions=12; num_observations=235 (= 48 blind + 187 heights).
+# The 48-dim blind configuration (measure_heights=False) is transcribed
+# here; height samples are terrain perception, not sensor-contract material.
 LEGGED_GYM_OBS = [
-    {"name": "base_ang_vel", "dim": 3},
+    {"name": "base_lin_vel", "dim": 3},    # * obs_scales.lin_vel = 2.0
+    {"name": "base_ang_vel", "dim": 3},    # * obs_scales.ang_vel = 0.25
     {"name": "projected_gravity", "dim": 3},
-    {"name": "commands", "dim": 3},   # ambiguous: lin/ang mix -> omit
-    {"name": "actions", "dim": 12},   # unknown quantity -> omit
+    {"name": "commands", "dim": 3},        # lin_vel_x, lin_vel_y, ang_vel_yaw
+    {"name": "dof_pos", "dim": 12},
+    {"name": "dof_vel", "dim": 12},        # * obs_scales.dof_vel = 0.05
+    {"name": "actions", "dim": 12},
 ]
 
 
 def test_external_golden_legged_gym_obs_passes(tmp_path):
-    """FALSE-REJECT WATCH: a public legged_gym-style obs definition imports,
+    """FALSE-REJECT WATCH: the real legged_gym 48-dim blind obs definition
+    (transcribed from master@8fa29ac, see fixture header) imports,
     confirms, and passes the checker against a matching sensor draft."""
     obs_path = tmp_path / "obs.json"
     obs_path.write_text(json.dumps(LEGGED_GYM_OBS))
     out = G.import_gym(str(obs_path), out_path=str(tmp_path / "m.draft.yaml"))
     d = out["draft"]
-    # base_ang_vel split into 3 scalars, inferred angular_velocity
+    # width accounting stays honest: 48 input slots
+    assert d["model"]["input_size"] == 48
+    # base_lin_vel + base_ang_vel + projected_gravity are proposed
+    assert [f["source"].get("quantity") for f in d["features"]
+            if f["name"].startswith("base_lin_vel")] == ["velocity"] * 3
     gyro = [f for f in d["features"] if f["name"].startswith("base_ang_vel")]
     assert len(gyro) == 3
     assert all(f["source"].get("quantity") == "angular_velocity"
                for f in gyro)
-    # projected_gravity: orientation quantity, dimensionless units
     pg = [f for f in d["features"]
           if f["name"].startswith("projected_gravity")]
     assert len(pg) == 3
     assert all(f["source"].get("quantity") == "orientation" for f in pg)
-    # ambiguous groups omitted from source; confirm cannot proceed while
-    # they exist (schema demands source.quantity) — the user's edit step
-    # drops them (commands/actions are policy inputs, not sensor facts)
-    draft_path = str(tmp_path / "m.draft.yaml")
-    d = out["draft"]
+    # ambiguous groups (commands, dof_pos, dof_vel, actions) omitted
     ambiguous = {f["name"] for f in d["features"]
                  if "quantity" not in f.get("source", {})}
     assert ambiguous
+    # user edit step drops them (policy inputs / joint state, not sensor
+    # facts the contract tracks)
+    draft_path = str(tmp_path / "m.draft.yaml")
     d["features"] = [f for f in d["features"] if f["name"] not in ambiguous]
     d["raw_layout"] = [r for r in d["raw_layout"]
                        if r.get("quantity") is not None]
     d["model"]["input_size"] = sum(
         int(f.get("width", 1)) for f in d["features"])
+    assert d["model"]["input_size"] == 9  # 3+3+3 remaining
     d["provenance"] = {k: v for k, v in d["provenance"].items()
                        if not any(a in k for a in ambiguous)}
     D.write_draft(d, draft_path)
@@ -212,8 +226,37 @@ def test_external_golden_legged_gym_obs_passes(tmp_path):
         if f["source"]["quantity"] == "angular_velocity":
             f["frame"] = "body"
             f["units"] = "radians_per_second"  # user confirms REP-103
+        if f["source"]["quantity"] == "velocity":
+            f["frame"] = "world"
+            f["units"] = "metres_per_second"   # base_lin_vel is world-frame
     rep = checker.check(s, m)
     assert rep["status"] == "pass", rep["errors"]
+
+
+def test_external_golden_legged_gym_scales_and_clip_recorded(tmp_path):
+    """The transcribed obs_scales (ang_vel=0.25 etc.) are training-time
+    multipliers the importer does NOT apply; clip_observations=100. is
+    nonzero, so a real VecNormalize stats file from this lineage will
+    carry clip -> the W301 limitation must be recorded, not just printed."""
+    obs_path = tmp_path / "obs.json"
+    stats_path = tmp_path / "stats.json"
+    obs_path.write_text(json.dumps(LEGGED_GYM_OBS[:2]))
+    # stats arrays sized for the 6 imported slots
+    stats_path.write_text(json.dumps({
+        "mean": [0.0] * 6, "var": [1.0] * 6, "epsilon": 1e-5,
+        "clip_obs": [-100.0, 100.0]}))  # matches clip_observations=100.
+    out = G.import_gym(str(obs_path), stats_path=str(stats_path))
+    assert any(w["code"] == "W301" for w in out["warnings"])
+    draft = out["draft"]
+    assert draft.get("limitations"), "W301 must be retained as a limitation"
+    assert any("W301" in lim.get("code", "") for lim in draft["limitations"])
+    # the affine provenance also states the distribution is unverified
+    norm_prov = [v for k, v in draft["provenance"].items()
+                 if "normalization" in k]
+    assert norm_prov
+    assert any("NOT verified" in p["source"] or
+               "not verified" in p["source"].lower()
+               for p in norm_prov)
 
 
 def test_external_golden_px4_frd_vs_ros_flu_blocks(tmp_path):
@@ -242,6 +285,145 @@ def test_external_golden_px4_frd_vs_ros_flu_blocks(tmp_path):
     rep = checker.check(s, m)
     assert rep["status"] == "blocked"
     assert any(e["code"] in ("E301", "U302") for e in rep["errors"])
+
+
+def test_gym_importer_never_emits_frame_values():
+    """The gym importer cannot launder frames: its drafts contain no
+    'frame' keys anywhere, so an FRD/FLU mismatch can never be papered
+    over by an importer default."""
+    import os
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        f.write(json.dumps([{"name": "IMU_gyro", "dim": 3}]))
+        p = f.name
+    try:
+        out = G.import_gym(p)
+        assert '"frame"' not in json.dumps(out["draft"])
+    finally:
+        os.unlink(p)
+
+
+def test_wrongly_confirmed_frame_still_passes_but_doubt_is_retained(tmp_path):
+    """Item-2 strengthening: a wrongly-confirmed frame (both sides blanket-
+    confirm the name 'body' while the true stacks differ FRD vs FLU) makes
+    the checker PASS — declarations are all it checks — but the sidecars
+    must retain the doubt: the ROS frame provenance keeps its REP-105
+    verify-TF origin, and blanket fields are listed as not individually
+    verified. The pass is recorded as human-accepted convention, never as
+    importer-verified fact."""
+    msg_path = tmp_path / "Imu.msg"
+    msg_path.write_text(IMU_MSG)
+    s_draft = R.import_ros2(str(msg_path), "sensor_msgs/Imu")["draft"]
+    # user fills the quartet members no .msg can provide
+    s_draft["state"]["position"] = {"frame": "world", "units": "metres"}
+    s_draft["state"]["velocity"] = {"frame": "world",
+                                    "units": "metres_per_second"}
+    s_path, s_out = str(tmp_path / "s.draft.yaml"), str(tmp_path / "s.yaml")
+    D.write_draft(s_draft, s_path)
+    D.confirm(s_path, s_out, confirm_all=True, kind="sensor")
+    s_side = json.load(open(s_out + ".provenance.json"))
+    frame_prov = s_side["provenance"]["state.angular_velocity.frame"]
+    assert frame_prov["status"] == "confirmed_blanket"
+    assert "REP-105" in frame_prov["source"]  # origin never rewritten
+    assert "TF tree" in frame_prov["source"]
+    assert ("state.angular_velocity.frame"
+            in s_side["not_individually_verified"])
+    # model side: declares the same name 'body' (as a PX4 user might)
+    m = {
+        "schema_version": 2,
+        "model": {"name": "px4_policy", "input_size": 3, "dtype": "float32"},
+        "raw_layout": [{"quantity": "angular_velocity", "component": c}
+                       for c in "xyz"],
+        "features": [
+            {"name": f"gyro_{c}",
+             "source": {"quantity": "angular_velocity", "component": c},
+             "units": "radians_per_second", "frame": "body",
+             "normalization": {"method": "none"}}
+            for c in "xyz"],
+    }
+    m = MC.validate_model_contract(m)
+    from openflight.adapters import contracts as Cmod
+    s = Cmod.load_contract(s_out)
+    rep = checker.check(s, m)
+    # same name -> checker passes; that is declaration-consistency only
+    assert rep["status"] == "pass", rep["errors"]
+
+
+def test_ros_sensor_ordering_e403_not_bypassed(tmp_path):
+    """Item 6: the importer's documented xyzw sensor ordering feeds the
+    full consistency machinery — (a) raw_layout xyzw + declared xyzw
+    passes; (b) raw_layout labelled w-first against sensor xyzw blocks
+    E403 (labels cannot both be right); (c) a quat feature with no
+    declared ordering is refused at schema load. Model-vs-sensor
+    ordering difference with CONSISTENT raw_layout is a recorded reorder
+    conversion, not a silent pass."""
+    msg_path = tmp_path / "Imu.msg"
+    msg_path.write_text(IMU_MSG)
+    s_draft = R.import_ros2(str(msg_path), "sensor_msgs/Imu")["draft"]
+    assert s_draft["state"]["orientation"]["ordering"] == "xyzw"
+    s_draft["state"]["position"] = {"frame": "world", "units": "metres"}
+    s_draft["state"]["velocity"] = {"frame": "world",
+                                    "units": "metres_per_second"}
+    s = C.validate_contract(s_draft)
+
+    def _model(layout_order, ordering):
+        feat = {"name": "quat",
+                "source": {"quantity": "orientation"},
+                "units": "dimensionless",
+                "representation": "quaternion",
+                "normalization": {"method": "none"}, "width": 4}
+        if ordering is not None:
+            feat["ordering"] = ordering
+        m = {
+            "schema_version": 2,
+            "model": {"name": "q", "input_size": 4, "dtype": "float32"},
+            "raw_layout": [{"quantity": "orientation", "component": c}
+                           for c in layout_order],
+            "features": [feat],
+        }
+        return MC.validate_model_contract(m)
+
+    # (a) consistent xyzw layout + declared xyzw -> pass
+    rep = checker.check(s, _model("xyzw", "xyzw"))
+    assert rep["status"] == "pass", rep["errors"]
+    # (b) w-first raw_layout against xyzw sensor -> E403
+    rep = checker.check(s, _model("wxyz", "wxyz"))
+    assert rep["status"] == "blocked"
+    assert any(e["code"] == "E403" for e in rep["errors"])
+    # (c) quat feature with no ordering -> the schema refuses to load it
+    # (checker-side E204 covers hand-built contracts that bypass
+    # validate_model_contract)
+    with pytest.raises(ValueError, match="ordering"):
+        _model("xyzw", None)
+
+
+def test_confirm_sidecar_lists_blanket_as_not_verified(tmp_path):
+    """Item 4: confirmed_blanket fields appear in the sidecar under
+    not_individually_verified, and the CLI prints them."""
+    obs_path = tmp_path / "obs.json"
+    draft_path = tmp_path / "m.draft.yaml"
+    out_path = tmp_path / "m.yaml"
+    obs_path.write_text(json.dumps([{"name": "IMU_gyro", "dim": 3}]))
+    G.import_gym(str(obs_path), out_path=str(draft_path))
+    from openflight import cli
+    rc = cli.main(["contract", "confirm", str(draft_path),
+                   "--out", str(out_path), "--confirm-all"])
+    assert rc == 0
+    side = json.load(open(str(out_path) + ".provenance.json"))
+    blanket = side["not_individually_verified"]
+    assert blanket == sorted(side["blanket"]) or set(blanket) == \
+        set(side["blanket"])
+    assert any("features[0].source.quantity" in b for b in blanket)
+
+
+def test_unknown_dim_entry_emits_per_slot_scalars():
+    """A dim-12 entry must not collapse into one width-1 feature (that
+    would silently corrupt input_size accounting)."""
+    d = D.propose_features([{"name": "actions", "dim": 12}])
+    assert d["model"]["input_size"] == 12
+    assert len(d["features"]) == 12
+    assert all("quantity" not in f.get("source", {})
+               for f in d["features"])
 
 
 # ---------------------------------------------------------- CLI wiring

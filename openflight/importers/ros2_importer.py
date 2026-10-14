@@ -129,6 +129,13 @@ def import_ros2(msg_path: str, msg_type: str,
         raise D.DraftError(
             f"{msg_path}: no importable fields for {msg_type!r}")
 
+    # v1 sensor schema requires the full state quartet; no .msg provides
+    # position/velocity — emit empty placeholders so confirm's schema
+    # check demands the human fill them from the real localization source
+    state = groups.setdefault("state", {})
+    for req in ("position", "velocity"):
+        state.setdefault(req, {})
+
     draft = {"schema_version": 1, **groups, "provenance": prov}
     if out_path:
         D.write_draft(draft, out_path)

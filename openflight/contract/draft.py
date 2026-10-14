@@ -38,8 +38,8 @@ _QUANTITY_KEYWORDS = (
     (("gyro", "angular", "omega", "angvel", "ang_vel"), "angular_velocity"),
     (("accel",), "acceleration"),
     (("quat", "orientation", "attitude", "gravity"), "orientation"),
+    (("lin_vel", "velocity", "speed", "xyz_vel"), "velocity"),
     (("position", "location", "xyz_pos"), "position"),
-    (("velocity", "speed", "xyz_vel"), "velocity"),
 )
 
 
@@ -99,8 +99,8 @@ def missing_provenance(draft: dict) -> list[str]:
             if not isinstance(node, dict):
                 return
             for k, v in node.items():
-                if k == "schema_version" or (prefix == "" and
-                                             k == "provenance"):
+                if k in ("schema_version", "limitations") or (
+                        prefix == "" and k == "provenance"):
                     continue
                 path = f"{prefix}.{k}" if prefix else k
                 if isinstance(v, dict):
@@ -194,7 +194,9 @@ def confirm(draft_path: str, out_path: str, confirm: list[str] | None = None,
                 "(--confirm path ...) or accept all with --confirm-all: "
                 + ", ".join(remaining))
 
-    clean = {k: v for k, v in draft.items() if k != "provenance"}
+    clean = {k: v for k, v in draft.items()
+             if k not in ("provenance", "limitations")}
+    limitations = draft.get("limitations") or []
     try:
         if kind == "model":
             from openflight.contract import model_contract as MC
@@ -208,14 +210,27 @@ def confirm(draft_path: str, out_path: str, confirm: list[str] | None = None,
         raise DraftError(f"confirmed contract fails schema validation: {e}")
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    write_draft(clean, out_path)  # clean contract (no provenance key)
+    write_draft(clean, out_path)  # clean contract (no provenance/limits)
     sidecar = {"schema_version": 1,
                "confirm_mode": "blanket" if confirm_all else "per-field",
                "confirmed": confirmed, "blanket": blanket,
+               "not_individually_verified": sorted(blanket),
+               "limitations": limitations,
                "provenance": prov}
     with open(out_path + ".provenance.json", "w") as f:
         json.dump(sidecar, f, indent=2)
+    if blanket:
+        print("not individually verified (confirmed_blanket; listed in "
+              "the sidecar under not_individually_verified):")
+        for path in sorted(blanket):
+            print(f"  {path}")
+    if limitations:
+        print("unresolved limitations carried into the sidecar "
+              "(must appear in any evidence package):")
+        for lim in limitations:
+            print(f"  [{lim.get('code', '?')}] {lim.get('reason', '')}")
     return {"confirmed": confirmed, "blanket": blanket,
+            "limitations": limitations,
             "out": out_path, "sidecar": out_path + ".provenance.json"}
 
 
@@ -313,18 +328,24 @@ def propose_features(entries: list[dict]) -> dict:
                 note_feature(i, feat, src_note)
                 raw_layout.append({"quantity": qty, "component": c}
                                   if qty is not None else {})
-        else:  # dim 1 (or unrecognized dim treated as scalar)
-            i = len(features)
-            feat = {"name": name,
-                    "source": {"quantity": qty, "component": "x"},
-                    "units": "dimensionless",
-                    "normalization": {"method": "none"}}
-            if qty is None:
-                feat["source"] = {}
-            features.append(feat)
-            note_feature(i, feat, src_note)
-            raw_layout.append({"quantity": qty, "component": "x"}
-                              if qty is not None else {})
+        else:  # dim 1, or unrecognized dim -> one scalar per slot so
+            # input_size accounting stays honest (a dim-12 actions entry
+            # must not collapse into a single width-1 feature)
+            slots = dim if dim > 1 else 1
+            for j in range(slots):
+                i = len(features)
+                sname = name if slots == 1 else f"{name}_{j}"
+                comp = "x" if slots == 1 else str(j)
+                feat = {"name": sname,
+                        "source": {"quantity": qty, "component": comp},
+                        "units": "dimensionless",
+                        "normalization": {"method": "none"}}
+                if qty is None:
+                    feat["source"] = {}
+                features.append(feat)
+                note_feature(i, feat, src_note)
+                raw_layout.append({"quantity": qty, "component": comp}
+                                  if qty is not None else {})
 
     width = sum(int(f.get("width", 1)) for f in features)
     draft = {"schema_version": 2,

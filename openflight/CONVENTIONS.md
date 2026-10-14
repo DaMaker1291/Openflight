@@ -57,26 +57,39 @@ Every row: convention, source citation, common failure mode.
 ## Frames
 
 <a id="px4-frd"></a>
-### px4-frd — PX4 base_link is FRD / NED world
-- **Convention:** PX4 `base_link` is FRD (x forward, y right, z down);
-  navigation world is NED.
-- **Source:** PX4 devguide coordinate conventions,
-  <https://docs.px4.io/main/en/ros2/user_guide.html#coordinate-frames>.
-- **Failure mode:** FRD vs REP-105 FLU is a real axis mirror, not a
-  naming preference; a model declaring PX4's frame against a ROS-imported
-  sensor must block (E301/U302), which the checker does by name mismatch.
+### px4-frd — PX4 body is FRD, ROS body is FLU (verified against source)
+- **Convention:** PX4 docs state verbatim: "Body: PX4 FRD (X Forward,
+  Y Right, Z Down); ROS FLU (X Forward, Y Left, Z Up)" and "The FRD (NED)
+  conventions are adopted on all PX4 topics unless explicitly specified."
+  FLU↔FRD is a pi rotation about X.
+- **Source:** PX4 ROS 2 User Guide, "ROS 2 & PX4 Frame Conventions"
+  (docs.px4.io/main/en/ros2/user_guide.html, fetched 2026-10-14).
+- **Failure mode:** FRD vs FLU is a real axis mirror, not a naming
+  preference; a model declaring PX4's frame against a ROS-imported
+  sensor must block (E301/U302) — and if both sides are hand-labeled
+  "body" and blanket-confirmed, the checker passes on declarations
+  alone; the provenance sidecar retains the REP-105 verify-TF origin as
+  an unresolved doubt (see test_wrongly_confirmed_frame...).
 
 <a id="isaac-lab"></a>
-### isaac-lab — Isaac Lab obs conventions
-- **Convention:** legged-gym-lineage obs include base angular velocity
-  (rad/s) and projected gravity (dimensionless direction cosines);
-  quaternion orientations are wxyz (MuJoCo lineage).
-- **Source:** Isaac Lab / legged_gym public repositories,
-  <https://github.com/isaac-sim/isaacslab>,
-  <https://github.com/leggedrobotics/legged_gym>.
-- **Failure mode:** projected gravity is an orientation quantity with
-  dimensionless units — earlier OpenFlight versions rejected it as
-  implausible (now allowed: dimensionless or angle, Task-1 fix).
+### isaac-lab — legged_gym / Isaac Lab obs conventions (verified against source)
+- **Convention:** legged_gym `compute_observations()` (master@8fa29ac) is
+  `base_lin_vel*2.0, base_ang_vel*0.25, projected_gravity,
+  commands[:,:3], dof_pos, dof_vel*0.05, actions` (+187 height samples
+  when `measure_heights=True`; `clip_observations=100.`). Projected
+  gravity is an orientation quantity with dimensionless units (direction
+  cosines). legged_gym `init_state.rot` is documented x,y,z,w in the
+  config. Isaac Lab (the successor) exposes orientations through several
+  interfaces whose ordering differs — verify per interface, do not
+  assume.
+- **Source:** leggedrobotics/legged_gym master@8fa29acc6fd191
+  0c3d9659eef6310bdd301cde0a, `envs/base/legged_robot.py`
+  `compute_observations` and `envs/base/legged_robot_config.py`.
+- **Failure mode:** projected gravity rejected as implausible for
+  "orientation" (fixed: dimensionless or angle allowed); obs_scales
+  (0.25/2.0/…) are training-time multipliers that must not be confused
+  with sensor units; the nonzero clip silently changes outlier behavior
+  if the deployed pipeline omits clipping (W301 limitation).
 
 <a id="common-imus"></a>
 ### common-imus — vendor IMU unit traps

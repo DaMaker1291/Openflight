@@ -80,12 +80,13 @@ def import_gym(obs_path: str, stats_path: str | None = None,
         except (TypeError, ValueError):
             clip_max = 0.0
         if clip_max > 0.0:
-            warnings.append({
-                "code": "W301",
-                "reason": f"VecNormalize clip_obs={clip} does not fit an "
-                          "affine map; the generated pipeline will not "
-                          "clip — handle clipping in firmware or accept "
-                          "the mismatch"})
+            w301 = ("VecNormalize clips observations (clip_obs="
+                    f"{clip}); the generated pipeline will not clip — "
+                    "outputs diverge for outlier inputs. Handle clipping "
+                    "in firmware or accept the mismatch")
+            warnings.append({"code": "W301", "reason": w301})
+            draft.setdefault("limitations", []).append(
+                {"code": "W301", "reason": w301})
         shash = hashlib.sha256(
             open(stats_path, "rb").read()).hexdigest()[:8]
         src_idx = _stats_index_map(entries)
@@ -108,7 +109,16 @@ def import_gym(obs_path: str, stats_path: str | None = None,
                 "status": "documented",
                 "source": f"VecNormalize statistics {stats_path} "
                           f"(sha256:{shash}) obs[{j}]: "
-                          "scale=1/sqrt(var+eps), offset=-mean*scale"}
+                          "scale=1/sqrt(var+eps), offset=-mean*scale. "
+                          "These are training-run statistics, not a spec: "
+                          "the deployed sensor's distribution is NOT "
+                          "verified against them"}
+        draft.setdefault("limitations", []).append({
+            "code": "L301",
+            "reason": "VecNormalize statistics describe the training run; "
+                      "whether the deployed sensor produces the same "
+                      "distribution is NOT verified — distribution shift "
+                      "is outside the contract check"})
 
     if net_arch is not None:
         draft["provenance"]["model.input_size"] = {

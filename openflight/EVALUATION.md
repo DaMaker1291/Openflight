@@ -2,9 +2,10 @@
 
 Status: host-validated prototype, frozen as **v0.1** (`results/freeze_v0.1.json`:
 62 source files hashed, dependency versions, model hashes).
-**97/97 tests pass** in the frozen snapshot suite (144/144 in the current
+**97/97 tests pass** in the frozen snapshot suite (150/150 in the current
 v0.2 working tree: 97 frozen + product-quality, external-review probe,
-Task-1 refinement, draft-layer, and importer tests added since the freeze).
+Task-1 refinement, draft-layer, importer, and advisor-review
+strengthening tests added since the freeze).
 No on-silicon measurements exist anywhere in this report.
 *(Correction 2026-10-14: no frozen v0.1 archive was ever created; the
 freeze is the manifest `results/freeze_v0.1.json`, verified per-file

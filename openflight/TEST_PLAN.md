@@ -6,7 +6,12 @@ predates several later additions.
 
 Updated 2026-10-13 after external review: **113 passed**; updated 2026-10-14
 after Task-1 checker refinements: **125 passed**; after Task-2 draft layer:
-**133 passed**; after Task-3 importers: **144 passed**
+**133 passed**; after Task-3 importers: **144 passed**; after the 2026-10-14
+advisor-review strengthening round (verbatim legged_gym golden case at
+48-dim with honest width accounting, W301/L301 limitations retained in
+the sidecar, not_individually_verified listing, gym-importer
+frame-laundering impossibility, wrongly-confirmed-frame doubt retention,
+ROS xyzw ordering fed through E403/schema): **150 passed**
 (`tests/openflight/`, CPython 3.13, torch 2.8). New since the snapshot:
 `test_contract_engine.py`, `test_contract_battery.py`, `test_fault_injection.py`,
 `test_heldout_challenge.py`, `test_independent_challenge.py`,
