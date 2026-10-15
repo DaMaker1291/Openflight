@@ -2,12 +2,12 @@
 
 Status: host-validated prototype, frozen as **v0.1** (`results/freeze_v0.1.json`:
 65 hashes = 62 `source_files` + 3 `models`, dependency versions, git head).
-**97/97 tests pass** in the frozen snapshot suite (**162 passed, 1 skipped**
+**97/97 tests pass** in the frozen snapshot suite (**194 passed, 1 skipped**
 in the current v0.2 working tree: 97 frozen + product-quality, external-review
 probe, Task-1 refinement, draft-layer, importer, advisor-review strengthening,
-and evidence-graph tests added since the freeze). The single skip is a
-torch-present deploy test guarded by importorskip; it is absent in a
-torch-free tree.
+and evidence-graph tests added since the freeze). The single skip is
+`test_product.py:54` (an E050 test unreachable when torch is installed); it
+is absent in a torch-free tree.
 No on-silicon measurements exist anywhere in this report.
 *(Correction 2026-10-14: no frozen v0.1 archive was ever created; the
 freeze that actually exists and is verified is the manifest

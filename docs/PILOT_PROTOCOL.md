@@ -39,7 +39,7 @@ python3 -m openflight.cli evidence status  # expect: all checks fresh, exit 0
 ```
 
 Record the `git rev-parse HEAD` you ran from. `repro.py` is expected to run
-the full 162-test suite and regenerate every report in `results/`. Any
+the full 194-test suite and regenerate every report in `results/`. Any
 `MISMATCH` or `stale` check is a finding.
 
 ## Phase 2 — deploy the example
