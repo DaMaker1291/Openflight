@@ -134,3 +134,47 @@ def test_stale_detection(tmp_path):
         f.write("\n# touch\n")
     probs = PL.check_stale(str(tmp_path))
     assert len(probs) == 1 and "model_contract changed" in probs[0]
+
+
+# ------------------------------------------- audit round 4 (v0.2.5 schema gaps)
+
+def test_schema_rejects_duplicate_raw_layout():
+    # A duplicated (quantity, component) binding is ambiguous and must be
+    # refused at load, not silently collapsed by dict indexing (audit P1).
+    _, m = _load()
+    bad = copy.deepcopy(m)
+    bad["raw_layout"].append(dict(bad["raw_layout"][0]))
+    with pytest.raises(ValueError, match="duplicate raw_layout"):
+        MC.validate_model_contract(bad)
+
+
+def test_schema_rejects_missing_component_in_raw_layout():
+    # Every raw_layout entry needs a component (guards the binding keys).
+    _, m = _load()
+    bad = copy.deepcopy(m)
+    bad["raw_layout"][0] = {"quantity": "acceleration"}
+    with pytest.raises(ValueError, match="component"):
+        MC.validate_model_contract(bad)
+
+
+def test_schema_rejects_nonstring_units_and_frame():
+    # Schema must enforce types: non-string units/frame never reach the
+    # checker as "equal malformed" pairs (audit schema-hardening).
+    _, m = _load()
+    bad = copy.deepcopy(m)
+    bad["features"][0]["units"] = 42
+    with pytest.raises(ValueError, match="units"):
+        MC.validate_model_contract(bad)
+    bad2 = copy.deepcopy(m)
+    bad2["features"][0]["frame"] = 42
+    with pytest.raises(ValueError, match="frame"):
+        MC.validate_model_contract(bad2)
+
+
+def test_schema_accepts_valid_unique_layout():
+    # Sanity: the shipped pair still loads and the loaded copy round-trips.
+    _, m = _load()
+    out = MC.validate_model_contract(copy.deepcopy(m))
+    assert isinstance(out["raw_layout"], list)
+    keys = [(r["quantity"], r["component"]) for r in out["raw_layout"]]
+    assert len(keys) == len(set(keys))

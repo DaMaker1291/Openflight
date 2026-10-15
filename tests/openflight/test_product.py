@@ -147,6 +147,8 @@ def test_deploy_report_structure(tmp_path):
         assert k in meta, k
     assert meta["target"] == "host"
     assert meta["openflight_version"].startswith("0.2.")
+    # overall verdict: a fully green pipeline reports "passed" (audit r4)
+    assert rep["result"] == "passed", rep.get("result")
 
 
 def test_deterministic_generation(tmp_path):

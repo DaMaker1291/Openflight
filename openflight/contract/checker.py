@@ -96,16 +96,48 @@ def check(sensor: dict, model: dict,
         errors.append(e)
 
     feats = model.get("features", [])
-    width_sum = sum(int(f.get("width", 1)) for f in feats
-                    if isinstance(f, dict))
-    if model_input_size is not None and width_sum != model_input_size:
+
+    def _width_of(f):
+        w = f.get("width", 1)
+        if isinstance(w, bool) or not isinstance(w, int) or w < 1:
+            return None
+        return w
+
+    malformed_width = [(f.get("name", "?"), f.get("width", 1))
+                       for f in feats if isinstance(f, dict)
+                       and _width_of(f) is None]
+    if malformed_width:
+        n0, v0 = malformed_width[0]
+        fail("features", "E207",
+             ", ".join(str(n) for n, _ in malformed_width),
+             f"feature width must be a positive integer; {n0!r} declares "
+             f"{v0!r} and the contract cannot be checked",
+             source=v0, target=None)
+    width_sum = sum(w for f in feats if isinstance(f, dict)
+                    for w in [_width_of(f)] if w is not None)
+    if (not malformed_width and model_input_size is not None
+            and width_sum != model_input_size):
         fail("features", "E203", "<model>",
              f"contract feature widths sum to {width_sum} but compiled model "
              f"takes {model_input_size} inputs",
              source=width_sum, target=model_input_size)
-    raw_index = {(r.get("quantity"), r.get("component")): i
-                 for i, r in enumerate(model.get("raw_layout", []))
-                 if isinstance(r, dict)}
+    # duplicate (quantity, component) bindings are ambiguous: fail closed
+    # instead of letting dict indexing silently drop the first entry
+    raw_keys = [(r.get("quantity"), r.get("component"))
+                for r in model.get("raw_layout", []) if isinstance(r, dict)]
+    seen_keys, dup_keys = set(), []
+    for k in raw_keys:
+        if k in seen_keys and k not in dup_keys:
+            dup_keys.append(k)
+        seen_keys.add(k)
+    if dup_keys:
+        fail("features", "E206", "<model>",
+             "duplicate raw_layout binding(s): "
+             + ", ".join(f"{q!r}/{c!r}" for q, c in dup_keys)
+             + "; each (quantity, component) pair may appear at most once, "
+             "or feature ordering is ambiguous",
+             source=dup_keys[0], target=None)
+    raw_index = {k: i for i, k in enumerate(raw_keys)}
 
     for f in feats:
         name = f.get("name", "?")
@@ -118,7 +150,9 @@ def check(sensor: dict, model: dict,
                  source=qty, target=None)
             continue
         # --- raw vector binding (feature ordering) ---
-        width = int(f.get("width", 1))
+        width = _width_of(f)
+        if width is None:
+            continue  # malformed width already recorded as E207
         if width == 1:
             key = (qty, (f.get("source") or {}).get("component"))
             if key not in raw_index:
@@ -178,6 +212,18 @@ def check(sensor: dict, model: dict,
             fail("units", "U101", name,
                  "sensor side declares no units for this quantity; "
                  "cannot verify compatibility", source=su, target=mu)
+        elif U.dimension(su) is None or U.dimension(mu) is None:
+            # a unit string unknown to the registry is not a unit: two
+            # sides matching on the same unknown token agree only with
+            # themselves, so equality must not count as compatibility
+            # (registry membership gates BEFORE the equality shortcut)
+            token = su if U.dimension(su) is None else mu
+            side = "sensor" if U.dimension(su) is None else "model"
+            fail("units", "U101", name,
+                 f"{side} units {token!r} are not a registered unit string; "
+                 "equality between unknown tokens does not establish "
+                 "compatibility",
+                 source=su, target=mu)
         elif su == mu:
             pass
         else:
@@ -229,9 +275,12 @@ def check(sensor: dict, model: dict,
                              "n/a", ""}
         sf, mf = sens.get("frame"), f.get("frame")
         sf_bad = (sf is not None and
-                  (str(sf).lower() in _AMBIGUOUS_FRAMES or
+                  (not isinstance(sf, str) or
+                   str(sf).lower() in _AMBIGUOUS_FRAMES or
                    sf == "independent"))  # sentinel is model-side only
-        mf_bad = (mf is not None and str(mf).lower() in _AMBIGUOUS_FRAMES)
+        mf_bad = (mf is not None and
+                  (not isinstance(mf, str) or
+                   str(mf).lower() in _AMBIGUOUS_FRAMES))
         if sf_bad or mf_bad:
             side = "sensor" if sf_bad else "model"
             val = sf if sf_bad else mf

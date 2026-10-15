@@ -194,3 +194,67 @@ def test_check_fail_closed_on_non_dict_feature_entries():
     rep = checker.check({"features": [1, 2]}, {"features": [{"name": "a"}]})
     assert rep["status"] == "blocked"
     assert rep["errors"][0]["code"] == "E002"
+
+
+# ------------------------------------------- audit round 4 (v0.2.5 gate holes)
+
+def test_check_blocks_matching_unknown_units():
+    # Two declarations that agree on an unregistered token agree only with
+    # themselves, not with the unit system. Registry membership must be
+    # checked before equality can count as compatibility (audit P0).
+    s = make_sensor(accel_units="mystery_unit", gyro_units="mystery_unit")
+    m = make_model(accel_units="mystery_unit", gyro_units="mystery_unit")
+    rep = checker.check(s, m)
+    assert rep["status"] == "blocked"
+    assert rep["errors"], "unknown units must produce diagnostics"
+    assert all(e["code"] == "U101" for e in rep["errors"]), rep["errors"]
+    assert rep["deployment"] == "blocked"
+
+
+def test_check_blocks_duplicate_raw_layout():
+    # A duplicate (quantity, component) binding is ambiguous: the checker
+    # must refuse rather than let a dict silently overwrite the first entry
+    # (audit P1).
+    s = make_sensor()
+    m = make_model(order=("gx", "ax"))
+    m["raw_layout"].append(dict(m["raw_layout"][0]))
+    rep = checker.check(s, m)
+    assert rep["status"] == "blocked"
+    assert any(e["code"] == "E206" for e in rep["errors"]), rep["errors"]
+
+
+def test_check_fail_closed_on_malformed_width():
+    # width: "three" must be a structured error, never an uncaught
+    # ValueError escaping check() (audit schema-hardening).
+    s = make_sensor()
+    m = make_model()
+    m["features"][0]["width"] = "three"
+    rep = checker.check(s, m)  # must not raise
+    assert rep["status"] == "blocked"
+    assert rep["errors"], "malformed width must be diagnosed"
+
+
+def test_check_fail_closed_on_nonstring_units():
+    # units: 42 on both sides must not slip through the equality path
+    # (audit schema-hardening: false PROCEED on malformed input).
+    s = make_sensor()
+    m = make_model()
+    s["state"]["angular_velocity"]["units"] = 42
+    s["imu"]["accelerometer"]["units"] = 42
+    for f in m["features"]:
+        f["units"] = 42
+    rep = checker.check(s, m)
+    assert rep["status"] == "blocked", "matching malformed units passed"
+
+
+def test_check_fail_closed_on_nonstring_frame():
+    # frame: 42 on both sides is not a frame name and must block (E303),
+    # never compare equal and pass.
+    s = make_sensor()
+    m = make_model()
+    s["state"]["angular_velocity"]["frame"] = 42
+    for f in m["features"]:
+        if f["name"].startswith("g"):
+            f["frame"] = 42
+    rep = checker.check(s, m)
+    assert rep["status"] == "blocked", "non-string frames passed"

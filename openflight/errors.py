@@ -62,6 +62,12 @@ CODE_ACTIONS = {
     "E205": "Replace the zero (or non-finite) affine scale with a nonzero "
             "finite value; a zero scale collapses the feature and is never "
             "generated.",
+    "E206": "Remove the duplicated (quantity, component) entries from "
+            "raw_layout so every binding appears exactly once; a duplicate "
+            "makes feature ordering ambiguous.",
+    "E207": "Declare feature width as an integer (1 for scalar features, 4 "
+            "for quaternion features); a non-integer width cannot be checked "
+            "against the model input size.",
     "E301": "Provide compatible frame declarations on both sides, or an "
             "explicitly defined transformation supported by this version. "
             "OpenFlight will not guess the rotation.",

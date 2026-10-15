@@ -9,6 +9,7 @@ cases stay comparable and the new classes are honest post-review additions,
 not post-hoc suite edits.
 """
 import copy
+import os
 
 import pytest
 
@@ -180,3 +181,158 @@ def test_probe7_deploy_without_contracts_is_blocked(tmp_path, capsys):
     report = json.load(open(os.path.join(tmp_path, "deployment_report.json")))
     assert report["meta"]["model"] == "learned_observer.pt"
     assert report["stages"]["contract_validation"]["status"] == "skipped"
+
+
+# ------------------------------- v0.2.5 independent audit (round 4, 2026-10-15)
+# Three defects the reviewer proved against the frozen v0.2.5-pilot tag:
+# P0 an unregistered unit string accepted when both sides match; P1 duplicate
+# raw_layout bindings silently collapsed; P1 failed deploys leaving artifacts.
+
+MODEL_W = "examples/quadrotor_adapter/example_weights.pt"
+
+
+def _rc(*argv):
+    """cli.main rc, mapping raised OpenFlightErrors to their exit code.
+
+    Deliberately does NOT catch unexpected exception types: a traceback or
+    FileNotFoundError escaping the CLI is the bug under test."""
+    from openflight import cli
+    from openflight.errors import OpenFlightError
+    try:
+        rc = cli.main(list(argv))
+        return rc if isinstance(rc, int) else 0
+    except OpenFlightError as e:
+        return e.exit_code
+
+
+def _replace_units(node, repl="mystery_unit"):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == "units" and isinstance(v, str):
+                node[k] = repl
+            else:
+                _replace_units(v, repl)
+    elif isinstance(node, list):
+        for v in node:
+            _replace_units(v, repl)
+
+
+def test_audit_v025_unknown_equal_units_blocked(tmp_path, capsys):
+    """P0: sensor and model both declaring an unregistered unit string used
+    to PASS the gate (units compare equal before any registry lookup).
+    Registry membership must gate first: BLOCKED, U101, rc 2, and deploy
+    must refuse with no deployable artifacts."""
+    import yaml
+    s = yaml.safe_load(open(SENSOR).read())
+    m = yaml.safe_load(open(MODEL).read())
+    _replace_units(s)
+    _replace_units(m)
+    sp, mp = str(tmp_path / "sensor.yaml"), str(tmp_path / "model.yaml")
+    yaml.safe_dump(s, open(sp, "w"))
+    yaml.safe_dump(m, open(mp, "w"))
+    rc = _rc("validate", "--contract", sp, "--model-contract", mp)
+    out = capsys.readouterr().out
+    assert rc == 2, "validate accepted matching unknown units"
+    assert "U101" in out, out
+    assert "mystery_unit" in out, out
+    assert "Deployment status: BLOCKED" in out, out
+    outdir = str(tmp_path / "dep")
+    rc = _rc("deploy", "--model", MODEL_W, "--arch", "mlp:6,16,2",
+             "--contract", sp, "--model-contract", mp,
+             "--target", "host", "--output", outdir)
+    assert rc == 2, "deploy accepted matching unknown units"
+    names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+    assert not any(n.startswith("contract_adapt") for n in names), names
+    assert "model.cpp" not in names and "model.h" not in names, names
+    assert "contract_manifest.json" not in names, names
+
+
+def test_audit_v025_duplicate_raw_layout_refused(tmp_path, capsys):
+    """P1: a duplicated (quantity, component) binding used to be accepted,
+    with dict indexing silently dropping the first entry. Must refuse with
+    a diagnosed error and deploy must generate nothing."""
+    import yaml
+    m = yaml.safe_load(open(MODEL).read())
+    m["raw_layout"].append(dict(m["raw_layout"][0]))
+    mp = str(tmp_path / "model_dup.yaml")
+    yaml.safe_dump(m, open(mp, "w"))
+    rc = _rc("validate", "--contract", SENSOR, "--model-contract", mp)
+    out = capsys.readouterr().out
+    assert rc == 2, "validate accepted a duplicate raw_layout binding"
+    assert "E002" in out and "duplicate" in out, out
+    outdir = str(tmp_path / "dep")
+    rc = _rc("deploy", "--model", MODEL_W, "--arch", "mlp:6,16,2",
+             "--contract", SENSOR, "--model-contract", mp,
+             "--target", "host", "--output", outdir)
+    assert rc == 2, "deploy accepted a duplicate raw_layout binding"
+    names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+    assert not any(n.startswith("contract_adapt") for n in names), names
+    assert "model.cpp" not in names and "model.h" not in names, names
+
+
+def test_audit_v025_width_mismatch_no_artifacts(tmp_path, capsys):
+    """P1: a contract describing six inputs against a 60-wide model used to
+    compile first and block last, publishing adapters and reports before the
+    width check (the reviewer's exact repro: 6-feature contract, 60-wide
+    observer). The mismatch must be caught at the gate, before any artifact
+    exists, and the report must say 'failed'."""
+    import json
+    pytest.importorskip("torch")  # pre-fix this scenario compiles first
+    outdir = str(tmp_path / "dep")
+    rc = _rc("deploy", "--model", "learned_observer.pt",
+             "--arch", "mlp:60,128,64,1",
+             "--contract", SENSOR, "--model-contract", MODEL,
+             "--target", "host", "--output", outdir)
+    assert rc == 2, "width mismatch was not caught at the contract gate"
+    names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+    assert not any(n.startswith("contract_adapt") for n in names), names
+    assert "model.cpp" not in names and "model.h" not in names, names
+    assert "contract_manifest.json" not in names, names
+    rep = json.load(open(os.path.join(outdir, "deployment_report.json")))
+    assert rep["result"] == "failed", rep.get("result")
+    assert rep["stages"]["contract_validation"]["status"] == "fail"
+
+
+def test_audit_v025_late_failure_no_artifacts(tmp_path, capsys):
+    """P1: a compile failure after generation (weights do not match the
+    arch, E030) used to leave contract_adapt.py/.h and manifests in the
+    output. Any non-zero deploy exit must leave only the failed report."""
+    import json
+    pytest.importorskip("torch")  # the compile failure needs torch
+    outdir = str(tmp_path / "dep")
+    rc = _rc("deploy", "--model", "learned_observer.pt",
+             "--arch", "mlp:6,16,2",   # declared width matches the contract
+             "--contract", SENSOR, "--model-contract", MODEL,
+             "--target", "host", "--output", outdir)
+    assert rc == 3, "expected the E030 weight/arch mismatch"
+    names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+    assert not any(n.startswith("contract_adapt") for n in names), names
+    assert "model.cpp" not in names and "model.h" not in names, names
+    assert "contract_manifest.json" not in names, names
+    assert names == {"deployment_report.json"}, names
+    rep = json.load(open(os.path.join(outdir, "deployment_report.json")))
+    assert rep["result"] == "failed", rep.get("result")
+    assert rep["stages"]["inference_codegen"]["status"] == "fail"
+
+
+def test_audit_v025_shape_mismatch_diagnosed_not_traceback(tmp_path, capsys):
+    """Discovered while probing P1: a weight/shape mismatch (as opposed to
+    a key mismatch) raised a raw torch RuntimeError that escaped the CLI —
+    a traceback, contradicting the product rule that deploy always answers
+    with a diagnosed error. Must be an E030 exit with a failed report and
+    no artifacts (staging discarded)."""
+    pytest.importorskip("torch")
+    outdir = str(tmp_path / "dep")
+    rc = _rc("deploy", "--model", MODEL_W, "--arch", "mlp:60,16,1",
+             "--allow-unvalidated",
+             "--target", "host", "--output", outdir)
+    captured = capsys.readouterr()
+    assert rc == 3, f"expected E030 exit 3, got rc={rc}"
+    assert "E030" in captured.err, captured.err
+    assert "Traceback" not in captured.out + captured.err
+    names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+    assert names == {"deployment_report.json"}, names
+    import json
+    rep = json.load(open(os.path.join(outdir, "deployment_report.json")))
+    assert rep["result"] == "failed", rep.get("result")
+    assert rep["stages"]["inference_codegen"]["status"] == "fail"

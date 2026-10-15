@@ -47,8 +47,26 @@ def _validate_arch(name):
                 raise ValueError
         except ValueError:
             raise ValueError(f"bad --arch {name!r}; want mlp:d0,d1,...,dn")
-        return
+        return dims
     raise ValueError(f"unknown --arch {name} (observer60|disturbance12|mlp:dims)")
+
+
+def _arch_input_width(name):
+    """Torch-free declared input width for --arch (None when undecidable).
+
+    Malformed arches return None here; _check_arch diagnoses them as E012
+    at its own gate — this helper never raises for unknown input."""
+    if not name:
+        return None
+    if name == "observer60":
+        return 60
+    if name == "disturbance12":
+        return 12
+    try:
+        dims = _validate_arch(name)
+    except ValueError:
+        return None
+    return dims[0] if dims else None
 
 
 def _arch_error(name, exc):
@@ -361,8 +379,10 @@ def cmd_doctor(a):
 def cmd_deploy(a):
     # gated pipeline with explicit per-stage outcomes (see stages.py).
     # A pass at one stage never implies later stages.
-    # The contract-validation stage is torch-free and runs first; the
-    # torch gate only applies to weight loading (inference codegen).
+    # Precondition checks (model file, arch, torch) run before any side
+    # effect; the semantic contract gate then runs before anything is
+    # generated; deployable artifacts are staged and published only after
+    # every gate passed.
     import hashlib
     import json as J
     from openflight.stages import StageReport
@@ -373,6 +393,47 @@ def cmd_deploy(a):
         with open(path, "rb") as f:
             h.update(f.read())
         return h.hexdigest()
+
+    # every deployable artifact is generated into a staging directory and
+    # published ONLY after the pipeline succeeds: a non-zero deploy exit
+    # must leave nothing but the failed report behind (audit round 4)
+    stage = None
+    import shutil
+
+    def _start_stage():
+        nonlocal stage
+        stage = a.output.rstrip("/") + ".staging"
+        if os.path.isdir(stage):
+            shutil.rmtree(stage, ignore_errors=True)
+        os.makedirs(stage)
+
+    def _publish():
+        os.makedirs(a.output, exist_ok=True)
+        for name in sorted(os.listdir(stage)):
+            os.replace(os.path.join(stage, name),
+                       os.path.join(a.output, name))
+        if os.path.isdir(stage):
+            shutil.rmtree(stage, ignore_errors=True)
+
+    def _discard():
+        if stage and os.path.isdir(stage):
+            shutil.rmtree(stage, ignore_errors=True)
+
+    def _fail_report(extra=None):
+        os.makedirs(a.output, exist_ok=True)
+        stages.write(os.path.join(a.output, "deployment_report.json"),
+                     {"model": a.model, **(extra or {})})
+
+    # precondition checks first (side-effect free): model exists, arch is
+    # known, torch importable — so a precondition failure can never strand
+    # a staging directory or mask the contract gate's diagnostics
+    if not os.path.exists(a.model):
+        raise OpenFlightError("deploy", "E010", f"model file not found: {a.model}",
+                              where=a.model, why="deploy needs a weights file.",
+                              action="Check the path or run the quickstart.")
+    _check_arch(a.arch)
+    torch = _require_torch("deploy")
+    arch = _resolve_arch(a.arch)
 
     if a.model_contract:
         if not a.contract:
@@ -389,12 +450,14 @@ def cmd_deploy(a):
                 if e.get("action"):
                     print(f"    Action: {e['action']}")
             stages.record("contract_validation", "fail", evidence="schema errors")
-            stages.write(os.path.join(a.output, "deployment_report.json"),
-                         {"model": a.model})
+            _fail_report()
             return 2
         sensor, model = pair
         from openflight.contract import checker, pipeline as PL
-        report = checker.check(sensor, model)
+        # the declared arch width is checked with the semantic gate — a
+        # width mismatch must stop before anything is generated (audit r4)
+        report = checker.check(sensor, model,
+                               model_input_size=_arch_input_width(a.arch))
         print(checker.render_text(report))
         if report["status"] != "pass":
             print("DEPLOY STOPPED: contract validation failed — refusing to "
@@ -402,19 +465,17 @@ def cmd_deploy(a):
             stages.record("contract_validation", "fail",
                           evidence=f"{len(report['errors'])} error(s), "
                                    f"first: {report['errors'][0]['code']}")
-            os.makedirs(a.output, exist_ok=True)
-            stages.write(os.path.join(a.output, "deployment_report.json"),
-                         {"model": a.model})
+            _fail_report()
             return 2
         stages.record("contract_validation", "pass",
                       evidence=f"{len(report['conversions'])} conversion(s) generated")
-        os.makedirs(a.output, exist_ok=True)
-        with open(os.path.join(a.output, "contract_report.json"), "w") as f:
+        _start_stage()
+        with open(os.path.join(stage, "contract_report.json"), "w") as f:
             J.dump(report, f, indent=2)
         PL.generate(sensor, model,
-                    os.path.join(a.output, "contract_adapt.py"),
-                    os.path.join(a.output, "contract_adapt.h"))
-        PL.write_manifest(a.contract, a.model_contract, a.output)
+                    os.path.join(stage, "contract_adapt.py"),
+                    os.path.join(stage, "contract_adapt.h"))
+        PL.write_manifest(a.contract, a.model_contract, stage)
         stages.record("adapter_generation", "pass",
                       evidence="contract_adapt.py/.h")
         contract_shas = {"sensor_contract_sha": sha_file(a.contract),
@@ -441,21 +502,19 @@ def cmd_deploy(a):
         stages.record("adapter_generation", "skipped",
                       limitation="--allow-unvalidated")
         contract_shas = {}
-    if not os.path.exists(a.model):
-        raise OpenFlightError("deploy", "E010", f"model file not found: {a.model}",
-                              where=a.model, why="deploy needs a weights file.",
-                              action="Check the path or run the quickstart.")
-    _check_arch(a.arch)
-    torch = _require_torch("deploy")
-    arch = _resolve_arch(a.arch)
     from openflight.compiler.api import compile_model
     ex = torch.zeros(1, a.input_size) if a.input_size else None
+    if stage is None:
+        _start_stage()  # --allow-unvalidated path generates straight into stage
     try:
-        out = compile_model(arch, a.model, a.output, ex)
-    except ValueError as e:
+        out = compile_model(arch, a.model, stage, ex)
+    except (ValueError, RuntimeError) as e:
+        # RuntimeError covers shape mismatches torch raises itself; a
+        # deploy failure must answer with a diagnosed error, never a
+        # traceback escaping the CLI
         stages.record("inference_codegen", "fail", evidence=str(e)[:200])
-        stages.write(os.path.join(a.output, "deployment_report.json"),
-                     {"model": a.model})
+        _discard()
+        _fail_report()
         raise OpenFlightError("deploy", "E030", f"code generation failed: {e}",
                               where=a.model,
                               why="Unsupported operation, shape, or weights. "
@@ -475,18 +534,18 @@ def cmd_deploy(a):
             print(checker.render_text(rep))
             stages.record("contract_validation", "fail",
                           evidence="contract/model width mismatch")
-            stages.write(os.path.join(a.output, "deployment_report.json"),
-                         {"model": a.model})
+            _discard()
+            _fail_report()
             return 2
     try:
         from openflight.benchmark import runner
-        res = runner.run_host(out["model"], a.output, runs=1000,
+        res = runner.run_host(out["model"], stage, runs=1000,
                               deadline_us=a.deadline_us)
         stages.record("host_compilation", "pass", evidence="host c++ -O2 build")
     except RuntimeError as e:
         stages.record("host_compilation", "fail", evidence=str(e)[:200])
-        stages.write(os.path.join(a.output, "deployment_report.json"),
-                     {"model": a.model})
+        _discard()
+        _fail_report()
         raise OpenFlightError("deploy", "E031", f"host compilation failed: {e}",
                               where=a.output,
                               why="Generated code did not compile on the host.",
@@ -512,16 +571,26 @@ def cmd_deploy(a):
     except Exception:
         cxx_version = "unknown"
     meta = {"model": a.model, "model_sha": out["weights_sha"],
-            "target": a.target, "compiler": cxx_version,
-            "artifact_shas": {f: sha_file(os.path.join(a.output, f))
-                              for f in sorted(os.listdir(a.output))
-                              if os.path.isfile(os.path.join(a.output, f))},
-            **contract_shas}
+            "target": a.target, "compiler": cxx_version, **contract_shas}
+    if parity_ok:
+        meta["artifact_shas"] = {
+            f: sha_file(os.path.join(stage, f))
+            for f in sorted(os.listdir(stage))
+            if os.path.isfile(os.path.join(stage, f))}
+        _publish()
+    else:
+        # a deployment that failed numerical equivalence is not valid:
+        # publish the failed report only, no deployable artifacts
+        meta["artifact_shas"] = {}
+        meta["limitation"] = ("artifacts withheld: numerical parity failed; "
+                              "nothing deployable was published")
+        _discard()
     try:
         from openflight import __version__ as of_version
     except Exception:
         of_version = "unknown"
     meta["openflight_version"] = of_version
+    os.makedirs(a.output, exist_ok=True)
     stages.write(os.path.join(a.output, "deployment_report.json"), meta)
     print(stages.render())
     if not parity_ok:

@@ -42,9 +42,16 @@ def validate_model_contract(c: dict) -> dict:
         raise ValueError(
             "model contract needs raw_layout: the flat raw sensor vector as "
             "a list of {quantity, component} entries")
+    raw_keys = set()
     for i, r in enumerate(raw):
         if not isinstance(r, dict) or "quantity" not in r or "component" not in r:
             raise ValueError(f"raw_layout[{i}] needs quantity + component")
+        k = (r["quantity"], r["component"])
+        if k in raw_keys:
+            raise ValueError(
+                f"duplicate raw_layout binding {k[0]!r}/{k[1]!r}: each "
+                "(quantity, component) pair may appear at most once")
+        raw_keys.add(k)
     feats = c.get("features")
     if not isinstance(feats, list) or not feats:
         raise ValueError("model contract needs a non-empty features list")
@@ -58,6 +65,11 @@ def validate_model_contract(c: dict) -> dict:
         for k in ("name", "source", "units", "normalization"):
             if k not in f:
                 raise ValueError(f"{where} missing {k!r}")
+        if not isinstance(f["units"], str) or not f["units"]:
+            raise ValueError(f"{where}.units must be a non-empty string")
+        if ("frame" in f and f["frame"] is not None
+                and not isinstance(f["frame"], str)):
+            raise ValueError(f"{where}.frame must be a string (or null)")
         if f["name"] in seen:
             raise ValueError(f"duplicate feature name {f['name']!r}")
         seen.add(f["name"])

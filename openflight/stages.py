@@ -31,7 +31,11 @@ class StageReport:
         return any(v["status"] == "fail" for v in self.stages.values())
 
     def to_dict(self, meta: dict) -> dict:
-        return {"schema_version": 1, "meta": meta, "stages": self.stages}
+        # overall verdict: "failed" whenever any recorded stage failed,
+        # so a report from an aborted deploy can never read as a valid
+        # deployment (audit round 4)
+        return {"schema_version": 1, "meta": meta, "stages": self.stages,
+                "result": "failed" if self.failed() else "passed"}
 
     def write(self, path: str, meta: dict) -> dict:
         d = self.to_dict(meta)
