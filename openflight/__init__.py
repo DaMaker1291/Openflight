@@ -1,2 +1,2 @@
 """OpenFlight Deploy — PyTorch to microcontroller deployment toolkit."""
-__version__ = "0.2.4"
+__version__ = "0.2.5"
