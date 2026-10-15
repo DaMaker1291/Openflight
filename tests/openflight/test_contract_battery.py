@@ -174,3 +174,23 @@ def test_battery_rates():
     print(f"\nvalid: {n_valid} (0 false rejects) | "
           f"invalid: {len(by_cat['invalid'])} (0 false accepts) | "
           f"ambiguous: {len(by_cat['ambiguous'])} (all blocked, fail-closed)")
+
+
+def test_check_fail_closed_on_empty_contracts():
+    # library misuse: check({}, {}) must block with E002, never pass
+    rep = checker.check({}, {})
+    assert rep["status"] == "blocked"
+    assert rep["errors"] and rep["errors"][0]["code"] == "E002"
+
+
+def test_check_fail_closed_on_non_list_features():
+    rep = checker.check({"features": "x"}, {"features": []})
+    assert rep["status"] == "blocked"
+    assert rep["errors"][0]["code"] == "E002"
+    assert "features" in rep["errors"][0]["reason"]
+
+
+def test_check_fail_closed_on_non_dict_feature_entries():
+    rep = checker.check({"features": [1, 2]}, {"features": [{"name": "a"}]})
+    assert rep["status"] == "blocked"
+    assert rep["errors"][0]["code"] == "E002"

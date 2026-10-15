@@ -12,10 +12,13 @@ advisor-review strengthening round (verbatim legged_gym golden case at
 the sidecar, not_individually_verified listing, gym-importer
 frame-laundering impossibility, wrongly-confirmed-frame doubt retention,
 ROS xyzw ordering fed through E403/schema): **150 passed**; after the
-Phase-1 evidence graph (`test_evidence.py`: per-check artifact hashing,
-one-input-at-a-time mutation staleness, claims-at-risk mapping, sidecar
-limitations surfaced): **162 passed**
-(`tests/openflight/`, CPython 3.13, torch 2.8). New since the snapshot:
+Phase-1 evidence graph + the 2026-10-15 dependency-true revision
+(`test_evidence.py`: schema-v2 record/status with fresh/stale/never-run;
+`test_evidence_mutation.py`: per-input mutation staleness table,
+import-closure derivation guard, fail-closed checker misuse tests;
+torch-present deploy test importorskip-guarded so a torch-free tree
+still runs green): **162 passed, 1 skipped**
+(`tests/openflight/`, CPython 3.12, torch 2.14). New since the snapshot:
 `test_contract_engine.py`, `test_contract_battery.py`, `test_fault_injection.py`,
 `test_heldout_challenge.py`, `test_independent_challenge.py`,
 `test_three_workflows.py`, `test_baseline_compare.py`, `test_recorded_demo.py`,

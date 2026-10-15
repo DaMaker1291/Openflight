@@ -1,16 +1,23 @@
 # OpenFlight Technical Report: fail-closed contract validation for embedded neural inference
 
 Status: host-validated prototype, frozen as **v0.1** (`results/freeze_v0.1.json`:
-62 source files hashed, dependency versions, model hashes).
-**97/97 tests pass** in the frozen snapshot suite (162/162 in the current
-v0.2 working tree: 97 frozen + product-quality, external-review probe,
-Task-1 refinement, draft-layer, importer, advisor-review strengthening,
-and evidence-graph tests added since the freeze).
+65 hashes = 62 `source_files` + 3 `models`, dependency versions, git head).
+**97/97 tests pass** in the frozen snapshot suite (**162 passed, 1 skipped**
+in the current v0.2 working tree: 97 frozen + product-quality, external-review
+probe, Task-1 refinement, draft-layer, importer, advisor-review strengthening,
+and evidence-graph tests added since the freeze). The single skip is a
+torch-present deploy test guarded by importorskip; it is absent in a
+torch-free tree.
 No on-silicon measurements exist anywhere in this report.
 *(Correction 2026-10-14: no frozen v0.1 archive was ever created; the
-freeze is the manifest `results/freeze_v0.1.json`, verified per-file
-against the tree — 47/62 unchanged, 15 diverged as documented
-(`reproduction/freeze_v0.1_manifest_verification.log`). Git tags are the
+freeze that actually exists and is verified is the manifest
+`results/freeze_v0.1.json` — 65 SHA-256 hashes, not 62. Re-verified against
+the original repo tree on 2026-10-15: 48 files unchanged (45 source files +
+3 models), 17 diverged as documented
+(`reproduction/freeze_v0.1_manifest_verification.log` is the stricter
+2026-10-14 source-file-subset run: 47/62 unchanged, 15 diverged — the 2
+file delta is `docs/REPRODUCE.md` and `test_heldout_challenge.py`, which
+diverged after that log ran). Git tags are the
 freeze mechanism going forward.)*
 
 ## 1. Research question and hypothesis

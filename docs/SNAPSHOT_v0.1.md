@@ -42,10 +42,13 @@ all seven `results/*.json` reports, `results/freeze_v0.1.json`,
    `REPRODUCTION OK`. This check caught and fixed one real omission (the
    physics/exporter modules were initially missing from the bundle).
 
-## Policy
+## Policy (void — no archive exists)
 
-v0.1 is preserved. Reviewer-found problems are fixed in a new revision, never
-by editing this archive. Fixes reference the archive hash above.
+There is no archive to protect. v0.1 is preserved as the content-addressed
+manifest `results/freeze_v0.1.json`; reviewer-found problems are fixed in a
+new revision (v0.2+), never by editing frozen v0.1 inputs. Fixes reference
+the manifest, not the archive hash listed above — that hash belongs to a
+file that was never created.
 
 ## For the reviewer
 

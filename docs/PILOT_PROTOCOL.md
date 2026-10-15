@@ -88,6 +88,27 @@ but a different result is a finding):
 If any of these three **deploys anyway** (exit 0), that is the single most
 important finding in the pilot — report it immediately.
 
+## Success criteria (fixed before the first session — 2026-10-15)
+
+These are recorded **before** any student runs so they cannot be tuned to
+the outcome. They measure *friction and false rejects only* — with 2–3
+students this pilot cannot support a measured time-saving claim, and none
+is made. Each criterion is a number to report, not a bar the pilot must
+clear.
+
+| # | Criterion | How it is measured |
+|---|---|---|
+| 1 | Install + reproduce unaided | ≥2 of 3 students reach `REPRODUCTION OK` from a clean clone with no help. Observer notes wall-clock (target ≤30 min); help requests are counted separately. |
+| 2 | First validation on a student's own policy | ≤90 min, help requests counted. Not pass/fail — the count is the datum. |
+| 3 | False rejects | Every blocked deploy is classified: (a) real semantic fault, (b) clear diagnosis of a real fault, or (c) unexplained block. Category (c) is the failure mode; each is logged with the student's expectation vs the checker's reason. |
+| 4 | Injected faults (Phase 3) | Each of the 3 injected faults: caught or missed, with the reason. A deploy that succeeds despite a fault is reported immediately. |
+| 5 | `--confirm-all` uses | Every use of the blanket-confirm path is counted and, where possible, its sidecar limitations reviewed with the student. |
+| 6 | Friction log | ≥1 specific, actionable friction per student (wording, missing error, wrong flag, dead end) — this is the primary qualitative deliverable. |
+
+None of these constitutes a time-saving or reliability claim. A positive
+result is a report of low friction and few unexplained blocks; a negative
+result (unexplained blocks, false rejects, dead ends) is equally a finding.
+
 ## Phase 4 — questionnaire
 
 Fill in `PILOT_FEEDBACK.md`. Be blunt; negative results are the useful ones.

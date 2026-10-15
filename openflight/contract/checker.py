@@ -37,6 +37,45 @@ def _sensor_field(sensor: dict, quantity: str) -> dict | None:
 
 def check(sensor: dict, model: dict,
           model_input_size: int | None = None) -> dict:
+    # fail closed on library misuse: an empty or malformed contract pair
+    # must block with E002, never pass vacuously (the CLI validator
+    # rejects these before calling; direct importers must be safe too)
+    malformed = []
+    for label, c in (("sensor", sensor), ("model", model)):
+        if not isinstance(c, dict):
+            malformed.append(f"{label} contract is not a mapping")
+            continue
+        feats = c.get("features")
+        if label == "model":
+            # the model contract must declare a non-empty feature list
+            if not isinstance(feats, list) or not feats:
+                malformed.append("model contract features must be a "
+                                 "non-empty list")
+            elif not all(isinstance(f, dict) for f in feats):
+                malformed.append("model contract features must be mappings")
+        elif feats is not None and (
+                not isinstance(feats, list)
+                or not all(isinstance(f, dict) for f in feats)):
+            # sensor contracts normally have no features key; if present
+            # it must still be well-formed
+            malformed.append("sensor contract features must be a list of "
+                             "mappings")
+    if malformed:
+        from openflight.errors import CODE_ACTIONS
+        return {
+            "status": "blocked",
+            "checks": {"representation": "FAIL", "units": "FAIL",
+                       "frames": "FAIL", "features": "FAIL",
+                       "normalization": "FAIL"},
+            "errors": [{"code": "E002", "feature": "<contract>",
+                        "reason": "; ".join(malformed),
+                        "action": CODE_ACTIONS.get(
+                            "E002",
+                            "Provide two well-formed contracts with a "
+                            "non-empty features list.")}],
+            "warnings": [], "conversions": [],
+        }
+
     errors: list[dict] = []
     warnings: list[dict] = []
     conversions: list[dict] = []

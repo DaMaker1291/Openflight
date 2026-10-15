@@ -1,9 +1,15 @@
 {
-  "schema_version": 1,
-  "recorded_at": "2026-10-14T23:36:07Z",
+  "schema_version": 2,
+  "recorded_at": "2026-10-15T08:27:40Z",
   "artifacts": {
-    "model_weights": {
+    "example_weights": {
       "examples/quadrotor_adapter/example_weights.pt": "165ad21af864d5418623d4e95def9b5d01e5ceb1d71bc2906d9fa9b5447f2a59"
+    },
+    "observer_weights": {
+      "learned_observer.pt": "905aefaa6ca3ad5ff3535099f26d5ced0cf6f034ce6b93daa9914d0b43045e0b"
+    },
+    "ppo_weights": {
+      "ppo_best.pt": "bd3b519e434540abf161dc387e30b06ecfb3f0bc05900fd610b593b156c5c4e7"
     },
     "model_contract": {
       "examples/quadrotor_adapter/model_contract.yaml": "d57b9f6850d9655e442f1d774a839b473773a4d8b71cfa62ebb318783fc845ed"
@@ -12,10 +18,80 @@
       "examples/quadrotor_adapter/drone_contract.yaml": "30048cddd6ad1d8cddd748fc456e7ab276a48f1c51030f129703bf19901877d6"
     },
     "checker_source": {
-      "openflight/contract/checker.py": "f4a88247959a81eb326d0214b8b6f82c491d716b16f91f08f8acf6f17543a1d2",
-      "openflight/contract/units.py": "a8d26ba2c390b998be53ec840a2f62a26a992f6dacfd5db3af8a7ebd47cf2d55",
+      "openflight/contract/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "openflight/contract/checker.py": "e70fcb5ef6269640d4a81eb256e52f4886208247808ff2f865bd813737985e0e",
+      "openflight/contract/draft.py": "cac155f689b22d6dd40b7c8d88f2dfaeb48b756db65ac2ecd4af4bddc7624ab2",
+      "openflight/contract/model_contract.py": "8bddc530733630f13857107b0f5c7ea0c67bee9c1abff344c5748317877a58c0",
       "openflight/contract/pipeline.py": "05e30d6bbc72a4fa88ce879b0b2540725659a7baa3cea34d39a85bbdc83ac9b5",
-      "openflight/contract/model_contract.py": "8bddc530733630f13857107b0f5c7ea0c67bee9c1abff344c5748317877a58c0"
+      "openflight/contract/units.py": "a8d26ba2c390b998be53ec840a2f62a26a992f6dacfd5db3af8a7ebd47cf2d55",
+      "openflight/errors.py": "f327da79ecb3c7737d3322e1dcb828c20cd8b19b86a4111c2e1e29e5cf7ebf66"
+    },
+    "adapters_source": {
+      "openflight/adapters/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "openflight/adapters/codegen.py": "30875ee68cbba279e98a07ec180100d397747f051a91293adaa21b72609b6011",
+      "openflight/adapters/contracts.py": "acf2f3094bae8b99cfe927d431c00cf5c33fb46ca5335b221ffe36df51800825",
+      "openflight/adapters/coordinates.py": "66fa4ff50dd6a441f19199530b1da1e7d3a258ae1f933a436e886cbada46aefd",
+      "openflight/adapters/imu.py": "99f2cc1e2a612e8899437af0d7e21139cc4a0624b99657475f27e66b038277af"
+    },
+    "compiler_source": {
+      "openflight/compiler/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "openflight/compiler/api.py": "d67ac3e1c04ee289aa6e1274121928e2c8fbd46aa8154763a6ceec8d34cedf56",
+      "openflight/compiler/arch_factory.py": "6d05a7c8d0aa62bca222c166b9ee4627fdca9e81dedcaccccceb7896c3995708",
+      "openflight/compiler/codegen.py": "4df98d30d2bc7259589c7eef6c92ca7a0fa7edce62ea0ad5fe7e75a64d54fcd5",
+      "openflight/compiler/graph.py": "ee7a970a6e38a1aa332e5763c562960c3390d29226de63d0d1cb4e69e99678dd",
+      "openflight/compiler/loader.py": "50347733a212fb681ff3dc2e6cae26a472a121d5e80f03a4dd73ed1fc9156494",
+      "openflight/compiler/memory_planner.py": "8bbea1c97bebea27367e8b4340a389fd825ad51fdcfc32ad2324afd97d2bf400",
+      "openflight/compiler/validation.py": "557f26d3a21fd929dc357ab2a6d261438c6665e4a7b3f6a7f5c1447122745548",
+      "openflight/compiler/operators/__init__.py": "53e0e8e3f95ce75e94cfedbdf71503785572afcc3118f84046ce73a41bc752a1"
+    },
+    "cli_source": {
+      "openflight/cli.py": "d4e24c1e686765a4fdae993e4347d75b7fa39d9b72cfe6285dc92b5ed4e9a6e6"
+    },
+    "benchmark_source": {
+      "openflight/benchmark/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "openflight/benchmark/memory.py": "2a633fa1d7f0d6d11090b523de87378de5dc4f96df72550300afc7bfde8e8ab9",
+      "openflight/benchmark/protocol.py": "92c0f1b05d682837a36accce3c6cbc32b6dabfd0eeffb8718a0b25773fa048ba",
+      "openflight/benchmark/reports.py": "62b4ba034039ffc25f07a1787e9546d59d00ca401850dfa5f14b9312dd653e2f",
+      "openflight/benchmark/runner.py": "3b2aa1ff89f18c63badd0a1c8ed7516cfbf7734c9dc9ecbb76faeb236226142c",
+      "openflight/benchmark/statistics.py": "bc8e7c8ab37c8c9dc558e0f3aa0ec51b7c2fab30b722530c7d82301d712a4426"
+    },
+    "observer_fixtures": {
+      "learned_observer.py": "23532506c53f2e02c1dc9c688bb5c5884b73700192d69d943ac94c70e62f7b93",
+      "macondo_hover.py": "c941a5386b5ff281a0732779f29a9350d6e57bb91d2045980d630fbf7c91c8c3",
+      "observer_deploy.py": "fab7e541f9c3f6538650993f711c15c379557cecff7953f23c842ce69cfbdda4"
+    },
+    "firmware_host_source": {
+      "firmware/generic/benchmark_main.cpp": "06e48a2e5e1cd1e070e0d69bb9e0e40aa3123848d2a3745d1512d1007930a331",
+      "firmware/generic/hal.h": "2d1385476f2441eecc1454ede95553db72c5e669a1300afe61f6b32b32b7e446",
+      "firmware/host_sim/hal_host.cpp": "50470f39f856b31d6dc04866b7bbdcd9f60b38ff38558060f1ac02144bd5af33"
+    },
+    "firmware_esp32_source": {
+      "firmware/esp32/main/CMakeLists.txt": "b5ae1bdf851d3c383c4ae3a39f9ddb87eb7a598a5ae1455e5a8c90ef362594bf",
+      "firmware/esp32/main/bench_main.cpp": "ab6e48e3a3b22f46724ac3915a8b66decc966ebd7446e14353efe8330ce8b65e",
+      "firmware/esp32/sdkconfig.defaults": "a602b1434c28bdb2311e6d7861a5b799a22dc6a0f6d33494709a6a91e82934f3",
+      "firmware/esp32/CMakeLists.txt": "1a0337b81bade7627d6e5a6a685b1e701931e1d8ea12f9795c3ced0935310fb7",
+      "firmware/esp32/build.sh": "a4d5d3b1dbcf3f77c5c4c74d72c5248661ef46724e513214789489d5a7555e08",
+      "firmware/esp32/qemu_test.py": "e7ba2c020274a4c4de034803417b2a29462a6097258b424f7d2abe7de9ef8838",
+      "firmware/esp32/gen_vectors.py": "18b827ffaf0d3d1b8ba9c404ddd2fa8de20ff8b2a6fbd1cd50982c947eeac09b",
+      "firmware/esp32/sim_test.py": "3169553c8a45cf53c40e415882c6e8e79426cec09238c9300d051732d6de33a4"
+    },
+    "battery_test": {
+      "tests/openflight/test_contract_battery.py": "9e5435103e554df87d0582cc8b7ab4b5671af4c469d57130b75d29fd5bc4308e"
+    },
+    "heldout_test": {
+      "tests/openflight/test_heldout_challenge.py": "fa0db12dd9fe9aaff450d3c828b2fc7a7b5dfa68f1daaab34bcf3a724c9873c7"
+    },
+    "independent_test": {
+      "tests/openflight/test_independent_challenge.py": "2828573e676c3ad95b6494f181d7c814f3b8b610f8750c907aaae4affa35326f"
+    },
+    "workflows_test": {
+      "tests/openflight/test_three_workflows.py": "a8b0200c355368e1555e90e7fce5a02afdd449b0d67da86ac3798fc625776834"
+    },
+    "baseline_test": {
+      "tests/openflight/test_baseline_compare.py": "f9b6b0ba72401551fc3adcf50fac849bcd76822f58aeb5c2e8dd252c49d9be0a"
+    },
+    "parity_test": {
+      "tests/openflight/test_firmware_harness.py": "685bb499fa968b61b9e28e1889ade015cadfb7534d7f42ef894f3d6784d6771b"
     },
     "compiler_flags": {
       "results/example_disturbance12/experiment_manifest.json": "f36c7bbbb4e334310a7b4db15a111e60782fc7d9017346a36aaabb33c1fc5b4c"
@@ -28,59 +104,85 @@
     }
   },
   "checks": {
+    "parity": {
+      "reads": [
+        "parity_test",
+        "observer_weights",
+        "observer_fixtures",
+        "compiler_source",
+        "cli_source",
+        "benchmark_source",
+        "firmware_host_source"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
+    },
     "battery": {
       "reads": [
-        "model_weights",
+        "checker_source",
+        "adapters_source",
+        "battery_test",
         "model_contract",
-        "sensor_contract",
-        "checker_source"
-      ]
-    },
-    "heldout": {
-      "reads": [
-        "model_weights",
-        "model_contract",
-        "sensor_contract",
-        "checker_source"
-      ]
+        "sensor_contract"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
     },
     "independent": {
       "reads": [
-        "model_weights",
+        "checker_source",
+        "adapters_source",
+        "independent_test",
         "model_contract",
         "sensor_contract",
-        "checker_source"
-      ]
+        "observer_weights",
+        "ppo_weights",
+        "observer_fixtures",
+        "compiler_source",
+        "cli_source"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
+    },
+    "heldout": {
+      "reads": [
+        "checker_source",
+        "adapters_source",
+        "heldout_test",
+        "model_contract",
+        "sensor_contract"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
     },
     "workflows": {
       "reads": [
-        "model_weights",
+        "checker_source",
+        "adapters_source",
+        "workflows_test",
         "model_contract",
         "sensor_contract",
-        "checker_source"
-      ]
+        "cli_source",
+        "compiler_source",
+        "observer_weights",
+        "observer_fixtures"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
     },
-    "parity": {
+    "baseline": {
       "reads": [
-        "model_weights",
-        "generated_cxx",
-        "compiler_flags",
-        "firmware_binary"
-      ]
-    },
-    "build": {
-      "reads": [
-        "model_weights",
+        "checker_source",
+        "adapters_source",
+        "baseline_test",
         "model_contract",
-        "generated_cxx",
-        "compiler_flags"
-      ]
-    },
-    "qemu": {
-      "reads": [
-        "firmware_binary",
-        "compiler_flags"
-      ]
+        "sensor_contract",
+        "cli_source",
+        "observer_weights",
+        "observer_fixtures"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T08:27:40Z"
     }
   }
 }

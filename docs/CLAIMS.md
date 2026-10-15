@@ -95,19 +95,19 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 
 | Field | Value |
 |---|---|
-| **Claim** | The freeze manifest `results/freeze_v0.1.json` (62 source-file SHA-256s, dependency versions, model hashes, git head `d0d070a`) verifies against the tree: 47 files unchanged, 15 diverged (exactly the documented v0.2 changes), 0 missing. **Correction (2026-10-14): the claimed `openflight-v0.1.tar.gz` archive was never created — the previous claim was unverifiable and is replaced by this manifest verification.** From here, git tags are the freeze mechanism. |
+| **Claim** | The freeze manifest `results/freeze_v0.1.json` holds 65 SHA-256 hashes (62 `source_files` + 3 `models`) and git head `d0d070a`. Re-verified against the tree on 2026-10-15: 48 files match (45 `source_files` + 3 models), 17 diverge (all documented v0.2 changes), 0 missing. The archived log `reproduction/freeze_v0.1_manifest_verification.log` (run 2026-10-14) reports the source-file subset alone: 62 total, 47 match, 15 changed — a stricter same-day run taken before `docs/REPRODUCE.md` and `tests/openflight/test_heldout_challenge.py` diverged; both runs agree 0 missing. **Correction (2026-10-14): the claimed `openflight-v0.1.tar.gz` archive was never created — the previous claim was unverifiable and is replaced by this manifest verification.** From here, git tags are the freeze mechanism. |
 | **Assumptions** | (a) Hash function (SHA-256) is collision-resistant. (b) The manifest itself has not been tampered with since the freeze. |
-| **Evidence** | `reproduction/freeze_v0.1_manifest_verification.log` (per-file verification run 2026-10-14). |
+| **Evidence** | `reproduction/freeze_v0.1_manifest_verification.log` (per-file verification run 2026-10-14, source-file subset) + re-verification of all 65 hashes on 2026-10-15. |
 | **Status** | measured (manifest-level). Archive-level clean-extraction reproduction: **not performed — no archive exists**. |
-| **Invalidated by** | Any hash mismatch on the 47 unchanged files; discovery of a later-created archive that disagrees with the manifest. |
+| **Invalidated by** | Any hash mismatch on the 48 currently-matching files; discovery of a later-created archive that disagrees with the manifest. |
 
 ## C10. Reproducibility (working tree)
 
 | Field | Value |
 |---|---|
-| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; 162/162 tests pass; all seven result JSONs regenerate with expected values; the run records `results/evidence.json` (per-check artifact hashes). |
+| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; **162 passed, 1 skipped** tests pass (the skip is a torch-present deploy test that is importorskip-guarded); all **six** host-check result JSONs regenerate with expected values (parity, battery, independent, heldout, workflows, baseline); the run records `results/evidence.json` with a live result for each of the six host checks it actually runs. **Partial dependency coverage (2026-10-15):** the ESP32 `build` and `qemu` checks cannot run in a host-only tree, so they are recorded as **never run** — never "fresh" — and the claims they back (C2, C3, C4, C7, C8) plus C10's firmware scope are reported by `evidence status` under "claims without live evidence" until a real ESP32 build/qemu run is recorded. |
 | **Assumptions** | Same dependency assumptions as C9. The working tree has diverged from the freeze by design (v0.2 branch); repro.py's count fix is a v0.2 change. |
-| **Evidence** | `reproduction/workingtree_reproduction.log`. |
+| **Evidence** | `reproduction/workingtree_reproduction.log`; `results/evidence.json` (never-run entries for build/qemu are the honest record, not a defect). |
 | **Status** | measured. |
 | **Invalidated by** | Any non-zero exit; count drift without documentation; a check regenerating a different value. |
 

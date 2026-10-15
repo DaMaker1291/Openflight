@@ -1,25 +1,61 @@
 """Evidence graph: hash the artifacts each check reads; detect staleness.
 
-Checks (battery, held-out, independent, workflows, parity, build, qemu)
-declare which artifact groups they read. `record` hashes those artifacts
-into results/evidence.json; `status` re-hashes and lists stale checks and
-the CLAIMS.md claims that depend on them. Provenance sidecars and blanket
-confirmations surface under unresolved limitations.
+Checks (battery, held-out, independent, workflows, baseline, parity, build,
+qemu) declare which artifact groups they read. `record` hashes those
+artifacts into results/evidence.json; `status` re-hashes and reports each
+check as fresh / stale / never run, plus the CLAIMS.md claim ids that
+depend on stale or never-run checks.
+
+Truth rules (2026-10-15, independent probe + import tracing):
+- Dependencies below are derived from what the producing test module
+  actually reads (imports + file loads), not from what seems related.
+  tests/openflight/test_evidence_mutation.py re-derives the import
+  closure and fails if a check's declared inputs drift from its reads.
+- `record` writes a check entry ONLY when that check actually ran, with
+  its result. A check with no entry — or with required inputs absent at
+  record time — reports "never run", never "fresh".
+- Over-approximations kept on purpose (commented): the shipped contract
+  YAMLs are declared for the challenge checks even though the challenge
+  cases are embedded in the tests; editing the shipped pair policy-
+  warrants re-running the challenges.
 
 Design: docs/superpowers (Phase 1 evidence graph, advisor prompt
-2026-10-14). No new dependencies.
+2026-10-14; dependency-true revision 2026-10-15). No new dependencies.
 """
 from __future__ import annotations
 
+import glob
 import hashlib
 import json
 import os
 import time
 
-# artifact group -> repo-relative paths (missing files hash as None)
-ARTIFACT_GROUPS = {
-    "model_weights": [
+ROOT_FIXTURES = [
+    "learned_observer.py",
+    "macondo_hover.py",
+    "observer_deploy.py",
+]
+
+
+def _glob(pattern: str) -> list[str]:
+    return sorted(p for p in glob.glob(pattern) if os.path.isfile(p))
+
+
+# artifact group -> repo-relative paths (missing files hash as None).
+# Path lists are glob-derived at import time so new source files in a
+# tracked directory are picked up without editing this table.
+ARTIFACT_GROUPS: dict[str, list[str]] = {
+    # QUICKSTART demo model; read by NO repro check (kept for completeness,
+    # wired to no check — all six checks load learned_observer.pt)
+    "example_weights": [
         "examples/quadrotor_adapter/example_weights.pt",
+    ],
+    # the model the parity/workflows/baseline/independent checks load
+    "observer_weights": [
+        "learned_observer.pt",
+    ],
+    "ppo_weights": [
+        "ppo_best.pt",
     ],
     "model_contract": [
         "examples/quadrotor_adapter/model_contract.yaml",
@@ -27,12 +63,39 @@ ARTIFACT_GROUPS = {
     "sensor_contract": [
         "examples/quadrotor_adapter/drone_contract.yaml",
     ],
-    "checker_source": [
-        "openflight/contract/checker.py",
-        "openflight/contract/units.py",
-        "openflight/contract/pipeline.py",
-        "openflight/contract/model_contract.py",
+    # checker + everything it imports at module level (errors) and the
+    # contract adapters the contract modules import
+    "checker_source": _glob("openflight/contract/*.py") + [
+        "openflight/errors.py",
     ],
+    "adapters_source": _glob("openflight/adapters/*.py"),
+    "compiler_source": (_glob("openflight/compiler/*.py")
+                        + _glob("openflight/compiler/operators/*.py")),
+    "cli_source": [
+        "openflight/cli.py",
+    ],
+    "benchmark_source": _glob("openflight/benchmark/*.py"),
+    "observer_fixtures": list(ROOT_FIXTURES),
+    # the host-sim firmware the parity harness compiles and runs
+    "firmware_host_source": (_glob("firmware/generic/*")
+                             + _glob("firmware/host_sim/*")),
+    # the ESP32 target the build/qemu checks concern
+    "firmware_esp32_source": (_glob("firmware/esp32/main/*")
+                              + [p for p in (
+                                  "firmware/esp32/sdkconfig.defaults",
+                                  "firmware/esp32/CMakeLists.txt",
+                                  "firmware/esp32/build.sh",
+                                  "firmware/esp32/qemu_test.py",
+                                  "firmware/esp32/gen_vectors.py",
+                                  "firmware/esp32/sim_test.py",
+                              ) if os.path.isfile(p)]),
+    # each check's own implementation is an input to that check
+    "battery_test": ["tests/openflight/test_contract_battery.py"],
+    "heldout_test": ["tests/openflight/test_heldout_challenge.py"],
+    "independent_test": ["tests/openflight/test_independent_challenge.py"],
+    "workflows_test": ["tests/openflight/test_three_workflows.py"],
+    "baseline_test": ["tests/openflight/test_baseline_compare.py"],
+    "parity_test": ["tests/openflight/test_firmware_harness.py"],
     "compiler_flags": [
         "results/example_disturbance12/experiment_manifest.json",
     ],
@@ -45,21 +108,31 @@ ARTIFACT_GROUPS = {
     ],
 }
 
-# check -> artifact groups it reads
+# groups whose absence does not mean a check failed to run
+OPTIONAL_GROUPS = {"generated_cxx", "firmware_binary"}
+
+# check -> artifact groups it reads (derived from the producing test
+# module's imports and file loads; see module docstring)
 CHECK_DEPS = {
-    "battery": ("model_weights", "model_contract", "sensor_contract",
-                "checker_source"),
-    "heldout": ("model_weights", "model_contract", "sensor_contract",
-                "checker_source"),
-    "independent": ("model_weights", "model_contract", "sensor_contract",
-                    "checker_source"),
-    "workflows": ("model_weights", "model_contract", "sensor_contract",
-                  "checker_source"),
-    "parity": ("model_weights", "generated_cxx", "compiler_flags",
-               "firmware_binary"),
-    "build": ("model_weights", "model_contract", "generated_cxx",
-              "compiler_flags"),
-    "qemu": ("firmware_binary", "compiler_flags"),
+    "battery": ("checker_source", "adapters_source", "battery_test",
+                "model_contract", "sensor_contract"),
+    "heldout": ("checker_source", "adapters_source", "heldout_test",
+                "model_contract", "sensor_contract"),
+    "independent": ("checker_source", "adapters_source", "independent_test",
+                    "model_contract", "sensor_contract", "observer_weights",
+                    "ppo_weights", "observer_fixtures", "compiler_source",
+                    "cli_source"),
+    "workflows": ("checker_source", "adapters_source", "workflows_test",
+                  "model_contract", "sensor_contract", "cli_source",
+                  "compiler_source", "observer_weights", "observer_fixtures"),
+    "baseline": ("checker_source", "adapters_source", "baseline_test",
+                 "model_contract", "sensor_contract", "cli_source",
+                 "observer_weights", "observer_fixtures"),
+    "parity": ("parity_test", "observer_weights", "observer_fixtures",
+               "compiler_source", "cli_source", "benchmark_source",
+               "firmware_host_source"),
+    "build": ("firmware_esp32_source", "compiler_source", "compiler_flags"),
+    "qemu": ("firmware_esp32_source", "compiler_flags", "observer_weights"),
 }
 
 # check -> CLAIMS.md claim ids it supports (C10 depends on everything)
@@ -68,6 +141,7 @@ CLAIM_DEPS = {
     "heldout": ("C5",),
     "independent": ("C5",),
     "workflows": ("C6",),
+    "baseline": ("C6",),
     "parity": ("C1",),
     "build": ("C2", "C3"),
     "qemu": ("C2", "C4", "C7", "C8"),
@@ -92,13 +166,27 @@ def _hash_groups(root: str) -> dict:
     return out
 
 
-def record(root: str = ".", out_path: str | None = None) -> dict:
+def record(root: str = ".", out_path: str | None = None,
+           results: dict | None = None) -> dict:
+    """Hash artifacts; write check entries only for checks that ran.
+
+    `results` maps check name -> {"result": "ok"|"fail"}. Without it no
+    check is claimed to have run (standalone CLI record), and status
+    reports every check as "never run".
+    """
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    checks = {}
+    for name, res in (results or {}).items():
+        if name not in CHECK_DEPS:
+            continue
+        checks[name] = {"reads": list(CHECK_DEPS[name]),
+                        "result": res.get("result"),
+                        "ran_at": now}
     doc = {
-        "schema_version": 1,
-        "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "schema_version": 2,
+        "recorded_at": now,
         "artifacts": _hash_groups(root),
-        "checks": {c: {"reads": list(deps)}
-                   for c, deps in CHECK_DEPS.items()},
+        "checks": checks,
     }
     out = out_path or os.path.join(root, "results", "evidence.json")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
@@ -131,6 +219,19 @@ def _sidecar_limitations(root: str) -> list[dict]:
     return found
 
 
+def _group_diff(recorded: dict, current: dict) -> list[str]:
+    reasons = []
+    for rel in sorted(set(recorded) | set(current)):
+        r, c = recorded.get(rel), current.get(rel)
+        if r and c is None:
+            reasons.append(f"{rel} missing (was hashed at record)")
+        elif r and c and r != c:
+            reasons.append(f"{rel} changed")
+        elif not r and c:
+            reasons.append(f"{rel} appeared since record")
+    return reasons
+
+
 def status(root: str = ".", evidence_path: str | None = None) -> dict:
     path = evidence_path or os.path.join(root, "results", "evidence.json")
     try:
@@ -138,26 +239,44 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
             rec = json.load(f)
     except (OSError, json.JSONDecodeError) as e:
         return {"error": f"no usable evidence record at {path}: {e}",
-                "stale_checks": [], "claims_at_risk": [],
+                "stale_checks": [], "never_run_checks": [],
+                "claims_at_risk": [], "claims_unverified": [],
                 "checks": {}, "unresolved_limitations": []}
 
     current = _hash_groups(root)
     checks: dict[str, dict] = {}
     stale: list[str] = []
+    never_run: list[str] = []
     for check, deps in CHECK_DEPS.items():
+        entry = rec.get("checks", {}).get(check)
+        rec_arts = rec.get("artifacts", {})
+        if entry is None:
+            checks[check] = {"status": "never run",
+                             "reasons": ["not recorded as run "
+                                         "(repro.py records ran checks)"]}
+            never_run.append(check)
+            continue
+        required_absent = []
+        for group in deps:
+            if group in OPTIONAL_GROUPS:
+                continue
+            for rel, h in rec_arts.get(group, {}).items():
+                if h is None:
+                    required_absent.append(rel)
+        if required_absent:
+            checks[check] = {
+                "status": "never run",
+                "reasons": [f"required input absent at record: {rel}"
+                            for rel in sorted(required_absent)]}
+            never_run.append(check)
+            continue
         reasons: list[str] = []
         for group in deps:
-            recorded = (rec.get("artifacts", {}).get(group, {}))
-            now = current.get(group, {})
-            for rel in sorted(set(recorded) | set(now)):
-                r, c = recorded.get(rel), now.get(rel)
-                if r and c is None:
-                    reasons.append(f"{rel} missing (was hashed at record)")
-                elif r and c and r != c:
-                    reasons.append(f"{rel} changed")
-                elif not r and c:
-                    reasons.append(f"{rel} appeared since record")
-        checks[check] = {"stale": bool(reasons), "reasons": reasons}
+            reasons.extend(_group_diff(rec_arts.get(group, {}),
+                                       current.get(group, {})))
+        checks[check] = {"status": "stale" if reasons else "fresh",
+                         "reasons": reasons,
+                         "result": entry.get("result")}
         if reasons:
             stale.append(check)
 
@@ -167,10 +286,21 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
     if stale:
         claims.add("C10")  # reproducibility depends on every check
 
+    # claims whose supporting checks never ran have no live evidence
+    unverified: set[str] = set()
+    for claim in {c for deps in CLAIM_DEPS.values() for c in deps}:
+        supporting = [k for k, deps in CLAIM_DEPS.items() if claim in deps]
+        if any(k in never_run for k in supporting):
+            unverified.add(claim)
+    if never_run:
+        unverified.add("C10")
+
     return {
         "recorded_at": rec.get("recorded_at"),
         "checks": checks,
         "stale_checks": sorted(stale),
+        "never_run_checks": sorted(never_run),
         "claims_at_risk": sorted(claims),
+        "claims_unverified": sorted(unverified),
         "unresolved_limitations": _sidecar_limitations(root),
     }

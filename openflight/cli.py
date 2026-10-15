@@ -590,15 +590,23 @@ def cmd_evidence_status(a):
         return 0 if not st["stale_checks"] else 1
     print(f"evidence record from {st['recorded_at']}")
     for check, info in sorted(st["checks"].items()):
-        mark = "STALE" if info["stale"] else "fresh"
+        mark = {"stale": "STALE", "fresh": "fresh",
+                "never run": "never run"}.get(info.get("status"),
+                                              info.get("status", "?"))
         print(f"  {check}: {mark}")
-        for r in info["reasons"]:
+        for r in info.get("reasons", []):
             print(f"    - {r}")
     if st["stale_checks"]:
         print("stale checks: " + ", ".join(st["stale_checks"]))
         print("claims at risk: " + ", ".join(st["claims_at_risk"]))
+    elif st.get("never_run_checks"):
+        print("all recorded checks fresh; never run: "
+              + ", ".join(st["never_run_checks"]))
     else:
         print("all checks fresh")
+    if st.get("claims_unverified"):
+        print("claims without live evidence (check never ran): "
+              + ", ".join(st["claims_unverified"]))
     if st["unresolved_limitations"]:
         print("unresolved limitations (provenance sidecars / blanket "
               "confirmations):")
