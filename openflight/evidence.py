@@ -121,10 +121,20 @@ ARTIFACT_GROUPS: dict[str, list[str]] = {
     "firmware_binary": [
         "firmware/esp32/build/openflight_bench.bin",
     ],
+    # provenance sidecars written by `contract confirm` next to their
+    # contracts; optional (absent until someone confirms), but once
+    # recorded their content is a claim-level input: C11 cannot look
+    # fully supported while the confirmation record drifts
+    "provenance_sidecars": ["**/*.provenance.json"],
 }
 
 # groups whose absence does not mean a check failed to run
-OPTIONAL_GROUPS = {"generated_cxx", "firmware_binary"}
+OPTIONAL_GROUPS = {"generated_cxx", "firmware_binary", "provenance_sidecars"}
+
+# claims whose support depends on provenance sidecars (claim-level
+# inputs: no technical check reads a sidecar, so no check goes stale —
+# only these claims lose their "fully supported" status)
+PROVENANCE_CLAIMS = ("C11",)
 
 # check -> artifact groups it reads (derived from the producing test
 # module's imports and file loads; see module docstring)
@@ -190,7 +200,9 @@ def _expand_group(root: str, patterns: list[str],
             full = os.path.join(root, pat)
             matches = sorted(
                 os.path.relpath(p, root).replace(os.sep, "/")
-                for p in glob.glob(full) if os.path.isfile(p))
+                for p in glob.glob(full, recursive=True)
+                if os.path.isfile(p) and "/.git/" not in
+                (os.path.relpath(p, root).replace(os.sep, "/") + "/"))
             if not matches and group not in OPTIONAL_GROUPS:
                 raise EvidenceGraphError(
                     f"artifact group '{group}' expanded to no files "
@@ -303,9 +315,14 @@ def _group_diff(recorded: dict, current: dict) -> list[str]:
 
 def status(root: str = ".", evidence_path: str | None = None) -> dict:
     path = evidence_path or os.path.join(root, "results", "evidence.json")
+    checks: dict[str, dict] = {}
+    stale: list[str] = []
+    failed: list[str] = []
+    never_run: list[str] = []
     empty = {"stale_checks": [], "failed_checks": [], "never_run_checks": [],
              "claims_at_risk": [], "claims_unverified": [],
-             "checks": {}, "unresolved_limitations": []}
+             "checks": {}, "unresolved_limitations": [],
+             "stale_provenance": []}
     try:
         with open(path) as f:
             rec = json.load(f)
@@ -316,6 +333,12 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
         current = _hash_groups(root)
     except EvidenceGraphError as e:
         return dict(empty, error=str(e))
+
+    # provenance sidecars are claim-level inputs (not check inputs):
+    # drift puts PROVENANCE_CLAIMS at risk without staling any check
+    prov_reasons = _group_diff(
+        rec.get("artifacts", {}).get("provenance_sidecars", {}),
+        current.get("provenance_sidecars", {}))
 
     cur_env = _env_snapshot()
     rec_env = rec.get("environment")
@@ -329,10 +352,6 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
                     f"environment changed: {key} "
                     f"{rec_env.get(key)} -> {cur_env.get(key)}")
 
-    checks: dict[str, dict] = {}
-    stale: list[str] = []
-    failed: list[str] = []
-    never_run: list[str] = []
     for check, deps in CHECK_DEPS.items():
         entry = rec.get("checks", {}).get(check)
         rec_arts = rec.get("artifacts", {})
@@ -381,6 +400,8 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
         claims.update(CLAIM_DEPS.get(check, ()))
     if stale or failed:
         claims.add("C10")  # reproducibility depends on every check
+    if prov_reasons:
+        claims.update(PROVENANCE_CLAIMS)  # confirmation record drifted
 
     # claims whose supporting checks never ran have no live evidence
     unverified: set[str] = set()
@@ -399,5 +420,6 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
         "never_run_checks": sorted(never_run),
         "claims_at_risk": sorted(claims),
         "claims_unverified": sorted(unverified),
+        "stale_provenance": prov_reasons,
         "unresolved_limitations": _sidecar_limitations(root),
     }

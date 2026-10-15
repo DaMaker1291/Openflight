@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-15T14:15:28Z",
+  "recorded_at": "2026-10-15T16:04:26Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -51,7 +51,7 @@
       "openflight/compiler/operators/__init__.py": "53e0e8e3f95ce75e94cfedbdf71503785572afcc3118f84046ce73a41bc752a1"
     },
     "cli_source": {
-      "openflight/cli.py": "045231991ad9420bb909de1264ef30c1f18e282f2c4b2c69156f2a2a0d378843"
+      "openflight/cli.py": "1c0079092dd4806c632c86b11d14a9c30814a23ddc48833453b2c07e6cdbe431"
     },
     "benchmark_source": {
       "openflight/benchmark/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -104,7 +104,8 @@
     },
     "firmware_binary": {
       "firmware/esp32/build/openflight_bench.bin": null
-    }
+    },
+    "provenance_sidecars": {}
   },
   "checks": {
     "parity": {
@@ -118,7 +119,7 @@
         "firmware_host_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     },
     "battery": {
       "reads": [
@@ -129,7 +130,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     },
     "independent": {
       "reads": [
@@ -145,7 +146,7 @@
         "cli_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     },
     "heldout": {
       "reads": [
@@ -156,7 +157,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     },
     "workflows": {
       "reads": [
@@ -171,7 +172,7 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     },
     "baseline": {
       "reads": [
@@ -185,7 +186,7 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T14:15:28Z"
+      "ran_at": "2026-10-15T16:04:26Z"
     }
   }
 }

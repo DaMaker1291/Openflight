@@ -342,6 +342,97 @@ def test_c1_unverified_without_qemu(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# provenance sidecars (probe round 3, 2026-10-15): confirmation changes
+# must never leave C11 looking fully supported
+# ---------------------------------------------------------------------------
+
+SIDECAR_REL = ("examples/quadrotor_adapter/"
+               "model_contract.yaml.provenance.json")
+
+
+def _write_sidecar(root, confirm_mode="per-field", confirmed=None,
+                   blanket=None, limitations=None):
+    side = {
+        "schema_version": 1,
+        "confirm_mode": confirm_mode,
+        "confirmed": confirmed or ["gyro.units", "acc.units"],
+        "blanket": blanket or [],
+        "not_individually_verified": sorted(blanket or []),
+        "limitations": limitations or [],
+        "provenance": {"gyro.units": "documented", "acc.units": "inferred"},
+    }
+    p = root / SIDECAR_REL
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(side, indent=2))
+    return p
+
+
+def test_mutate_sidecar_confirmed_field_risks_c11(tmp_path):
+    # changing a confirmation in a recorded sidecar must put C11 at risk
+    # while technical checks that do not read the sidecar stay fresh
+    root = _make_sandbox(tmp_path)
+    _write_sidecar(root)
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS})
+    p = root / SIDECAR_REL
+    side = json.loads(p.read_text())
+    side["confirmed"].append("gyro.frame")           # new confirmation
+    side["provenance"]["gyro.frame"] = "documented"
+    p.write_text(json.dumps(side, indent=2))
+    st = EV.status(root=str(root))
+    assert st["stale_provenance"], "sidecar change not detected"
+    assert any(SIDECAR_REL in r for r in st["stale_provenance"])
+    assert "C11" in st["claims_at_risk"]
+    # advisor rule: checks that do not read the sidecar stay fresh
+    assert st["stale_checks"] == []
+    for c in ("battery", "heldout", "independent", "workflows",
+              "baseline", "parity"):
+        assert st["checks"][c]["status"] == "fresh", c
+
+
+def test_sidecar_confirm_all_switch_risks_c11(tmp_path):
+    # switching a field to blanket confirmation (confirm_mode ->
+    # blanket, field moves to not_individually_verified) must be
+    # reflected: C11 at risk + the limitation surfaced live
+    root = _make_sandbox(tmp_path)
+    _write_sidecar(root, confirm_mode="per-field")
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS})
+    _write_sidecar(root, confirm_mode="blanket",
+                   confirmed=["gyro.units", "acc.units", "gyro.frame"],
+                   blanket=["gyro.frame"],
+                   limitations=[{"code": "W301",
+                                 "reason": "clip not applied"}])
+    st = EV.status(root=str(root))
+    assert st["stale_provenance"]
+    assert "C11" in st["claims_at_risk"]
+    assert any("W301" in json.dumps(x)
+               for x in st["unresolved_limitations"])
+
+
+def test_new_sidecar_after_record_risks_c11(tmp_path):
+    # a sidecar appearing after the record is also provenance drift
+    root = _make_sandbox(tmp_path)
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS})
+    _write_sidecar(root)
+    st = EV.status(root=str(root))
+    assert st["stale_provenance"]
+    assert "C11" in st["claims_at_risk"]
+
+
+def test_sidecar_stale_exits_nonzero(tmp_path):
+    from openflight import cli
+    root = _make_sandbox(tmp_path)
+    _write_sidecar(root)
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS})
+    _write_sidecar(root, confirm_mode="blanket", blanket=["gyro.units"])
+    rc = cli.main(["evidence", "status", "--root", str(root)])
+    assert rc == 1
+
+
+# ---------------------------------------------------------------------------
 # import-closure derivation guard
 # ---------------------------------------------------------------------------
 

@@ -595,7 +595,8 @@ def cmd_evidence_status(a):
         return 2
     if a.format == "json":
         print(json.dumps(st, indent=2))
-        return 0 if not (st["stale_checks"] or st["failed_checks"]) else 1
+        return 0 if not (st["stale_checks"] or st["failed_checks"]
+                         or st.get("stale_provenance")) else 1
     print(f"evidence record from {st['recorded_at']}")
     for check, info in sorted(st["checks"].items()):
         mark = {"stale": "STALE", "fresh": "fresh", "failed": "FAILED",
@@ -610,6 +611,11 @@ def cmd_evidence_status(a):
     if st["failed_checks"]:
         print("failed checks: " + ", ".join(st["failed_checks"]))
         print("claims at risk: " + ", ".join(st["claims_at_risk"]))
+    if st.get("stale_provenance"):
+        print("stale provenance sidecars (claims at risk, no check "
+              "stales — confirmation record drifted):")
+        for r in st["stale_provenance"]:
+            print(f"    - {r}")
     if st["never_run_checks"]:
         if not (st["stale_checks"] or st["failed_checks"]):
             print("all recorded checks fresh; never run: "
@@ -617,6 +623,7 @@ def cmd_evidence_status(a):
         else:
             print("never run: " + ", ".join(st["never_run_checks"]))
     if not (st["stale_checks"] or st["failed_checks"]
+            or st.get("stale_provenance")
             or st["never_run_checks"]):
         print("all checks fresh")
     if st.get("claims_unverified"):
@@ -631,7 +638,8 @@ def cmd_evidence_status(a):
                 print(f"    not individually verified: {b}")
             for l in lim["limitations"]:
                 print(f"    [{l.get('code', '?')}] {l.get('reason', '')}")
-    return 0 if not (st["stale_checks"] or st["failed_checks"]) else 1
+    return 0 if not (st["stale_checks"] or st["failed_checks"]
+                     or st.get("stale_provenance")) else 1
 
 
 def build_parser():
