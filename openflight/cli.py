@@ -422,7 +422,7 @@ def cmd_deploy(a):
     else:
         if not a.allow_unvalidated:
             raise OpenFlightError(
-                "deploy", "E002",
+                "deploy", "E003",
                 "no contracts supplied — semantic compatibility was NOT "
                 "checked; the contract gate is required by default",
                 where="command line",

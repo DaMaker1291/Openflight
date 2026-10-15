@@ -38,6 +38,10 @@ CODE_ACTIONS = {
             "schema_version), then re-run validate.",
     "E002": "Fix the model contract file (schema_version 2, raw_layout, "
             "features with units and normalization), then re-run validate.",
+    "E003": "Supply --contract and --model-contract to run the semantic "
+            "contract gate (the validated-deployment path), or pass "
+            "--allow-unvalidated to deploy without semantic validation "
+            "(records a SKIPPED limitation).",
     "E101": "Align the units: either declare the sensor's true units so a "
             "conversion can be generated, or correct the model contract. "
             "No artifacts were generated.",

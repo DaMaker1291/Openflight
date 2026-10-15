@@ -53,7 +53,7 @@ def test_deploy_requires_contracts_by_default(capsys, tmp_path):
                  "--output", str(tmp_path))
     captured = capsys.readouterr()
     assert rc == 2
-    assert "E002" in captured.err
+    assert "E003" in captured.err
     assert "--allow-unvalidated" in captured.err
 
 

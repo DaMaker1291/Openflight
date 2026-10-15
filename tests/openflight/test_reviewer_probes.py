@@ -167,7 +167,7 @@ def test_probe7_deploy_without_contracts_is_blocked(tmp_path, capsys):
                    "--output", str(tmp_path)])
     captured = capsys.readouterr()
     assert rc == 2
-    assert "E002" in captured.err
+    assert "E003" in captured.err
     assert "--allow-unvalidated" in captured.err
     # explicit opt-out: proceeds, records skipped limitation
     rc = cli.main(["deploy", "--model", "learned_observer.pt",
