@@ -1,14 +1,73 @@
 # OpenFlight pilot protocol (2–3 PhD students)
 
-**Goal.** Establish whether OpenFlight makes it *faster and more reliable* to
-take a PyTorch policy onto a microcontroller **without** shipping a wrong
-sensor-to-model binding. This is the human-time claim the solo evaluation
-explicitly cannot make (see `EVALUATION.md`: "no human study has been run").
-You are the study.
+> **PILOT STATUS: PREPARATION ONLY**
+>
+> OpenFlight v0.2.3-pilot has a reported passing test suite and reproduction
+> run. Independent second-machine reproduction and the supervised
+> participant pilot remain outstanding.
+>
+> Do not begin participant recruitment, collect participant data, or conduct
+> research sessions until the applicable permissions, consent arrangements,
+> and research ethics requirements have been confirmed.
+>
+> Once authorised, use only the designated v0.2.3-pilot release. Record the
+> verified archive checksum, environment details, commands executed, and test
+> results.
+
+**Purpose.** Establish whether people who did not build OpenFlight can
+install it, understand its diagnostics, and correctly interpret what its
+evidence does — and does not — prove, while taking a PyTorch policy toward a
+microcontroller without shipping a wrong sensor-to-model binding. The pilot
+is also a defect-finding exercise for gaps existing tests missed. It is
+**not** evidence that OpenFlight is faster or more reliable than competing
+workflows; no such claim is made or measured here (see `EVALUATION.md`:
+"no human study has been run").
+
+This file is the authoritative pilot protocol. The copy included inside a
+release archive is a convenience snapshot and may lag the repository version.
 
 **What you are NOT being asked to do.** No hardware, no MCU, no cross-compile.
 Everything runs on a laptop in ~10–15 minutes of compute; the human task is
 ~60–90 minutes.
+
+## Release artifact and verification
+
+| Field | Value |
+|---|---|
+| Project | OpenFlight |
+| Pilot version | `v0.2.3-pilot` |
+| Archive filename | `openflight-v0.2.3-pilot.tar.gz` |
+| SHA-256 | `0d1801aa098308ec4f641674198f07856983fce45e32122f9936fde47bab5684` |
+| Official distribution location | [The v0.2.3-pilot GitHub release](https://github.com/DaMaker1291/openflight/releases/tag/v0.2.3-pilot) |
+| Expected verification | Checksum matches before extracting or executing the archive |
+
+Obtain the expected checksum from the `openflight-v0.2.3-pilot.tar.gz.sha256`
+release asset, or by copying it from the release-notes text on the GitHub
+release page — either way, from the official release you navigated to
+yourself, not from a file bundled inside the archive you are verifying and
+not from a link someone handed you directly. A checksum distributed inside a
+wrong copy would still match that wrong copy, which is why the expected value
+must come from a source you retrieved independently of the archive itself.
+
+The archive is immutable. If the protocol or software changes, a new release
+candidate is created and verified rather than silently replacing v0.2.3. If
+you were given a different version or filename, stop and report it — that is
+a finding, not a setup problem.
+
+macOS or Linux:
+
+```bash
+shasum -a 256 openflight-v0.2.3-pilot.tar.gz
+```
+
+Windows PowerShell:
+
+```powershell
+Get-FileHash .\openflight-v0.2.3-pilot.tar.gz -Algorithm SHA256
+```
+
+The 64-character result must match the expected checksum above exactly. Only
+then extract the archive and continue.
 
 ## Time budget
 
@@ -26,7 +85,7 @@ Everything runs on a laptop in ~10–15 minutes of compute; the human task is
 pip install -r requirements-lock.txt  # exact verified set (recommended)
 pip install -e . --no-deps            # the package itself
 openflight doctor                     # must exit 0, no errors
-openflight version                    # expect 0.2.0
+openflight version                    # expect 0.2.3
 ```
 
 If `doctor` fails, stop and report — that is a finding, not a setup problem.
@@ -38,9 +97,12 @@ python3 openflight/repro.py              # expect final line REPRODUCTION OK
 python3 -m openflight.cli evidence status  # expect: all checks fresh, exit 0
 ```
 
-Record the `git rev-parse HEAD` you ran from. `repro.py` is expected to run
-the full 194-test suite and regenerate every report in `results/`. Any
-`MISMATCH` or `stale` check is a finding.
+Record the archive filename and the verified SHA-256 you ran from (there is
+no `.git` directory in the release archive; the checksum is the provenance
+anchor). `repro.py` is expected to run the full 205-test suite (1 skip:
+`test_product.py` E050, unreachable-when-torch-installed) and regenerate
+every report in `results/`. Any `MISMATCH`, `stale` check, or unexpected
+skip is a finding.
 
 ## Phase 2 — deploy the example
 

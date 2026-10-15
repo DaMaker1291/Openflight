@@ -34,8 +34,8 @@ Then install the project itself: `pip install -e . --no-deps`.
    `source_files` hashes and `models` hashes against
    `results/freeze_v0.1.json`. Any source change shows up as a hash mismatch.
 3. Run the full evaluation: `python3 openflight/repro.py`.
-   This executes the full regression suite (194 passed, 1 skipped as of
-   2026-10-15; the skip is `test_product.py:54`, an E050 no-torch-path
+   This executes the full regression suite (205 passed, 1 skipped as of
+   2026-10-15, v0.2.3-pilot; the skip is `test_product.py:54`, an E050 no-torch-path
    test that is unreachable when torch is installed and is absent in a
    torch-free tree) plus the held-out challenge, then verifies each JSON report in `results/`
    against the claimed result. Expected final line: `REPRODUCTION OK`.

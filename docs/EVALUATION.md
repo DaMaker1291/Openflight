@@ -2,8 +2,8 @@
 
 Status: host-validated prototype, frozen as **v0.1** (`results/freeze_v0.1.json`:
 65 hashes = 62 `source_files` + 3 `models`, dependency versions, git head).
-**97/97 tests pass** in the frozen snapshot suite (**194 passed, 1 skipped**
-in the current v0.2 working tree: 97 frozen + product-quality, external-review
+**97/97 tests pass** in the frozen snapshot suite (**205 passed, 1 skipped**
+in the current v0.2.3-pilot working tree: 97 frozen + product-quality, external-review
 probe, Task-1 refinement, draft-layer, importer, advisor-review strengthening,
 and evidence-graph tests added since the freeze). The single skip is
 `test_product.py:54` (an E050 test unreachable when torch is installed); it
