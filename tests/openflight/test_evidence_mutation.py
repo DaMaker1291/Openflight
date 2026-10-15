@@ -11,6 +11,7 @@ actually imports (file reads like weights are covered by the mutation
 rows above; imports are covered here).
 """
 import ast
+import json
 import os
 import shutil
 
@@ -40,7 +41,7 @@ CLOSE_EXEMPT = {"openflight/cli.py"}
 
 def _make_sandbox(tmp_path, results_for=ALL_CHECKS):
     root = tmp_path / "repo"
-    for group, rels in EV.ARTIFACT_GROUPS.items():
+    for group, rels in EV.expand_groups(".").items():
         for rel in rels:
             dst = root / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +251,97 @@ def test_required_input_absent_at_record_is_never_run(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# probe round 2 (2026-10-15): cwd-independence, failed checks, environment
+# ---------------------------------------------------------------------------
+
+def test_mutate_checker_from_foreign_cwd_stales(tmp_path, monkeypatch):
+    # record+status must resolve globs against --root, not the cwd. With
+    # import-time globs, running from outside the tree made every glob
+    # group empty and status printed a silent "all checks fresh".
+    root = _make_sandbox(tmp_path)
+    monkeypatch.chdir(tmp_path)          # cwd is OUTSIDE the repo root
+    st = EV.status(root=str(root))
+    assert st["stale_checks"] == []
+    p = root / "openflight/contract/checker.py"
+    original = p.read_bytes()
+    try:
+        p.write_bytes(original + b"\n# drift from foreign cwd\n")
+        st = EV.status(root=str(root))
+        assert set(st["stale_checks"]) == {
+            "battery", "heldout", "independent", "workflows", "baseline"}
+    finally:
+        p.write_bytes(original)
+
+
+def test_empty_glob_group_fails_loudly(tmp_path):
+    # a root that is missing a tracked source directory must raise, not
+    # hash an empty group and report everything fresh
+    root = tmp_path / "bare"
+    (root / "results").mkdir(parents=True)
+    with pytest.raises(EV.EvidenceGraphError, match="checker_source"):
+        EV.record(root=str(root))
+
+
+def test_failed_check_reports_failed_and_risks_claims(tmp_path):
+    # result=fail with unchanged inputs is NOT "fresh": it is a failed
+    # run whose claims are at risk and whose status command exits 1
+    root = _make_sandbox(tmp_path, results_for=ALL_CHECKS)
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS}
+              | {"parity": {"result": "fail"}})
+    st = EV.status(root=str(root))
+    assert st["checks"]["parity"]["status"] == "failed"
+    assert st["checks"]["parity"]["result"] == "fail"
+    assert "C1" in st["claims_at_risk"]
+    assert "C10" in st["claims_at_risk"]
+    assert st["failed_checks"] == ["parity"]
+
+
+def test_failed_check_makes_status_exit_nonzero(tmp_path):
+    from openflight import cli
+    root = _make_sandbox(tmp_path, results_for=ALL_CHECKS)
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS}
+              | {"parity": {"result": "fail"}})
+    rc = cli.main(["evidence", "status", "--root", str(root)])
+    assert rc == 1
+
+
+def test_record_snapshots_environment(tmp_path):
+    import platform
+    root = _make_sandbox(tmp_path, results_for=[])
+    doc = json.loads((root / "results/evidence.json").read_text())
+    env = doc["environment"]
+    assert env["python"] == platform.python_version()
+    assert "torch" in env and "numpy" in env and "platform" in env
+
+
+def test_environment_change_stales_target_checks(tmp_path, monkeypatch):
+    # parity/build/qemu are environment-dependent: a torch or interpreter
+    # bump must invalidate them even when no tracked file changed
+    root = _make_sandbox(tmp_path, results_for=ALL_CHECKS)
+    monkeypatch.setattr(EV, "_env_snapshot", lambda: {
+        "python": "0.0.0", "torch": "0.0.0", "numpy": "0.0.0",
+        "platform": "test-platform"})
+    st = EV.status(root=str(root))
+    assert set(st["stale_checks"]) == {"parity", "build", "qemu"}
+    assert all(any("environment" in r
+                   for r in st["checks"][c]["reasons"])
+               for c in ("parity", "build", "qemu"))
+    # host-only checks that do not depend on torch stay fresh
+    for c in ("battery", "heldout", "workflows"):
+        assert st["checks"][c]["status"] == "fresh"
+
+
+def test_c1_unverified_without_qemu(tmp_path):
+    # C1's evidence includes the QEMU log; with qemu never run, C1 must
+    # appear under claims_unverified on a host-only tree
+    root = _make_sandbox(tmp_path, results_for=REPRO_CHECKS)
+    st = EV.status(root=str(root))
+    assert "C1" in st["claims_unverified"]
+
+
+# ---------------------------------------------------------------------------
 # import-closure derivation guard
 # ---------------------------------------------------------------------------
 
@@ -299,10 +391,11 @@ def test_graph_declares_every_imported_input(check, producer):
     check's artifact groups. Weights/file reads are covered by the
     mutation rows above; this guards the import side."""
     declared: set[str] = set()
+    expanded = EV.expand_groups(".")
     for group in EV.CHECK_DEPS[check]:
         if group in EV.OPTIONAL_GROUPS:
             continue
-        declared.update(EV.ARTIFACT_GROUPS[group])
+        declared.update(expanded[group])
     closure = _import_closure(producer)
     missing = closure - declared
     assert not missing, (

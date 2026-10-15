@@ -20,7 +20,7 @@ ALL_CHECKS = sorted(EV.CHECK_DEPS)
 def sandbox(tmp_path):
     """Copy every tracked artifact into tmp; never touches the real tree."""
     root = tmp_path / "repo"
-    for group, rels in EV.ARTIFACT_GROUPS.items():
+    for group, rels in EV.expand_groups(".").items():
         for rel in rels:
             dst = root / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ def test_record_with_results_then_status_fresh(sandbox):
     assert st["claims_unverified"] == []
     assert (sandbox / "results/evidence.json").exists()
     doc = json.loads((sandbox / "results/evidence.json").read_text())
-    assert doc["schema_version"] == 2
+    assert doc["schema_version"] == 3
     assert set(doc["checks"]) == set(ALL_CHECKS)
     assert doc["checks"]["battery"]["result"] == "ok"
 
@@ -54,7 +54,10 @@ def test_recorded_fail_result_is_surfaced(sandbox):
               | {"heldout": {"result": "fail"}})
     st = EV.status(root=str(sandbox))
     assert st["checks"]["heldout"]["result"] == "fail"
-    assert st["checks"]["heldout"]["status"] == "fresh"  # inputs unchanged
+    # a failed run is NOT fresh: it is failed, and its claims are at risk
+    assert st["checks"]["heldout"]["status"] == "failed"
+    assert "heldout" in st["failed_checks"]
+    assert "C5" in st["claims_at_risk"]
 
 
 def test_delete_recorded_artifact_goes_stale(sandbox):

@@ -3,24 +3,40 @@
 Checks (battery, held-out, independent, workflows, baseline, parity, build,
 qemu) declare which artifact groups they read. `record` hashes those
 artifacts into results/evidence.json; `status` re-hashes and reports each
-check as fresh / stale / never run, plus the CLAIMS.md claim ids that
-depend on stale or never-run checks.
+check as fresh / stale / failed / never run, plus the CLAIMS.md claim ids
+that depend on stale, failed, or never-run checks.
 
-Truth rules (2026-10-15, independent probe + import tracing):
-- Dependencies below are derived from what the producing test module
-  actually reads (imports + file loads), not from what seems related.
+Truth rules (2026-10-15, independent probes + import tracing):
+- Dependencies are derived from what the producing test module actually
+  reads (imports + file loads), not from what seems related.
   tests/openflight/test_evidence_mutation.py re-derives the import
   closure and fails if a check's declared inputs drift from its reads.
+  Whole-directory globs (openflight/contract/, openflight/adapters/,
+  openflight/compiler/) are deliberate over-approximations: they also
+  cover files no check imports (e.g. contract/draft.py), so an edit to
+  any module in those directories policy-warrants re-running the checks.
+- Globs are expanded against the `root` argument at record/status time,
+  never against the current working directory. A non-optional glob group
+  that expands to zero files under `root` raises EvidenceGraphError —
+  an empty or foreign root fails loudly, it never reports "all fresh".
 - `record` writes a check entry ONLY when that check actually ran, with
   its result. A check with no entry — or with required inputs absent at
   record time — reports "never run", never "fresh".
+- "fresh" means: ran, result ok, inputs unchanged, environment unchanged.
+  A recorded result of "fail" with unchanged inputs reports "failed"
+  and puts its claims at risk.
+- The environment (python/torch/numpy/platform versions) is recorded and
+  compared: parity, build and qemu are environment-dependent and go
+  stale when it changes, even if no tracked file changed.
 - Over-approximations kept on purpose (commented): the shipped contract
   YAMLs are declared for the challenge checks even though the challenge
   cases are embedded in the tests; editing the shipped pair policy-
   warrants re-running the challenges.
 
 Design: docs/superpowers (Phase 1 evidence graph, advisor prompt
-2026-10-14; dependency-true revision 2026-10-15). No new dependencies.
+2026-10-14; dependency-true revision 2026-10-15; root-resolution +
+failed-state + environment revision 2026-10-15, probe round 2). No new
+dependencies.
 """
 from __future__ import annotations
 
@@ -28,6 +44,7 @@ import glob
 import hashlib
 import json
 import os
+import platform
 import time
 
 ROOT_FIXTURES = [
@@ -36,14 +53,17 @@ ROOT_FIXTURES = [
     "observer_deploy.py",
 ]
 
-
-def _glob(pattern: str) -> list[str]:
-    return sorted(p for p in glob.glob(pattern) if os.path.isfile(p))
+GLOB_CHARS = "*?["
 
 
-# artifact group -> repo-relative paths (missing files hash as None).
-# Path lists are glob-derived at import time so new source files in a
-# tracked directory are picked up without editing this table.
+class EvidenceGraphError(RuntimeError):
+    """The root does not contain the tracked tree (empty glob group)."""
+
+
+# artifact group -> patterns (glob or repo-relative static path).
+# Missing static files hash as None; glob patterns are expanded against
+# the record/status `root` (never the cwd), and a non-optional group
+# whose globs expand to nothing under that root raises.
 ARTIFACT_GROUPS: dict[str, list[str]] = {
     # QUICKSTART demo model; read by NO repro check (kept for completeness,
     # wired to no check — all six checks load learned_observer.pt)
@@ -64,31 +84,29 @@ ARTIFACT_GROUPS: dict[str, list[str]] = {
         "examples/quadrotor_adapter/drone_contract.yaml",
     ],
     # checker + everything it imports at module level (errors) and the
-    # contract adapters the contract modules import
-    "checker_source": _glob("openflight/contract/*.py") + [
-        "openflight/errors.py",
-    ],
-    "adapters_source": _glob("openflight/adapters/*.py"),
-    "compiler_source": (_glob("openflight/compiler/*.py")
-                        + _glob("openflight/compiler/operators/*.py")),
+    # contract adapters the contract modules import; the whole directory
+    # (incl. draft.py) is a deliberate over-approximation
+    "checker_source": ["openflight/contract/*.py",
+                       "openflight/errors.py"],
+    "adapters_source": ["openflight/adapters/*.py"],
+    "compiler_source": ["openflight/compiler/*.py",
+                        "openflight/compiler/operators/*.py"],
     "cli_source": [
         "openflight/cli.py",
     ],
-    "benchmark_source": _glob("openflight/benchmark/*.py"),
+    "benchmark_source": ["openflight/benchmark/*.py"],
     "observer_fixtures": list(ROOT_FIXTURES),
     # the host-sim firmware the parity harness compiles and runs
-    "firmware_host_source": (_glob("firmware/generic/*")
-                             + _glob("firmware/host_sim/*")),
+    "firmware_host_source": ["firmware/generic/*",
+                             "firmware/host_sim/*"],
     # the ESP32 target the build/qemu checks concern
-    "firmware_esp32_source": (_glob("firmware/esp32/main/*")
-                              + [p for p in (
-                                  "firmware/esp32/sdkconfig.defaults",
-                                  "firmware/esp32/CMakeLists.txt",
-                                  "firmware/esp32/build.sh",
-                                  "firmware/esp32/qemu_test.py",
-                                  "firmware/esp32/gen_vectors.py",
-                                  "firmware/esp32/sim_test.py",
-                              ) if os.path.isfile(p)]),
+    "firmware_esp32_source": ["firmware/esp32/main/*",
+                              "firmware/esp32/sdkconfig.defaults",
+                              "firmware/esp32/CMakeLists.txt",
+                              "firmware/esp32/build.sh",
+                              "firmware/esp32/qemu_test.py",
+                              "firmware/esp32/gen_vectors.py",
+                              "firmware/esp32/sim_test.py"],
     # each check's own implementation is an input to that check
     "battery_test": ["tests/openflight/test_contract_battery.py"],
     "heldout_test": ["tests/openflight/test_heldout_challenge.py"],
@@ -96,9 +114,6 @@ ARTIFACT_GROUPS: dict[str, list[str]] = {
     "workflows_test": ["tests/openflight/test_three_workflows.py"],
     "baseline_test": ["tests/openflight/test_baseline_compare.py"],
     "parity_test": ["tests/openflight/test_firmware_harness.py"],
-    "compiler_flags": [
-        "results/example_disturbance12/experiment_manifest.json",
-    ],
     # optional nodes: absent in a fresh tree (regenerated by compile/build)
     "generated_cxx": [
         "build/model_adapters.cpp",
@@ -131,11 +146,18 @@ CHECK_DEPS = {
     "parity": ("parity_test", "observer_weights", "observer_fixtures",
                "compiler_source", "cli_source", "benchmark_source",
                "firmware_host_source"),
-    "build": ("firmware_esp32_source", "compiler_source", "compiler_flags"),
-    "qemu": ("firmware_esp32_source", "compiler_flags", "observer_weights"),
+    "build": ("firmware_esp32_source", "compiler_source"),
+    "qemu": ("firmware_esp32_source", "observer_weights"),
 }
 
-# check -> CLAIMS.md claim ids it supports (C10 depends on everything)
+# checks whose numerical/compile behaviour depends on the interpreter
+# and library versions, not just on tracked files
+ENVIRONMENT_DEPENDENT = ("parity", "build", "qemu")  # parity loads torch
+
+# check -> CLAIMS.md claim ids it supports (C10 depends on everything).
+# C1 is split by evidence: the host half is backed by parity, the QEMU
+# half by qemu — so C1 appears under claims_unverified on a host-only
+# tree until a qemu run is recorded.
 CLAIM_DEPS = {
     "battery": ("C5",),
     "heldout": ("C5",),
@@ -144,7 +166,7 @@ CLAIM_DEPS = {
     "baseline": ("C6",),
     "parity": ("C1",),
     "build": ("C2", "C3"),
-    "qemu": ("C2", "C4", "C7", "C8"),
+    "qemu": ("C1", "C2", "C4", "C7", "C8"),
 }
 
 
@@ -159,9 +181,54 @@ def _sha256(path: str) -> str | None:
         return None
 
 
+def _expand_group(root: str, patterns: list[str],
+                  group: str) -> list[str]:
+    """Repo-relative paths for one group, expanded against `root`."""
+    out: list[str] = []
+    for pat in patterns:
+        if any(c in pat for c in GLOB_CHARS):
+            full = os.path.join(root, pat)
+            matches = sorted(
+                os.path.relpath(p, root).replace(os.sep, "/")
+                for p in glob.glob(full) if os.path.isfile(p))
+            if not matches and group not in OPTIONAL_GROUPS:
+                raise EvidenceGraphError(
+                    f"artifact group '{group}' expanded to no files "
+                    f"under root {root!r} (pattern {pat!r}); the root "
+                    f"does not contain the tracked tree")
+            out.extend(matches)
+        else:
+            out.append(pat)
+    return out
+
+
+def expand_groups(root: str = ".") -> dict[str, list[str]]:
+    """Expand every artifact group's patterns against `root`.
+
+    Raises EvidenceGraphError if a non-optional glob group is empty
+    under `root` (wrong cwd, foreign or partial checkout).
+    """
+    return {g: _expand_group(root, pats, g)
+            for g, pats in ARTIFACT_GROUPS.items()}
+
+
+def _env_snapshot() -> dict:
+    """Interpreter/library/platform versions that affect numerical checks."""
+    snap = {
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+    }
+    for mod in ("torch", "numpy"):
+        try:
+            snap[mod] = getattr(__import__(mod), "__version__", "unknown")
+        except ImportError:
+            snap[mod] = None
+    return snap
+
+
 def _hash_groups(root: str) -> dict:
     out = {}
-    for group, rels in ARTIFACT_GROUPS.items():
+    for group, rels in expand_groups(root).items():
         out[group] = {rel: _sha256(os.path.join(root, rel)) for rel in rels}
     return out
 
@@ -172,7 +239,8 @@ def record(root: str = ".", out_path: str | None = None,
 
     `results` maps check name -> {"result": "ok"|"fail"}. Without it no
     check is claimed to have run (standalone CLI record), and status
-    reports every check as "never run".
+    reports every check as "never run". Raises EvidenceGraphError if the
+    root does not contain the tracked tree.
     """
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     checks = {}
@@ -183,8 +251,9 @@ def record(root: str = ".", out_path: str | None = None,
                         "result": res.get("result"),
                         "ran_at": now}
     doc = {
-        "schema_version": 2,
+        "schema_version": 3,
         "recorded_at": now,
+        "environment": _env_snapshot(),
         "artifacts": _hash_groups(root),
         "checks": checks,
     }
@@ -234,18 +303,35 @@ def _group_diff(recorded: dict, current: dict) -> list[str]:
 
 def status(root: str = ".", evidence_path: str | None = None) -> dict:
     path = evidence_path or os.path.join(root, "results", "evidence.json")
+    empty = {"stale_checks": [], "failed_checks": [], "never_run_checks": [],
+             "claims_at_risk": [], "claims_unverified": [],
+             "checks": {}, "unresolved_limitations": []}
     try:
         with open(path) as f:
             rec = json.load(f)
     except (OSError, json.JSONDecodeError) as e:
-        return {"error": f"no usable evidence record at {path}: {e}",
-                "stale_checks": [], "never_run_checks": [],
-                "claims_at_risk": [], "claims_unverified": [],
-                "checks": {}, "unresolved_limitations": []}
+        return dict(empty, error=f"no usable evidence record at {path}: {e}")
 
-    current = _hash_groups(root)
+    try:
+        current = _hash_groups(root)
+    except EvidenceGraphError as e:
+        return dict(empty, error=str(e))
+
+    cur_env = _env_snapshot()
+    rec_env = rec.get("environment")
+    env_reasons: list[str] = []
+    if rec_env is None:
+        env_reasons = ["environment not recorded at record time"]
+    else:
+        for key in sorted(set(rec_env) | set(cur_env)):
+            if rec_env.get(key) != cur_env.get(key):
+                env_reasons.append(
+                    f"environment changed: {key} "
+                    f"{rec_env.get(key)} -> {cur_env.get(key)}")
+
     checks: dict[str, dict] = {}
     stale: list[str] = []
+    failed: list[str] = []
     never_run: list[str] = []
     for check, deps in CHECK_DEPS.items():
         entry = rec.get("checks", {}).get(check)
@@ -274,16 +360,26 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
         for group in deps:
             reasons.extend(_group_diff(rec_arts.get(group, {}),
                                        current.get(group, {})))
-        checks[check] = {"status": "stale" if reasons else "fresh",
-                         "reasons": reasons,
-                         "result": entry.get("result")}
+        if check in ENVIRONMENT_DEPENDENT:
+            reasons.extend(env_reasons)
+        result = entry.get("result")
         if reasons:
+            state = "stale"
+        elif result == "fail":
+            state = "failed"
+        else:
+            state = "fresh"
+        checks[check] = {"status": state, "reasons": reasons,
+                         "result": result}
+        if state == "stale":
             stale.append(check)
+        elif state == "failed":
+            failed.append(check)
 
     claims: set[str] = set()
-    for check in stale:
+    for check in stale + failed:
         claims.update(CLAIM_DEPS.get(check, ()))
-    if stale:
+    if stale or failed:
         claims.add("C10")  # reproducibility depends on every check
 
     # claims whose supporting checks never ran have no live evidence
@@ -299,6 +395,7 @@ def status(root: str = ".", evidence_path: str | None = None) -> dict:
         "recorded_at": rec.get("recorded_at"),
         "checks": checks,
         "stale_checks": sorted(stale),
+        "failed_checks": sorted(failed),
         "never_run_checks": sorted(never_run),
         "claims_at_risk": sorted(claims),
         "claims_unverified": sorted(unverified),

@@ -574,23 +574,31 @@ def cmd_contract_confirm(a):
 
 def cmd_evidence_record(a):
     from openflight import evidence as EV
-    EV.record(root=a.root)
+    try:
+        EV.record(root=a.root)
+    except EV.EvidenceGraphError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     print(f"evidence recorded: {os.path.join(a.root, 'results', 'evidence.json')}")
     return 0
 
 
 def cmd_evidence_status(a):
     from openflight import evidence as EV
-    st = EV.status(root=a.root)
+    try:
+        st = EV.status(root=a.root)
+    except EV.EvidenceGraphError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     if st.get("error"):
         print(f"error: {st['error']}", file=sys.stderr)
         return 2
     if a.format == "json":
         print(json.dumps(st, indent=2))
-        return 0 if not st["stale_checks"] else 1
+        return 0 if not (st["stale_checks"] or st["failed_checks"]) else 1
     print(f"evidence record from {st['recorded_at']}")
     for check, info in sorted(st["checks"].items()):
-        mark = {"stale": "STALE", "fresh": "fresh",
+        mark = {"stale": "STALE", "fresh": "fresh", "failed": "FAILED",
                 "never run": "never run"}.get(info.get("status"),
                                               info.get("status", "?"))
         print(f"  {check}: {mark}")
@@ -599,10 +607,17 @@ def cmd_evidence_status(a):
     if st["stale_checks"]:
         print("stale checks: " + ", ".join(st["stale_checks"]))
         print("claims at risk: " + ", ".join(st["claims_at_risk"]))
-    elif st.get("never_run_checks"):
-        print("all recorded checks fresh; never run: "
-              + ", ".join(st["never_run_checks"]))
-    else:
+    if st["failed_checks"]:
+        print("failed checks: " + ", ".join(st["failed_checks"]))
+        print("claims at risk: " + ", ".join(st["claims_at_risk"]))
+    if st["never_run_checks"]:
+        if not (st["stale_checks"] or st["failed_checks"]):
+            print("all recorded checks fresh; never run: "
+                  + ", ".join(st["never_run_checks"]))
+        else:
+            print("never run: " + ", ".join(st["never_run_checks"]))
+    if not (st["stale_checks"] or st["failed_checks"]
+            or st["never_run_checks"]):
         print("all checks fresh")
     if st.get("claims_unverified"):
         print("claims without live evidence (check never ran): "
@@ -616,7 +631,7 @@ def cmd_evidence_status(a):
                 print(f"    not individually verified: {b}")
             for l in lim["limitations"]:
                 print(f"    [{l.get('code', '?')}] {l.get('reason', '')}")
-    return 0 if not st["stale_checks"] else 1
+    return 0 if not (st["stale_checks"] or st["failed_checks"]) else 1
 
 
 def build_parser():
