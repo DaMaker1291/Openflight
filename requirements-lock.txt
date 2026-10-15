@@ -1,6 +1,6 @@
-# Exact dependency set verified for the v0.2.4-pilot three-command check:
+# Exact dependency set verified for the v0.2.5-pilot three-command check:
 #   pip install -r requirements-lock.txt
-#   python openflight/repro.py     (205 passed, 1 skipped, REPRODUCTION OK)
+#   python openflight/repro.py     (221 passed, 0 skipped, REPRODUCTION OK)
 #   openflight doctor              (exit 0)
 # Captured 2026-10-14 via `pip freeze` from a clean Python 3.12.9 venv
 # (macOS arm64) after `pip install '.[dev]'`; ruff (a lint tool, not needed

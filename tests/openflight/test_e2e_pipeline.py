@@ -127,8 +127,8 @@ def _build(tmp_path, sensor_units_acc="centimetres_per_second_squared"):
     assert rep["status"] == "pass", rep.get("errors")
 
     bdir = str(tmp_path / "build")
-    out = compile_model(_arch_for_example("mlp:60,128,64,1"),
-                        "learned_observer.pt", bdir)
+    compile_model(_arch_for_example("mlp:60,128,64,1"),
+                  "learned_observer.pt", bdir)
     py_adapt = os.path.join(bdir, "contract_adapt.py")
     cpp_adapt = os.path.join(bdir, "contract_adapt.h")
     PL.generate(sensor, model_c, py_adapt, cpp_adapt)

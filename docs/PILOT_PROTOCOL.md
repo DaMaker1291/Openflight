@@ -2,7 +2,7 @@
 
 > **PILOT STATUS: PREPARATION ONLY**
 >
-> OpenFlight v0.2.3-pilot has a reported passing test suite and reproduction
+> OpenFlight v0.2.5-pilot has a reported passing test suite and reproduction
 > run. Independent second-machine reproduction and the supervised
 > participant pilot remain outstanding.
 >
@@ -10,7 +10,7 @@
 > research sessions until the applicable permissions, consent arrangements,
 > and research ethics requirements have been confirmed.
 >
-> Once authorised, use only the designated v0.2.3-pilot release. Record the
+> Once authorised, use only the designated v0.2.5-pilot release. Record the
 > verified archive checksum, environment details, commands executed, and test
 > results.
 
@@ -35,13 +35,13 @@ Everything runs on a laptop in ~10–15 minutes of compute; the human task is
 | Field | Value |
 |---|---|
 | Project | OpenFlight |
-| Pilot version | `v0.2.3-pilot` |
-| Archive filename | `openflight-v0.2.3-pilot.tar.gz` |
-| SHA-256 | `0d1801aa098308ec4f641674198f07856983fce45e32122f9936fde47bab5684` |
-| Official distribution location | [The v0.2.3-pilot GitHub release](https://github.com/DaMaker1291/openflight/releases/tag/v0.2.3-pilot) |
+| Pilot version | `v0.2.5-pilot` |
+| Archive filename | `openflight-v0.2.5-pilot.tar.gz` |
+| SHA-256 | Published **outside** the archive: the `.sha256` release asset and the release notes (this file lives inside the archive it identifies, so the expected value cannot be embedded here) |
+| Official distribution location | [The v0.2.5-pilot GitHub release](https://github.com/DaMaker1291/openflight/releases/tag/v0.2.5-pilot) |
 | Expected verification | Checksum matches before extracting or executing the archive |
 
-Obtain the expected checksum from the `openflight-v0.2.3-pilot.tar.gz.sha256`
+Obtain the expected checksum from the `openflight-v0.2.5-pilot.tar.gz.sha256`
 release asset, or by copying it from the release-notes text on the GitHub
 release page — either way, from the official release you navigated to
 yourself, not from a file bundled inside the archive you are verifying and
@@ -50,23 +50,23 @@ wrong copy would still match that wrong copy, which is why the expected value
 must come from a source you retrieved independently of the archive itself.
 
 The archive is immutable. If the protocol or software changes, a new release
-candidate is created and verified rather than silently replacing v0.2.3. If
+candidate is created and verified rather than silently replacing v0.2.5. If
 you were given a different version or filename, stop and report it — that is
 a finding, not a setup problem.
 
 macOS or Linux:
 
 ```bash
-shasum -a 256 openflight-v0.2.3-pilot.tar.gz
+shasum -a 256 openflight-v0.2.5-pilot.tar.gz
 ```
 
 Windows PowerShell:
 
 ```powershell
-Get-FileHash .\openflight-v0.2.3-pilot.tar.gz -Algorithm SHA256
+Get-FileHash .\openflight-v0.2.5-pilot.tar.gz -Algorithm SHA256
 ```
 
-The 64-character result must match the expected checksum above exactly. Only
+The 64-character result must match the externally published checksum exactly. Only
 then extract the archive and continue.
 
 ## Time budget
@@ -85,7 +85,7 @@ then extract the archive and continue.
 pip install -r requirements-lock.txt  # exact verified set (recommended)
 pip install -e . --no-deps            # the package itself
 openflight doctor                     # must exit 0, no errors
-openflight version                    # expect 0.2.3
+openflight version                    # expect 0.2.5
 ```
 
 If `doctor` fails, stop and report — that is a finding, not a setup problem.
@@ -99,8 +99,8 @@ python3 -m openflight.cli evidence status  # expect: all checks fresh, exit 0
 
 Record the archive filename and the verified SHA-256 you ran from (there is
 no `.git` directory in the release archive; the checksum is the provenance
-anchor). `repro.py` is expected to run the full 211-test suite (0 skips as
-of v0.2.4-pilot) and regenerate
+anchor). `repro.py` is expected to run the full 221-test suite (0 skips as
+of v0.2.5-pilot) and regenerate
 every report in `results/`. Any `MISMATCH`, `stale` check, or unexpected
 skip is a finding.
 
