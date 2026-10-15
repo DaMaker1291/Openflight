@@ -37,6 +37,12 @@ CLI wiring with diagnosed malformed input, plus external golden cases —
 the legged_gym obs definition transcribed from the public repo must
 pass the checker; PX4-FRD vs ROS-FLU frames must block).
 
+Updated 2026-10-15 after the independent v0.2.5-tag audit (three gate
+defects reproduced fail-first against the frozen code, schema type
+hardening, staged deploys, and the evidence-graph repair round wiring the
+e2e check as the eighth host check): **242 passed, 0 skipped**
+(`tests/openflight/`, CPython 3.12, torch 2.14).
+
 ## Coverage map
 
 | Area | Test file | Tests | What they execute |
@@ -76,6 +82,23 @@ independent evidence.
 | P5 | Quaternion feature with no units | checker passed, build_ops KeyError | blocked; diagnosed ValueError | E202 |
 | P6 | E201 used for two different faults | one code, one action text | E201 normalization-only, E202 units | E201 / E202 |
 | P7 | Deploy without contracts | honest "skipped" record, no console signal | + stderr WARNING, "SKIPPED" not "PASS" in summary | — |
+
+### v0.2.5-tag audit faults (registered 2026-10-15)
+
+An independent advisor audited the frozen v0.2.5-pilot tag and proved three
+defects; each was first reproduced as a failing test against the v0.2.5 code,
+then fixed. A fourth (traceback) was discovered while probing the third.
+Permanent regressions: `test_reviewer_probes.py` (5 audit probes),
+`test_contract_battery.py` (checker-misuse rows), `test_contract_engine.py`
+(schema rows).
+
+| ID | Fault class | Pre-fix behavior | Post-fix behavior | Code |
+|---|---|---|---|---|
+| A1 | Sensor and model both declaring an unregistered unit string | gate PASS / PROCEED (units equality checked before any registry lookup; plausibility returns None for unknown tokens) | blocked before equality can count as compatibility; membership gates first | U101 |
+| A2 | Duplicate (quantity, component) raw_layout binding | accepted; dict indexing silently dropped the first entry | refused at schema load (CLI E002, no artifacts) and by the checker directly | E002 / E206 |
+| A3 | Contract width vs model width (6 features, 60-wide model) | compiled first, blocked last — adapters, manifests and reports already published | caught at the gate before generation; every deployable staged and published only on success, so any non-zero exit leaves exactly the failed report (`result: failed`) | E203 |
+| A4 | Weight/arch shape mismatch (keys align, dims do not) | raw torch RuntimeError traceback escaped the CLI | diagnosed E030 exit 3, staging discarded, report `result: failed` | E030 |
+| A5 | Malformed schema types (width "three"; units/frame non-string on both sides) | uncaught ValueError from `check()`, or false PROCEED on equal malformed values | structured diagnostics; width → E207, units → U101, frame → E303 | E207 / U101 / E303 |
 
 ## Deliberately not covered (need hardware or are future work)
 

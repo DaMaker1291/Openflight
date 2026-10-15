@@ -3,6 +3,76 @@
 All notable changes to OpenFlight. Versions follow `0.2.x-pilot`; the tag
 named here is the version the supervised pilot runs against.
 
+## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
+
+Fixes defects an independent advisor proved by black-box testing the frozen
+v0.2.5-pilot archive. v0.2.5 stays untouched (tag → `7c34899`, SHA-256
+`e3829303…b20f`); every fix below was reproduced as a test failing against
+v0.2.5 code first, then made to pass.
+
+- **P0 — unknown units passed the semantic gate.** The checker compared the
+  sensor's and model's unit strings *before* consulting the registry, so
+  both sides declaring `units: mystery_unit` matched, `validate` exited 0
+  and a full deploy succeeded (parity is numerical, not physical). Registry
+  membership now gates first (`checker.py`: `U.dimension(su)`/`U.dimension(mu)`
+  None → **U101** with both tokens in the reason). Regression:
+  `test_contract_battery.py::test_check_blocks_matching_unknown_units` +
+  probe `test_audit_v025_unknown_equal_units_blocked`.
+- **P1 — duplicate `raw_layout` bindings were accepted.** A duplicated
+  `(quantity, component)` pair silently overwrote the earlier position in
+  the checker's dict (arbitrary choice on an ambiguous mapping). Now
+  refused twice: schema load raises (`model_contract.py` → CLI **E002**,
+  no artifacts) and the checker reports **E206** when handed the dict
+  directly. Tests: battery + engine-schema dup rows, probe
+  `test_audit_v025_duplicate_raw_layout_refused`.
+- **P1 — failed deploys left generated artifacts behind.** The 6-vs-60
+  width mismatch was detected only *after* adapter/manifest generation;
+  the advisor observed generated C++ and manifests surviving an exit-2
+  block. `cmd_deploy` was restructured: all preconditions (model exists,
+  arch check, torch, contract load/schema/gate incl. an **early width
+  check** `checker.check(sensor, model, model_input_size=…)`) run before
+  anything is generated; everything else runs in an `<output>.staging`
+  directory published (shas recorded) only after parity passes. Any
+  non-zero exit leaves exactly `deployment_report.json`, now carrying
+  `"result": "failed"` (`stages.py::to_dict`), `artifact_shas: {}` on
+  discards, and a limitation note. Probes:
+  `test_audit_v025_width_mismatch_no_artifacts`,
+  `test_audit_v025_late_failure_no_artifacts`.
+- **P1 — shape mismatch escaped as a raw traceback.** Torch's
+  `RuntimeError` (keys align, dims don't) bypassed the CLI's
+  `OpenFlightError`-only handler. Caught in `cmd_deploy` → **E030** exit 3,
+  staging discarded. Probe `test_audit_v025_shape_mismatch_diagnosed_not_traceback`.
+- **Schema hardening (malformed types → structured errors, never
+  exceptions or false PROCEED)**: non-string feature `width` → new
+  **E207** (guards both width-sum and per-feature parse; suppresses the
+  misleading E203); non-string `units` on either side → U101;
+  non-string/non-null `frame` → **E303**. 10 fail-first schema/misuse
+  battery+engine tests.
+- **Evidence graph repairs** (all with both-side mutation tests — stale set
+  AND every unrelated check fresh): new **e2e** check wired to its test
+  source, `results/e2e_pipeline.json`, the weights, and the
+  cli/compiler/checker sources, backed by **C1**; new `evidence_source`
+  group on *every* check (editing `openflight/evidence.py` itself stales
+  everything — documented over-approximation); `build` now reads
+  `learned_observer.pt`, `learned_observer.py`, the CLI, package root and
+  generated C++; `qemu` now reads fixtures, the CLI, the benchmark
+  protocol and the flash/efuse images (`qemu_runtime`, optional);
+  environment (python/torch/numpy/platform) staleness extended to e2e
+  (`ENVIRONMENT_DEPENDENT`). 60 mutation tests.
+- **Report/repro correctness**: `n_within_registered_abs_tol` now counts
+  only the registered band (was mixing all bands, against its name); new
+  `n_within_abs_tol_all` (284/300) and an `environment` block in
+  `results/e2e_pipeline.json`; `repro.py` gained the e2e entry + verify
+  branch (previously the report was cited but never checked) and its
+  banner now reads the live `__version__` instead of "v0.1".
+- **Host checks: eight** (parity, battery, independent, heldout,
+  workflows, baseline, importers, e2e). Suite: **242 passed, 0 skipped**;
+  `REPRODUCTION OK` with all eight checks; `evidence status` exit 0
+  (build/qemu honestly "never run").
+- Docs (CLAIMS C1/C5/C10/C12, TEST_PLAN, PILOT_PROTOCOL, REPRODUCE,
+  EVALUATION) updated to 242/0, eight checks and the v0.2.6-pilot
+  designation.
+
 ## v0.2.5-pilot (2026-10-15) — final pilot tag (code freeze)
 
 **This is the frozen pilot release. No code changes land during the pilot

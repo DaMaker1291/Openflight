@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openflight"
-version = "0.2.5"
+version = "0.2.6"
 description = "Fail-closed deployment toolkit: PyTorch policies to microcontrollers with sensor-contract validation"
 readme = "README.md"
 requires-python = ">=3.10"

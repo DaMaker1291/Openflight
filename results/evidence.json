@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-15T21:59:18Z",
+  "recorded_at": "2026-10-15T22:41:17Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -112,7 +112,7 @@
       "docs/CONVENTIONS.md": "816359655c92c80d34c71c1a4141d23c1957baf005740aa983d36a6dbad7e891"
     },
     "package_root": {
-      "openflight/__init__.py": "233b0aff571ef0f3b418f2eee547945f6bed26cf251d0de83f0ab2a348f11b0e"
+      "openflight/__init__.py": "f3098bbc52b8915eabc2da9ec9741bab4f5536e447f2d4341ce6bff06a92f12b"
     },
     "generated_cxx": {
       "build/model_adapters.cpp": null
@@ -148,7 +148,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "battery": {
       "reads": [
@@ -160,7 +160,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "independent": {
       "reads": [
@@ -177,7 +177,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "heldout": {
       "reads": [
@@ -189,7 +189,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "workflows": {
       "reads": [
@@ -205,7 +205,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "baseline": {
       "reads": [
@@ -220,7 +220,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "importers": {
       "reads": [
@@ -234,7 +234,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     },
     "e2e": {
       "reads": [
@@ -247,7 +247,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T21:59:18Z"
+      "ran_at": "2026-10-15T22:41:17Z"
     }
   }
 }
