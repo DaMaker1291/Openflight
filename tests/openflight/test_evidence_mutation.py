@@ -21,7 +21,7 @@ from openflight import evidence as EV
 
 ALL_CHECKS = sorted(EV.CHECK_DEPS)
 REPRO_CHECKS = ["battery", "heldout", "independent", "workflows",
-                "baseline", "parity"]
+                "baseline", "parity", "importers"]
 
 # check -> test module that produces its results file
 PRODUCERS = {
@@ -31,6 +31,8 @@ PRODUCERS = {
     "workflows": "tests/openflight/test_three_workflows.py",
     "baseline": "tests/openflight/test_baseline_compare.py",
     "parity": "tests/openflight/test_firmware_harness.py",
+    "importers": ["tests/openflight/test_importers.py",
+                  "tests/openflight/test_draft_layer.py"],
 }
 
 # modules imported by checks but not worth transitively closing:
@@ -83,7 +85,8 @@ def test_mutate_contract_source_stales_checker_checks(tmp_path, rel):
     root = _make_sandbox(tmp_path)
     st = _mutate(root, rel, _append_comment)
     assert set(st["stale_checks"]) == {
-        "battery", "heldout", "independent", "workflows", "baseline"}
+        "battery", "heldout", "independent", "workflows", "baseline",
+        "importers"}
 
 
 def test_mutate_errors_module_stales_checker_checks(tmp_path):
@@ -93,7 +96,8 @@ def test_mutate_errors_module_stales_checker_checks(tmp_path):
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/errors.py", _append_comment)
     assert set(st["stale_checks"]) == {
-        "battery", "heldout", "independent", "workflows", "baseline"}
+        "battery", "heldout", "independent", "workflows", "baseline",
+        "importers"}
 
 
 @pytest.mark.parametrize("rel", [
@@ -108,7 +112,8 @@ def test_mutate_adapters_stales_contract_engine_checks(tmp_path, rel):
     root = _make_sandbox(tmp_path)
     st = _mutate(root, rel, _append_comment)
     assert set(st["stale_checks"]) == {
-        "battery", "heldout", "independent", "workflows", "baseline"}
+        "battery", "heldout", "independent", "workflows", "baseline",
+        "importers"}
 
 
 def test_mutate_compiler_source_stales_compile_users(tmp_path):
@@ -190,7 +195,7 @@ def test_mutate_cli_source_stales_arch_users(tmp_path):
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/cli.py", _append_comment)
     assert set(st["stale_checks"]) == {
-        "workflows", "baseline", "parity", "independent"}
+        "workflows", "baseline", "parity", "independent", "importers"}
 
 
 def test_mutate_protocol_source_stales_parity(tmp_path):
@@ -216,7 +221,7 @@ def test_mutate_shipped_contract_stales_challenge_checks(tmp_path, rel):
 
 
 def test_never_run_checks_and_unverified_claims(tmp_path):
-    # repro only runs the six host checks; build/qemu never run in a
+    # repro only runs the seven host checks; build/qemu never run in a
     # host-only tree and must report "never run", never "fresh"
     root = _make_sandbox(tmp_path, results_for=REPRO_CHECKS)
     st = EV.status(root=str(root))
@@ -268,7 +273,8 @@ def test_mutate_checker_from_foreign_cwd_stales(tmp_path, monkeypatch):
         p.write_bytes(original + b"\n# drift from foreign cwd\n")
         st = EV.status(root=str(root))
         assert set(st["stale_checks"]) == {
-            "battery", "heldout", "independent", "workflows", "baseline"}
+            "battery", "heldout", "independent", "workflows", "baseline",
+            "importers"}
     finally:
         p.write_bytes(original)
 
@@ -436,13 +442,84 @@ def test_sidecar_stale_exits_nonzero(tmp_path, capsys):
 
 
 # ---------------------------------------------------------------------------
+# importers check (advisor review, 2026-10-15): C11's draft layer and
+# importers need their own freshness check -- sidecar drift alone leaves
+# importer sources, the conventions they cite, and their tests unchecked
+# ---------------------------------------------------------------------------
+
+def test_mutate_importer_source_stales_importers(tmp_path):
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "openflight/importers/gym_importer.py",
+                 lambda d: d + b"\n# drift\n")
+    assert "importers" in st["stale_checks"]
+
+
+def test_mutate_importer_source_stales_only_importers(tmp_path):
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "openflight/importers/ros2_importer.py",
+                 lambda d: d + b"\n# drift\n")
+    assert set(st["stale_checks"]) == {"importers"}
+
+
+def test_mutate_conventions_stales_importers(tmp_path):
+    # the document the importers cite (REP-103 units, xyzw ordering) is a
+    # declared input: editing it must stale the importers check alone
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "docs/CONVENTIONS.md",
+                 lambda d: d + b"\n<!-- drift -->\n")
+    assert set(st["stale_checks"]) == {"importers"}
+
+
+def test_mutate_importer_tests_stales_importers(tmp_path):
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "tests/openflight/test_importers.py",
+                 lambda d: d + b"\n# drift\n")
+    assert set(st["stale_checks"]) == {"importers"}
+
+
+def test_mutate_draft_layer_tests_stales_importers(tmp_path):
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "tests/openflight/test_draft_layer.py",
+                 lambda d: d + b"\n# drift\n")
+    assert set(st["stale_checks"]) == {"importers"}
+
+
+def test_mutate_draft_layer_source_stales_importers_with_checker_group(
+        tmp_path):
+    # draft.py reaches the importers check through checker_source: an edit
+    # stales it alongside the other checker-source checks
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "openflight/contract/draft.py",
+                 lambda d: d + b"\n# drift\n")
+    assert set(st["stale_checks"]) == {
+        "importers", "battery", "heldout", "independent", "workflows",
+        "baseline"}
+
+
+def test_c11_unverified_without_importers_check(tmp_path):
+    # every check recorded except importers: C11 must report unverified,
+    # never fully supported, even with a fresh sidecar present
+    root = _make_sandbox(tmp_path,
+                         results_for=[c for c in ALL_CHECKS
+                                      if c != "importers"])
+    st = EV.status(root=str(root))
+    assert "importers" in st["never_run_checks"]
+    assert "C11" in st["claims_unverified"]
+
+
+# ---------------------------------------------------------------------------
 # import-closure derivation guard
 # ---------------------------------------------------------------------------
 
 def _module_to_path(module: str) -> str | None:
     if module == "openflight" or module.startswith("openflight."):
         parts = module.split(".")
-        return "/".join(parts) + ".py"
+        p = "/".join(parts)
+        if os.path.isfile(p + ".py"):
+            return p + ".py"
+        if os.path.isfile(os.path.join(p, "__init__.py")):
+            return os.path.join(p, "__init__.py")
+        return None
     top = module.split(".")[0]
     fixture_tops = {os.path.splitext(os.path.basename(r))[0]
                     for r in EV.ARTIFACT_GROUPS["observer_fixtures"]}
@@ -451,11 +528,14 @@ def _module_to_path(module: str) -> str | None:
     return None
 
 
-def _import_closure(start_path: str) -> set[str]:
+def _import_closure(start_path: str | list[str]) -> set[str]:
     """Repo-local files imported (source-level) by start_path, transitively.
-    openflight/cli.py is a leaf: its lazy imports are command-scoped."""
+    Handles `from pkg import submodule` (module + each imported name) and
+    resolves packages to their __init__.py. openflight/cli.py is a leaf:
+    its lazy imports are command-scoped."""
+    starts = [start_path] if isinstance(start_path, str) else list(start_path)
     seen: set[str] = set()
-    stack = [start_path]
+    stack = list(starts)
     while stack:
         path = stack.pop()
         if path in seen or not os.path.isfile(path):
@@ -471,6 +551,9 @@ def _import_closure(start_path: str) -> set[str]:
                 mods = [a.name for a in node.names]
             elif isinstance(node, ast.ImportFrom) and node.module:
                 mods = [node.module]
+                for al in node.names:
+                    if al.name != "*":
+                        mods.append(f"{node.module}.{al.name}")
             for mod in mods:
                 rel = _module_to_path(mod)
                 if rel and rel not in seen:

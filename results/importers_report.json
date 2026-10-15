@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "summary": {
+    "importers": {
+      "n": 6,
+      "correct": 6
+    }
+  },
+  "cases": [
+    {
+      "name": "gym_full_provenance",
+      "ok": true
+    },
+    {
+      "name": "gym_vecnormalize_affine",
+      "ok": true
+    },
+    {
+      "name": "gym_clip_warning",
+      "ok": true
+    },
+    {
+      "name": "ros2_conventions_cited",
+      "ok": true
+    },
+    {
+      "name": "legged_gym_golden_48",
+      "ok": true
+    },
+    {
+      "name": "confirm_emits_sidecar",
+      "ok": true
+    }
+  ]
+}

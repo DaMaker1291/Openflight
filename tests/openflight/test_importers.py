@@ -7,6 +7,7 @@ everything works on offline artifacts (obs-space JSON, VecNormalize stats,
 """
 import json
 import math
+import os
 
 import pytest
 
@@ -468,3 +469,102 @@ def test_cli_malformed_input_diagnosed_not_traceback(tmp_path, capsys):
     err = capsys.readouterr().err
     assert "nope.json" in err
     assert "Traceback" not in err
+
+
+# ---------------------------------------------------------- evidence report
+
+REPORT = "results/importers_report.json"
+
+
+def test_importers_report(tmp_path):
+    """Evidence artifact for the `importers` check (C11).
+
+    Runs one representative case per pipeline stage and writes
+    results/importers_report.json in the summary shape repro.py verifies:
+    provenance completeness (gym), normalization math (VecNormalize),
+    documented-omission warning (clip), conventions citations (ros2),
+    external golden import (legged_gym), and the confirm flow (sidecar).
+    """
+    from openflight import cli
+    cases = []
+
+    def case(name, ok):
+        cases.append({"name": name, "ok": bool(ok)})
+
+    # 1. gym: every filled field carries provenance, ambiguity never guessed
+    out = G.import_gym(_dump(tmp_path, "obs.json", OBS_SPACE),
+                       out_path=str(tmp_path / "g.draft.yaml"))
+    d = out["draft"]
+    ambiguous = [f for f in d["features"]
+                 if "quantity" not in f.get("source", {})]
+    case("gym_full_provenance",
+         D.missing_provenance(d) == [] and ambiguous
+         and all(m["status"] == "inferred"
+                 for m in d["provenance"].values()))
+
+    # 2. VecNormalize: affine scale/offset follow the recorded stats
+    out = G.import_gym(_dump(tmp_path, "obs3.json", OBS_SPACE[:1]),
+                       stats_path=_dump(tmp_path, "stats.json", VEC_STATS))
+    f0 = out["draft"]["features"][0]
+    exp_scale = 1.0 / math.sqrt(VEC_STATS["var"][0] + VEC_STATS["epsilon"])
+    case("gym_vecnormalize_affine",
+         f0["normalization"]["method"] == "affine"
+         and abs(f0["normalization"]["scale"] - exp_scale) < 1e-12
+         and abs(f0["normalization"]["offset"]
+                 + VEC_STATS["mean"][0] * exp_scale) < 1e-12)
+
+    # 3. nonzero clip raises the documented W301 (applied-clip warning)
+    s = dict(VEC_STATS, clip_obs=[-5.0, 5.0])
+    out = G.import_gym(_dump(tmp_path, "obs3b.json", OBS_SPACE[:1]),
+                       stats_path=_dump(tmp_path, "stats2.json", s))
+    case("gym_clip_warning",
+         any(w["code"] == "W301" for w in out["warnings"]))
+
+    # 4. ros2: conventions cited for units/ordering, provenance complete
+    msg_path = str(tmp_path / "Imu.msg")
+    with open(msg_path, "w") as f:
+        f.write(IMU_MSG)
+    out = R.import_ros2(msg_path, "sensor_msgs/Imu")
+    d = out["draft"]
+    sources = " ".join(str(m.get("source", ""))
+                       for m in d["provenance"].values())
+    case("ros2_conventions_cited",
+         D.missing_provenance(d) == []
+         and "CONVENTIONS.md" in sources and "REP-103" in sources)
+
+    # 5. external golden: legged_gym 48-dim obs imports with honest width
+    out = G.import_gym(_dump(tmp_path, "legged.json", LEGGED_GYM_OBS),
+                       out_path=str(tmp_path / "l.draft.yaml"))
+    d = out["draft"]
+    case("legged_gym_golden_48",
+         d["model"]["input_size"] == 48
+         and any("quantity" not in f.get("source", {})
+                 for f in d["features"]))
+
+    # 6. confirm flow: contract emitted, sidecar lists blanket confirmations
+    draft = str(tmp_path / "c.draft.yaml")
+    G.import_gym(_dump(tmp_path, "obs1.json",
+                       [{"name": "IMU_gyro", "dim": 3}]),
+                 out_path=draft)
+    outp = str(tmp_path / "c.yaml")
+    rc = cli.main(["contract", "confirm", draft, "--out", outp,
+                   "--confirm-all"])
+    side_path = outp + ".provenance.json"
+    side = json.load(open(side_path)) if os.path.exists(side_path) else {}
+    case("confirm_emits_sidecar",
+         rc == 0 and side.get("not_individually_verified"))
+
+    os.makedirs(os.path.dirname(REPORT), exist_ok=True)
+    with open(REPORT, "w") as f:
+        json.dump({"schema_version": 1,
+                   "summary": {"importers": {"n": len(cases),
+                                             "correct": sum(1 for c in cases
+                                                            if c["ok"])}},
+                   "cases": cases}, f, indent=2)
+    assert all(c["ok"] for c in cases), [c for c in cases if not c["ok"]]
+
+
+def _dump(tmp_path, name, obj):
+    p = tmp_path / name
+    p.write_text(json.dumps(obj))
+    return str(p)

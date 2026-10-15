@@ -27,6 +27,8 @@ CHECKS = {
                   "5/5 semantic faults escape W1/W2, stopped by W3"),
     "baseline": ("results/baseline_compare.json",
                  "fault escapes baseline, blocked-or-converted by OpenFlight"),
+    "importers": ("results/importers_report.json",
+                  "6/6 importer/draft provenance pipeline cases"),
 }
 
 
@@ -97,7 +99,7 @@ def verify(name, rep):
     if name == "parity":
         e = rep["latency_observed_us"]["max_abs_err"]
         return e < 1e-4, f"max_abs_err={e:.3e}"
-    if name in ("battery", "independent", "heldout"):
+    if name in ("battery", "independent", "heldout", "importers"):
         n, c = _summary_cases(rep)
         return n == c and n > 0, f"{c}/{n}"
     if name == "workflows":

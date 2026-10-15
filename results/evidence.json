@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-15T17:02:33Z",
+  "recorded_at": "2026-10-15T19:15:22Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -30,7 +30,7 @@
       "openflight/contract/model_contract.py": "8bddc530733630f13857107b0f5c7ea0c67bee9c1abff344c5748317877a58c0",
       "openflight/contract/pipeline.py": "05e30d6bbc72a4fa88ce879b0b2540725659a7baa3cea34d39a85bbdc83ac9b5",
       "openflight/contract/units.py": "a8d26ba2c390b998be53ec840a2f62a26a992f6dacfd5db3af8a7ebd47cf2d55",
-      "openflight/errors.py": "f327da79ecb3c7737d3322e1dcb828c20cd8b19b86a4111c2e1e29e5cf7ebf66"
+      "openflight/errors.py": "57f0625851813c415a465feeea5348e1e25158b312391a780968a0d62e35510a"
     },
     "adapters_source": {
       "openflight/adapters/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -51,7 +51,7 @@
       "openflight/compiler/operators/__init__.py": "53e0e8e3f95ce75e94cfedbdf71503785572afcc3118f84046ce73a41bc752a1"
     },
     "cli_source": {
-      "openflight/cli.py": "f35affda9d1b295a219866613810cdf09da6422e8b00951b144d0e78cfa5e8f0"
+      "openflight/cli.py": "d3e98a86aa0e53870f1b38bfcf7f3b7b6d3bfcf96ab811d7304482dc4419e623"
     },
     "benchmark_source": {
       "openflight/benchmark/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -99,6 +99,21 @@
     "parity_test": {
       "tests/openflight/test_firmware_harness.py": "685bb499fa968b61b9e28e1889ade015cadfb7534d7f42ef894f3d6784d6771b"
     },
+    "importer_source": {
+      "openflight/importers/__init__.py": "a58e8a2bb7ef7f5ef95b49fea8e26706e1b84a8a5f5c7b863886a86edd8746ed",
+      "openflight/importers/gym_importer.py": "905200988247f2ebfda0b1001140260a61befebe783fb12ea034f299e2d5b316",
+      "openflight/importers/ros2_importer.py": "e8880d394148c9b5fa7012ce4d497a99a26f7614529dda14b5df2cea7d4c97ec"
+    },
+    "importers_test": {
+      "tests/openflight/test_importers.py": "42949485918b5f7d42e20da40dfed81a855e0e2fdf26037a97484ab475260c34",
+      "tests/openflight/test_draft_layer.py": "83011c71f78a4016e28a8422c662b22e2fab6de6a6992e6fbebfaecff2bc3c39"
+    },
+    "conventions_doc": {
+      "docs/CONVENTIONS.md": "816359655c92c80d34c71c1a4141d23c1957baf005740aa983d36a6dbad7e891"
+    },
+    "package_root": {
+      "openflight/__init__.py": "593f9eb2f69ad12b406ae63b58d2d70d8eb296366511e9d34a6c23bd3198e455"
+    },
     "generated_cxx": {
       "build/model_adapters.cpp": null
     },
@@ -119,7 +134,7 @@
         "firmware_host_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
     },
     "battery": {
       "reads": [
@@ -130,7 +145,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
     },
     "independent": {
       "reads": [
@@ -146,7 +161,7 @@
         "cli_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
     },
     "heldout": {
       "reads": [
@@ -157,7 +172,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
     },
     "workflows": {
       "reads": [
@@ -172,7 +187,7 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
     },
     "baseline": {
       "reads": [
@@ -186,7 +201,20 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T17:02:33Z"
+      "ran_at": "2026-10-15T19:15:22Z"
+    },
+    "importers": {
+      "reads": [
+        "importer_source",
+        "importers_test",
+        "conventions_doc",
+        "package_root",
+        "checker_source",
+        "adapters_source",
+        "cli_source"
+      ],
+      "result": "ok",
+      "ran_at": "2026-10-15T19:15:22Z"
     }
   }
 }
