@@ -1,6 +1,54 @@
 {
   "model": "learned_observer.pt",
-  "n_samples": 8,
-  "max_abs_err_cpp_vs_python": 3.0517578125e-05,
-  "composed_path": "raw->contract_adapt->predict"
+  "composed_path": "raw->contract_adapt->predict",
+  "reference": "python adapt (float64) cast float32 -> torch float32",
+  "n_samples": 300,
+  "bands": {
+    "uniform_pm500": {
+      "n": 75,
+      "max_abs_err_composed": 4.57763671875e-05,
+      "max_rel_err_composed": 4.435506322483959e-05,
+      "max_abs_err_adapter": 1.883506775546273e-08,
+      "within_registered_abs_tol": true
+    },
+    "extreme_pm1e4_pm1e3": {
+      "n": 75,
+      "max_abs_err_composed": 0.0001220703125,
+      "max_rel_err_composed": 9.425531994627674e-06,
+      "max_abs_err_adapter": 4.65393066306774e-07,
+      "within_registered_abs_tol": false
+    },
+    "tiny_pm1e-3": {
+      "n": 75,
+      "max_abs_err_composed": 2.421438694000244e-08,
+      "max_rel_err_composed": 1.2698920851900601e-05,
+      "max_abs_err_adapter": 4.95674612186725e-14,
+      "within_registered_abs_tol": true
+    },
+    "patterned_extremes": {
+      "n": 75,
+      "max_abs_err_composed": 0.0001220703125,
+      "max_rel_err_composed": 4.65359523471848e-06,
+      "max_abs_err_adapter": 1.192092891413865e-10,
+      "within_registered_abs_tol": false
+    }
+  },
+  "tolerance_registered_abs": 0.0001,
+  "tolerance_registered_domain": "band uniform_pm500 (raw uniform +-500)",
+  "tolerance_expanded_rel": 0.0001,
+  "max_abs_err_composed": 0.0001220703125,
+  "max_abs_err_composed_registered_band": 4.57763671875e-05,
+  "max_rel_err_composed": 4.435506322483959e-05,
+  "max_abs_err_adapter": 4.65393066306774e-07,
+  "max_abs_err_model_same_input": 0.0001220703125,
+  "n_within_registered_abs_tol": 284,
+  "worst_band": "extreme_pm1e4_pm1e3",
+  "seed": 11,
+  "bypass_unit_mismatch": {
+    "description": "sensor+model both declare m/s^2 (gate passes, unit_scale factor 1) but raw arrives in cm/s^2",
+    "gate_status": "pass",
+    "n_samples": 75,
+    "max_abs_err_vs_correct_reference": 11.589595794677734,
+    "silently_divergent": true
+  }
 }

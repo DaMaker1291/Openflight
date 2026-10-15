@@ -33,7 +33,11 @@ shared Py/C++ generator, deterministic-vector parity harness pattern
 - An end-to-end composed test (raw sensor → generated C++ adapter → compiled
   model → prediction) under injected faults — now covered by
   `tests/openflight/test_e2e_pipeline.py` (C++ composed path vs Python
-  reference, max abs err 3.05e-5; unit/order/off-layout faults blocked).
+  reference, N=300: registered envelope band max abs 4.58e-5 < 1e-4,
+  expanded extreme bands max abs 1.22e-4 / max rel 4.44e-5; error
+  decomposition shows adapter/unit constants contribute ≤ 4.65e-7;
+  unit/order/off-layout faults blocked; gate-bypass silent error
+  quantified at 11.59 abs in `results/e2e_pipeline.json`).
 - Wire `check_compat` into `deploy` as the required default gate, with an
   explicit `--allow-unvalidated` opt-out, printing sim-side and model-side
   conventions side by side.
