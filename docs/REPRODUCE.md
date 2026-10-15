@@ -34,14 +34,20 @@ Then install the project itself: `pip install -e . --no-deps`.
    `source_files` hashes and `models` hashes against
    `results/freeze_v0.1.json`. Any source change shows up as a hash mismatch.
 3. Run the full evaluation: `python3 openflight/repro.py`.
-   This executes all 162 regression tests plus the held-out challenge, then
-   verifies each JSON report in `results/` against the claimed result.
-   Expected final line: `REPRODUCTION OK`. On success it also records the
-   evidence graph to `results/evidence.json`.
+   This executes the full regression suite (194 passed, 1 skipped as of
+   2026-10-15; the skip is a torch-present deploy test that is
+   importorskip-guarded and does not appear in a torch-free tree) plus
+   the held-out challenge, then verifies each JSON report in `results/`
+   against the claimed result. Expected final line: `REPRODUCTION OK`.
+   On success it also records the evidence graph to `results/evidence.json`
+   with a live result for each of the six host checks it runs.
 4. (Optional) Inspect staleness: `python3 -m openflight.cli evidence status`.
-   Expected: `all checks fresh`, exit 0. Mutate any input artifact (a weight
+   Expected after step 3: the six host checks `fresh`, `build` and `qemu`
+   `never run` (they need an ESP32 toolchain; the host-only tree cannot
+   run them, and `evidence status` names the claims that therefore have
+   no live evidence), exit 0. Mutate any input artifact (a weight
    file, a contract, one line of checker code) and re-run — exactly the
-   checks that read it report `stale`.
+   checks that read it report `STALE` and the command exits 1.
 
 ## What is verified
 

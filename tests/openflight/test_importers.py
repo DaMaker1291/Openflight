@@ -156,6 +156,8 @@ def test_ros2_unknown_type_skipped_not_crashed(tmp_path):
 #   envs/base/legged_robot_config.py: obs_scales.lin_vel=2.0, ang_vel=0.25,
 #     dof_pos=1.0, dof_vel=0.05; clip_observations=100. (nonzero!);
 #     num_actions=12; num_observations=235 (= 48 blind + 187 heights).
+# Verified verbatim against the upstream raw files at that commit on
+# 2026-10-15 (order, scales, 48-dim layout match; heights = 17x11 grid).
 # The 48-dim blind configuration (measure_heights=False) is transcribed
 # here; height samples are terrain perception, not sensor-contract material.
 LEGGED_GYM_OBS = [
