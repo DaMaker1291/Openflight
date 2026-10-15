@@ -420,14 +420,26 @@ def cmd_deploy(a):
         contract_shas = {"sensor_contract_sha": sha_file(a.contract),
                          "model_contract_sha": sha_file(a.model_contract)}
     else:
-        print("WARNING: no contracts supplied — semantic compatibility was "
-              "NOT checked. The contract gate is opt-in; supply --contract "
-              "and --model-contract to enable it.", file=sys.stderr)
+        if not a.allow_unvalidated:
+            raise OpenFlightError(
+                "deploy", "E002",
+                "no contracts supplied — semantic compatibility was NOT "
+                "checked; the contract gate is required by default",
+                where="command line",
+                why="A deployment advertised as validated must pass the "
+                    "semantic contract gate; skipping it silently would "
+                    "allow a wrong sensor-to-model binding to ship.",
+                action="Pass --contract and --model-contract to enable the "
+                       "gate, or --allow-unvalidated to deploy without "
+                       "semantic validation (records a SKIPPED limitation).")
+        print("WARNING: --allow-unvalidated supplied — semantic compatibility "
+              "was NOT checked. This deployment is NOT validated.",
+              file=sys.stderr)
         stages.record("contract_validation", "skipped",
-                      limitation="no contracts supplied; semantic compatibility "
+                      limitation="--allow-unvalidated; semantic compatibility "
                                  "was NOT checked")
         stages.record("adapter_generation", "skipped",
-                      limitation="no contracts supplied")
+                      limitation="--allow-unvalidated")
         contract_shas = {}
     if not os.path.exists(a.model):
         raise OpenFlightError("deploy", "E010", f"model file not found: {a.model}",
@@ -517,7 +529,7 @@ def cmd_deploy(a):
               f"(max err {res['max_abs_err']:.3e} > atol {a.atol})")
         return 4
     gate_msg = ("contract gate PASS" if a.model_contract else
-                "contract gate SKIPPED (no contracts supplied)")
+                "contract gate SKIPPED (--allow-unvalidated)")
     print(f"deploy: {gate_msg}, compile OK, host test PASS "
           f"(err {res['max_abs_err']:.2e}), "
           f"median {res['latency']['median_us']:.1f}us. "
@@ -674,7 +686,11 @@ def build_parser():
     s.add_argument("--target", default="host")
     s.add_argument("--output", default="build"); s.add_argument("--input-size", type=int)
     s.add_argument("--deadline-us", type=float); s.add_argument("--atol", type=float, default=1e-3)
-    s.add_argument("--flash", action="store_true"); s.set_defaults(fn=cmd_deploy)
+    s.add_argument("--flash", action="store_true")
+    s.add_argument("--allow-unvalidated", action="store_true",
+                   help="deploy without semantic contract validation (records "
+                        "a SKIPPED limitation; default requires contracts)")
+    s.set_defaults(fn=cmd_deploy)
     s = sub.add_parser("version"); s.set_defaults(fn=cmd_version)
     s = sub.add_parser("doctor"); s.set_defaults(fn=cmd_doctor)
     s = sub.add_parser("import", help="importer drafts from offline artifacts")

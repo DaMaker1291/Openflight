@@ -6,9 +6,9 @@
   "latency_observed_us": {
     "n": 200,
     "min_us": 6.0,
-    "median_us": 6.0,
-    "p95_us": 7.0,
-    "max_observed_us": 29.0,
+    "median_us": 8.0,
+    "p95_us": 9.0,
+    "max_observed_us": 41.0,
     "max_abs_err": 3.5762786865234375e-07,
     "mean_abs_err": 8.761882781982422e-08
   },

@@ -18,7 +18,11 @@
         "err": 0.0
       },
       "W3_openflight": {
-        "detected": "converts x0.01 (generated op)"
+        "detected": "converts x0.01 (generated op)",
+        "code": [
+          "unit_scale"
+        ],
+        "factor": 0.01
       }
     },
     "undeclared_units": {

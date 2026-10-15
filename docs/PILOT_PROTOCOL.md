@@ -99,8 +99,8 @@ python3 -m openflight.cli evidence status  # expect: all checks fresh, exit 0
 
 Record the archive filename and the verified SHA-256 you ran from (there is
 no `.git` directory in the release archive; the checksum is the provenance
-anchor). `repro.py` is expected to run the full 205-test suite (1 skip:
-`test_product.py` E050, unreachable-when-torch-installed) and regenerate
+anchor). `repro.py` is expected to run the full 211-test suite (0 skips as
+of v0.2.4-pilot) and regenerate
 every report in `results/`. Any `MISMATCH`, `stale` check, or unexpected
 skip is a finding.
 

@@ -153,19 +153,30 @@ def test_probe6_units_and_norm_have_distinct_codes():
     assert CODE_ACTIONS["E201"] != CODE_ACTIONS["E202"]
 
 
-def test_probe7_deploy_without_contracts_warns_loudly(tmp_path, capsys):
-    """The contract gate is opt-in; deploying without contracts must print
-    an explicit WARNING to stderr (and still record 'skipped')."""
+def test_probe7_deploy_without_contracts_is_blocked(tmp_path, capsys):
+    """Contracts are required by default (v0.2.4): deploying without them
+    stops with a diagnosed error. --allow-unvalidated is the explicit opt-out
+    that records a 'skipped' limitation."""
     pytest.importorskip("torch")  # full deploy (rc 0) compiles + runs the model
     import json
     import os
     from openflight import cli
+    # default: blocked
     rc = cli.main(["deploy", "--model", "learned_observer.pt",
                    "--arch", "mlp:60,128,64,1",
                    "--output", str(tmp_path)])
     captured = capsys.readouterr()
-    assert "WARNING: no contracts supplied" in captured.err
-    assert "contract gate SKIPPED" in captured.out
+    assert rc == 2
+    assert "E002" in captured.err
+    assert "--allow-unvalidated" in captured.err
+    # explicit opt-out: proceeds, records skipped limitation
+    rc = cli.main(["deploy", "--model", "learned_observer.pt",
+                   "--arch", "mlp:60,128,64,1",
+                   "--allow-unvalidated",
+                   "--output", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert "contract gate SKIPPED (--allow-unvalidated)" in captured.out
     assert rc == 0
     report = json.load(open(os.path.join(tmp_path, "deployment_report.json")))
     assert report["meta"]["model"] == "learned_observer.pt"
+    assert report["stages"]["contract_validation"]["status"] == "skipped"

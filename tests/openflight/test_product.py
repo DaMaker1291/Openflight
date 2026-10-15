@@ -46,19 +46,28 @@ def test_missing_files_diagnosed_not_traceback(capsys):
     assert run_cli("deploy", "--model", "/nope.pt") == 2
 
 
-def test_deploy_contract_warning_fires_before_torch_gate(capsys, tmp_path):
-    """The no-contracts WARNING must fire even without torch: the contract
-    gate is torch-free and runs before weight loading (E050)."""
-    try:
-        import torch  # noqa: F401
-        pytest.skip("torch present; E050 path not reachable in this env")
-    except ImportError:
-        pass
+def test_deploy_requires_contracts_by_default(capsys, tmp_path):
+    """Contracts are required by default: deploy without them stops with a
+    diagnosed error (never a silent skip). Runs before the torch gate."""
     rc = run_cli("deploy", "--model", W6, "--arch", "mlp:6,16,2",
                  "--output", str(tmp_path))
     captured = capsys.readouterr()
-    assert "WARNING: no contracts supplied" in captured.err
-    assert rc == 5  # E050: torch missing, diagnosed not traceback
+    assert rc == 2
+    assert "E002" in captured.err
+    assert "--allow-unvalidated" in captured.err
+
+
+def test_deploy_allow_unvalidated_bypasses_gate(capsys, tmp_path):
+    """--allow-unvalidated is the explicit opt-out: the gate is skipped with
+    a recorded limitation, and the deployment still compiles (needs torch)."""
+    pytest.importorskip("torch")
+    rc = run_cli("deploy", "--model", W6, "--arch", "mlp:6,16,2",
+                 "--allow-unvalidated", "--output", str(tmp_path))
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "contract gate SKIPPED (--allow-unvalidated)" in captured.out
+    report = json.load(open(os.path.join(tmp_path, "deployment_report.json")))
+    assert report["stages"]["contract_validation"]["status"] == "skipped"
 
 
 def test_unknown_arch_and_bad_args(capsys):

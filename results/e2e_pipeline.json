@@ -1,0 +1,6 @@
+{
+  "model": "learned_observer.pt",
+  "n_samples": 8,
+  "max_abs_err_cpp_vs_python": 3.0517578125e-05,
+  "composed_path": "raw->contract_adapt->predict"
+}

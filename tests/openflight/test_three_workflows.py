@@ -102,14 +102,28 @@ def test_three_workflows(tmp_path):
     f1["W2_manual_right_config"] = {
         "detected": "n/a (correct by diligence, nothing validates it)",
         "err": float(np.abs(w2c - ref).max())}
-    from openflight.contract import pipeline as PL
     import openflight.contract.checker as Ch
-    sens = {"t": {"units": "centimetres_per_second_squared"}}
-    # registered assassination of doubt: registered unit converts
-    from openflight.contract import units as U
-    assert U.conversion("centimetres_per_second_squared",
-                        "metres_per_second_squared") == 0.01
-    f1["W3_openflight"] = {"detected": "converts x0.01 (generated op)"}
+    # declared unit mismatch: sensor declares cm/s^2, model expects m/s^2.
+    # The checker must PASS (it is a resolvable conversion) and emit a
+    # unit_scale conversion with factor 0.01 — not block, and not skip the
+    # check entirely. This exercises the real checker path (the previous
+    # version asserted a conversion factor without ever running the checker).
+    sens1 = {"imu": {"accelerometer": {"units": "centimetres_per_second_squared"}}}
+    mod1 = {"raw_layout": [{"quantity": "acceleration", "component": "x"}],
+            "features": [{"name": "a",
+                          "source": {"quantity": "acceleration",
+                                     "component": "x"},
+                          "units": "metres_per_second_squared",
+                          "normalization": {"method": "none"}}]}
+    r1 = Ch.check(sens1, mod1)
+    assert r1["status"] == "pass", r1.get("errors")
+    conv1 = [c for c in r1.get("conversions", [])
+             if c.get("kind") == "unit_scale"]
+    assert conv1, "expected a unit_scale conversion, got none"
+    assert conv1[0]["factor"] == 0.01
+    f1["W3_openflight"] = {"detected": "converts x0.01 (generated op)",
+                           "code": [c["kind"] for c in conv1],
+                           "factor": conv1[0]["factor"]}
     table["declared_unit_mismatch_x100"] = f1
 
     # ---- fault 2: undeclared units ----

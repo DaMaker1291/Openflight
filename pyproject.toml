@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openflight"
-version = "0.2.0"
+version = "0.2.4"
 description = "Fail-closed deployment toolkit: PyTorch policies to microcontrollers with sensor-contract validation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,7 +40,7 @@ dev = [
 ]
 # Serial flashing for physical hardware targets. NOTE: pyserial was never
 # exercised in this environment (no device attached); this range is
-# untested — flashing remains opt-in and out of scope for v0.2.0-pilot.
+# untested — flashing remains opt-in and out of scope for v0.2.4-pilot.
 hardware = ["pyserial>=3.5,<4.0"]
 
 [project.scripts]

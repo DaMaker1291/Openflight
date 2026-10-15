@@ -9,6 +9,21 @@ built artifact or source text without executing the behavior).
 
 Claims are ordered by dependency: later claims assume earlier ones hold.
 
+**Reproducibility disclosure.** `openflight/repro.py` re-runs the host-side
+suite, contract battery, and challenge suites and verifies the tracked JSON
+reports, but it does **not** rebuild the ESP-IDF firmware or re-run the
+QEMU experiment. The QEMU-derived claims (C1, C2, C4, C8) rest on
+tracked artifacts — `results/esp32/numerical_parity.json`
+(`qemu_max_abs_err = 3.576e-07`, `qemu_parity_observed = true`),
+`results/esp32/numerical_parity.csv`, `results/esp32/stack_highwater.txt`,
+`results/esp32/openflight_bench.map`, `results/esp32/idf_size.txt` — and on
+the reproducible scenario driver `firmware/esp32/qemu_test.py`. The raw
+serial capture `qemu_run.log` was gitignored (`.gitignore` `*.log`) and is
+not in the release archive; re-running `qemu_test.py` regenerates it. These
+claims are classified as existing reported (simulated) evidence that has
+**not** been independently reproduced from this release, pending an
+ESP-IDF/QEMU-capable second machine.
+
 ---
 
 ## C1. Numerical equivalence (generated C++ vs PyTorch)
@@ -17,7 +32,7 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 |---|---|
 | **Claim** | For the supported model class (feed-forward MLP), generated C++ inference matches the PyTorch reference within a predefined tolerance of 1e-4 on tested inputs. Observed max abs error: 3.576e-07. |
 | **Assumptions** | (a) The state-dict loader maps checkpoint tensors to the compiled weights correctly. (b) float32 IEEE-754 semantics hold on the execution target (host and Xtensa: yes; verified by identical results). (c) The test inputs (recorded windows + seeded random normals) exercise representative input space — NOT a proof for all inputs. |
-| **Evidence** | `results/esp32/numerical_parity.csv` (200 samples), `results/esp32/qemu_run.log` (boot SELFTEST N=200 + protocol N=50), `results/esp32/numerical_parity.json`, pytest parity tests (host path). |
+| **Evidence** | `results/esp32/numerical_parity.csv` (200 samples), `results/esp32/numerical_parity.json` (`qemu_max_abs_err = 3.576e-07`, `qemu_parity_observed = true`; boot SELFTEST N=200 + protocol N=50), pytest parity tests (host path), `tests/openflight/test_e2e_pipeline.py` (composed C++ adapter→model vs Python reference, max abs err 3.05e-5). Raw `qemu_run.log` regenerable via `firmware/esp32/qemu_test.py` (not shipped — see reproducibility disclosure). |
 | **Status** | simulated (QEMU) + measured (host); tolerance predefined, never relaxed post-hoc. |
 | **Invalidated by** | Any tested input exceeding 1e-4 abs error; a weight-mapping bug found in the loader; a compiler flag change (e.g. -ffast-math) altering results; a new model class added without re-establishing parity. |
 
@@ -47,7 +62,7 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 |---|---|
 | **Claim** | The binary protocol (HELLO/CONFIGURE/RUN_TEST/RESULT/ERROR) behaves correctly under valid, corrupted-CRC, unknown-type, premature-CONFIGURE, wrong-size, and truncated-frame conditions. |
 | **Assumptions** | (a) QEMU UART faithfully delivers byte streams (framing is verified end-to-end, so gross UART loss would have failed scenarios). (b) The host-side decoder matches the firmware encoder by construction (shared Python source). |
-| **Evidence** | `firmware/esp32/qemu_test.py` scenarios A–D; `results/esp32/qemu_run.log`. |
+| **Evidence** | `firmware/esp32/qemu_test.py` scenarios A–D (tracked, reproducible driver); run log regenerable via that script (raw `qemu_run.log` not shipped — see reproducibility disclosure). |
 | **Status** | simulated (QEMU). |
 | **Invalidated by** | Any scenario failing; a framing change without both-side update; silent misbehavior under a new fault type (e.g. mid-frame length corruption — currently: exact-frame receiver, resync requires link reset, documented). |
 
@@ -87,7 +102,7 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 |---|---|
 | **Claim** | Minimum free stack of the main task is 6152 bytes after the 200-window selftest workload, before the protocol loop, in the QEMU-emulated ESP32 build. |
 | **Assumptions** | (a) `uxTaskGetStackHighWaterMark(NULL)` returns bytes on this target (verified from ESP-IDF v5.3 source: `portSTACK_TYPE = uint8_t` on Xtensa). (b) QEMU's FreeRTOS scheduling matches silicon closely enough for a functional watermark — NOT a silicon number. |
-| **Evidence** | `results/esp32/stack_highwater.txt`, `results/esp32/qemu_run.log` (`stack:` line). |
+| **Evidence** | `results/esp32/stack_highwater.txt` (`STACK_HIGHWATER_BYTES=6152`); raw QEMU run log regenerable via `firmware/esp32/qemu_test.py` (`stack:` line; not shipped — see reproducibility disclosure). |
 | **Status** | simulated (QEMU). Post-protocol-loop watermark NOT yet measured. |
 | **Invalidated by** | Protocol-loop stack use exceeding the selftest high-water (measurement gap, not contradiction); a FreeRTOS config change altering task stack size; silicon measurement differing materially. |
 
@@ -105,9 +120,9 @@ Claims are ordered by dependency: later claims assume earlier ones hold.
 
 | Field | Value |
 |---|---|
-| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; **201 passed, 1 skipped** (as of 2026-10-15; the single skip is `test_product.py:54`, an E050 test that is unreachable when torch is installed — it is absent in a torch-free tree); all **six** host-check result JSONs regenerate with expected values (parity, battery, independent, heldout, workflows, baseline); the run records `results/evidence.json` with a live result for each of the six host checks it actually runs, plus the interpreter/library/platform environment. **Partial dependency coverage (2026-10-15, probe round 2):** the ESP32 `build` and `qemu` checks cannot run in a host-only tree, so they are recorded as **never run** — never "fresh" — and the claims they back (C1's QEMU half, C2, C3, C4, C7, C8) plus C10's firmware scope are reported by `evidence status` under "claims without live evidence" until a real ESP32 build/qemu run is recorded. A recorded `fail` result is reported **failed** (not fresh) with its claims at risk; parity/build/qemu go **stale** when the python/torch/numpy/platform environment changes, even with no tracked-file change. |
+| **Claim** | From the v0.2 working tree: `python3 openflight/repro.py` exits 0; **211 passed, 0 skipped** (as of 2026-10-15, v0.2.4-pilot; the former single skip `test_product.py:54` — an E050 torch-missing path — was retired when the contract gate became required-by-default and the no-contracts deploy path stopped reaching the torch gate); all **six** host-check result JSONs regenerate with expected values (parity, battery, independent, heldout, workflows, baseline); the run records `results/evidence.json` with a live result for each of the six host checks it actually runs, plus the interpreter/library/platform environment. **Partial dependency coverage (2026-10-15, probe round 2):** the ESP32 `build` and `qemu` checks cannot run in a host-only tree, so they are recorded as **never run** — never "fresh" — and the claims they back (C1's QEMU half, C2, C3, C4, C7, C8) plus C10's firmware scope are reported by `evidence status` under "claims without live evidence" until a real ESP32 build/qemu run is recorded. A recorded `fail` result is reported **failed** (not fresh) with its claims at risk; parity/build/qemu go **stale** when the python/torch/numpy/platform environment changes, even with no tracked-file change. |
 | **Assumptions** | Same dependency assumptions as C9. The working tree has diverged from the freeze by design (v0.2 branch); repro.py's count fix is a v0.2 change. |
-| **Evidence** | `reproduction/workingtree_reproduction.log`; `results/evidence.json` (never-run entries for build/qemu are the honest record, not a defect). |
+| **Evidence** | `results/evidence.json` (live result for each of the six host checks repro.py actually runs, plus environment); `evidence status` reports the ESP32 `build`/`qemu` checks as never-run (they are absent from the record because a host-only tree cannot run them — never "fresh"), which is the honest record, not a defect. The `repro.py` exit code (0) and the suite count above are the reproduction result; the raw log is regenerable by re-running `repro.py` (not shipped). |
 | **Status** | measured. |
 | **Invalidated by** | Any non-zero exit; count drift without documentation; a check regenerating a different value. |
 

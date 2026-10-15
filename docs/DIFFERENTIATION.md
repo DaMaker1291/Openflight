@@ -30,9 +30,13 @@ shared Py/C++ generator, deterministic-vector parity harness pattern
 (`check_compat`).
 
 **What is missing to make it real.**
-- Generate **unit conversions** from the contract (today: declared, ignored).
-- Wire `check_compat` into `deploy` so mismatches fail the pipeline, with the
-  sim-side and model-side conventions printed side by side.
+- An end-to-end composed test (raw sensor → generated C++ adapter → compiled
+  model → prediction) under injected faults — now covered by
+  `tests/openflight/test_e2e_pipeline.py` (C++ composed path vs Python
+  reference, max abs err 3.05e-5; unit/order/off-layout faults blocked).
+- Wire `check_compat` into `deploy` as the required default gate, with an
+  explicit `--allow-unvalidated` opt-out, printing sim-side and model-side
+  conventions side by side.
 - Extend the parity chain to feature ordering + normalization
   (sim state → sensor model → features → network, both languages).
 - Negative tests: each mismatch class must be *caught* (test writes wrong-order
@@ -64,8 +68,10 @@ weak alone — several vendors already do per-board profiling better.
 
 1. **Real-MCU validation** of the current slice (HARDWARE_PLAN.md) — without it,
    everything above is host-side claims.
-2. **Contract gap closure**: unit conversion + `check_compat` in `deploy` +
-   mismatch fault-injection tests (the B vertical slice).
+2. **Contract gap closure** (DONE): unit conversion generated from the
+   contract (`test_baseline_compare.py`, `test_e2e_pipeline.py`),
+   `check_compat` wired into `deploy`, mismatch fault-injection tests —
+   the B vertical slice is complete on the host path.
 3. **Evidence-only diagnostics** for the fault classes B already detects (A).
 4. **Time-saving study** (3 tasks × 3 workflows, hands-on time + correctness +
    diagnosis time) — only after 1–2, else there is nothing real to measure.
