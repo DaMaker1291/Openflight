@@ -34,6 +34,7 @@ measure the resulting divergence (the silent-error number).
 """
 import json
 import os
+import platform
 import subprocess
 
 import numpy as np
@@ -298,10 +299,22 @@ def test_e2e_adapter_model_parity(tmp_path):
         "max_rel_err_composed": float(rel.max()),
         "max_abs_err_adapter": float(adapter_err.max()),
         "max_abs_err_model_same_input": float(model_err.max()),
+        # registered-only: every sample INSIDE the registered envelope,
+        # within the registered absolute tolerance (n == BAND_SIZE when
+        # the registered claim holds); the all-band count is reported
+        # separately under a name that says so
         "n_within_registered_abs_tol":
+            int((composed[reg] < REGISTERED_TOL_ABS).sum()),
+        "n_within_abs_tol_all":
             int((composed < REGISTERED_TOL_ABS).sum()),
         "worst_band": worst_band,
         "seed": 11,
+        "environment": {
+            "python": platform.python_version(),
+            "torch": torch.__version__,
+            "numpy": np.__version__,
+            "platform": platform.platform(),
+        },
     })
 
 

@@ -41,7 +41,7 @@
   "max_rel_err_composed": 4.435506322483959e-05,
   "max_abs_err_adapter": 4.65393066306774e-07,
   "max_abs_err_model_same_input": 0.0001220703125,
-  "n_within_registered_abs_tol": 284,
+  "n_within_registered_abs_tol": 75,
   "worst_band": "extreme_pm1e4_pm1e3",
   "seed": 11,
   "bypass_unit_mismatch": {
@@ -50,5 +50,12 @@
     "n_samples": 75,
     "max_abs_err_vs_correct_reference": 11.589595794677734,
     "silently_divergent": true
+  },
+  "n_within_abs_tol_all": 284,
+  "environment": {
+    "python": "3.12.9",
+    "torch": "2.14.1",
+    "numpy": "2.5.4",
+    "platform": "macOS-15.6-arm64-arm-64bit"
   }
 }

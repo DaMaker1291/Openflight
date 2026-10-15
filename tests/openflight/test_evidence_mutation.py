@@ -21,7 +21,7 @@ from openflight import evidence as EV
 
 ALL_CHECKS = sorted(EV.CHECK_DEPS)
 REPRO_CHECKS = ["battery", "heldout", "independent", "workflows",
-                "baseline", "parity", "importers"]
+                "baseline", "parity", "importers", "e2e"]
 
 # check -> test module that produces its results file
 PRODUCERS = {
@@ -33,6 +33,7 @@ PRODUCERS = {
     "parity": "tests/openflight/test_firmware_harness.py",
     "importers": ["tests/openflight/test_importers.py",
                   "tests/openflight/test_draft_layer.py"],
+    "e2e": "tests/openflight/test_e2e_pipeline.py",
 }
 
 # modules imported by checks but not worth transitively closing:
@@ -81,23 +82,24 @@ def _append_comment(data: bytes) -> bytes:
 ])
 def test_mutate_contract_source_stales_checker_checks(tmp_path, rel):
     # checker_source group: every check that runs the contract engine.
-    # (the probe's four; baseline added — it also runs the checker)
+    # (the probe's four; baseline added — it also runs the checker; e2e
+    # constructs and validates its contract pair through the checker)
     root = _make_sandbox(tmp_path)
     st = _mutate(root, rel, _append_comment)
     assert set(st["stale_checks"]) == {
         "battery", "heldout", "independent", "workflows", "baseline",
-        "importers"}
+        "importers", "e2e"}
 
 
 def test_mutate_errors_module_stales_checker_checks(tmp_path):
     # errors.py rides with the checker (checker imports it at module
     # level). Superset of the probe's minimum {battery,heldout,independent}:
-    # workflows and baseline run the checker too.
+    # workflows, baseline and e2e run the checker too.
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/errors.py", _append_comment)
     assert set(st["stale_checks"]) == {
         "battery", "heldout", "independent", "workflows", "baseline",
-        "importers"}
+        "importers", "e2e"}
 
 
 @pytest.mark.parametrize("rel", [
@@ -118,12 +120,13 @@ def test_mutate_adapters_stales_contract_engine_checks(tmp_path, rel):
 
 def test_mutate_compiler_source_stales_compile_users(tmp_path):
     # codegen.py is executed by parity (harness build), workflows (W3
-    # compile case), independent (compile cases) and build. Superset of
-    # the probe's minimum {build,parity}.
+    # compile case), independent (compile cases), build and e2e (it
+    # compiles the observer + adapter drivers). Superset of the probe's
+    # minimum {build,parity}.
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/compiler/codegen.py", _append_comment)
     assert set(st["stale_checks"]) == {
-        "build", "parity", "workflows", "independent"}
+        "build", "parity", "workflows", "independent", "e2e"}
 
 
 @pytest.mark.parametrize("rel", [
@@ -156,6 +159,7 @@ def test_mutate_host_firmware_stales_parity(tmp_path, rel):
     ("tests/openflight/test_three_workflows.py", {"workflows"}),
     ("tests/openflight/test_baseline_compare.py", {"baseline"}),
     ("tests/openflight/test_firmware_harness.py", {"parity"}),
+    ("tests/openflight/test_e2e_pipeline.py", {"e2e"}),
 ])
 def test_mutate_challenge_implementation_stales_own_check(tmp_path,
                                                           rel, expected):
@@ -165,12 +169,14 @@ def test_mutate_challenge_implementation_stales_own_check(tmp_path,
 
 
 def test_mutate_observer_weights_stales_all_loaders(tmp_path):
-    # learned_observer.pt is loaded by parity, workflows, baseline and
-    # independent (probe minimum was parity)
+    # learned_observer.pt is loaded by parity, workflows, baseline,
+    # independent, e2e, build (build.sh compiles it) and qemu (probe
+    # minimum was parity)
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "learned_observer.pt", _append_comment)
     assert set(st["stale_checks"]) == {
-        "parity", "workflows", "baseline", "independent", "qemu"}
+        "parity", "workflows", "baseline", "independent", "qemu",
+        "build", "e2e"}
 
 
 def test_mutate_ppo_weights_stales_independent_only(tmp_path):
@@ -191,18 +197,22 @@ def test_mutate_example_weights_stales_nothing(tmp_path):
 
 def test_mutate_cli_source_stales_arch_users(tmp_path):
     # _arch_for_example lives in cli.py and is imported by the
-    # workflows, baseline, parity and independent test modules
+    # workflows, baseline, parity, independent and e2e test modules;
+    # build.sh runs `python3 -m openflight.cli compile` and qemu_test.py
+    # imports _arch_for_example too
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/cli.py", _append_comment)
     assert set(st["stale_checks"]) == {
-        "workflows", "baseline", "parity", "independent", "importers"}
+        "workflows", "baseline", "parity", "independent", "importers",
+        "build", "qemu", "e2e"}
 
 
-def test_mutate_protocol_source_stales_parity(tmp_path):
+def test_mutate_protocol_source_stales_parity_and_qemu(tmp_path):
+    # benchmark/protocol.py: parity's harness and qemu_test.py both
+    # encode/decode frames through it
     root = _make_sandbox(tmp_path)
-    st = _mutate(root, "openflight/benchmark/protocol.py",
-                 _append_comment)
-    assert set(st["stale_checks"]) == {"parity"}
+    st = _mutate(root, "openflight/benchmark/protocol.py", _append_comment)
+    assert set(st["stale_checks"]) == {"parity", "qemu"}
 
 
 @pytest.mark.parametrize("rel", [
@@ -274,7 +284,7 @@ def test_mutate_checker_from_foreign_cwd_stales(tmp_path, monkeypatch):
         st = EV.status(root=str(root))
         assert set(st["stale_checks"]) == {
             "battery", "heldout", "independent", "workflows", "baseline",
-            "importers"}
+            "importers", "e2e"}
     finally:
         p.write_bytes(original)
 
@@ -323,17 +333,18 @@ def test_record_snapshots_environment(tmp_path):
 
 
 def test_environment_change_stales_target_checks(tmp_path, monkeypatch):
-    # parity/build/qemu are environment-dependent: a torch or interpreter
-    # bump must invalidate them even when no tracked file changed
+    # parity/build/qemu/e2e are environment-dependent: a torch or
+    # interpreter bump must invalidate them even when no tracked file
+    # changed (e2e's tolerances are numerical claims over torch)
     root = _make_sandbox(tmp_path, results_for=ALL_CHECKS)
     monkeypatch.setattr(EV, "_env_snapshot", lambda: {
         "python": "0.0.0", "torch": "0.0.0", "numpy": "0.0.0",
         "platform": "test-platform"})
     st = EV.status(root=str(root))
-    assert set(st["stale_checks"]) == {"parity", "build", "qemu"}
+    assert set(st["stale_checks"]) == {"parity", "build", "qemu", "e2e"}
     assert all(any("environment" in r
                    for r in st["checks"][c]["reasons"])
-               for c in ("parity", "build", "qemu"))
+               for c in ("parity", "build", "qemu", "e2e"))
     # host-only checks that do not depend on torch stay fresh
     for c in ("battery", "heldout", "workflows"):
         assert st["checks"][c]["status"] == "fresh"
@@ -451,7 +462,7 @@ def test_mutate_importer_source_stales_importers(tmp_path):
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/importers/gym_importer.py",
                  lambda d: d + b"\n# drift\n")
-    assert "importers" in st["stale_checks"]
+    assert set(st["stale_checks"]) == {"importers"}
 
 
 def test_mutate_importer_source_stales_only_importers(tmp_path):
@@ -487,13 +498,13 @@ def test_mutate_draft_layer_tests_stales_importers(tmp_path):
 def test_mutate_draft_layer_source_stales_importers_with_checker_group(
         tmp_path):
     # draft.py reaches the importers check through checker_source: an edit
-    # stales it alongside the other checker-source checks
+    # stales it alongside the other checker-source checks (e2e included)
     root = _make_sandbox(tmp_path)
     st = _mutate(root, "openflight/contract/draft.py",
                  lambda d: d + b"\n# drift\n")
     assert set(st["stale_checks"]) == {
         "importers", "battery", "heldout", "independent", "workflows",
-        "baseline"}
+        "baseline", "e2e"}
 
 
 def test_c11_unverified_without_importers_check(tmp_path):
@@ -505,6 +516,60 @@ def test_c11_unverified_without_importers_check(tmp_path):
     st = EV.status(root=str(root))
     assert "importers" in st["never_run_checks"]
     assert "C11" in st["claims_unverified"]
+
+
+# ---------------------------------------------------------------------------
+# audit round 4 (v0.2.5): evidence-graph gaps found by the independent
+# advisor — untracked graph module, unwired e2e check, build/qemu inputs
+# ---------------------------------------------------------------------------
+
+def test_mutate_evidence_source_stales_every_check(tmp_path):
+    # the graph module itself is declared for every check: editing how
+    # staleness is computed must invalidate every recorded verdict
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "openflight/evidence.py", _append_comment)
+    assert set(st["stale_checks"]) == set(ALL_CHECKS)
+
+
+def test_mutate_e2e_report_stales_e2e_only(tmp_path):
+    # results/e2e_pipeline.json is an input of the e2e check itself: the
+    # test reads the report back before merging new rows into it
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "results/e2e_pipeline.json",
+                 lambda d: d + b"\n")
+    assert set(st["stale_checks"]) == {"e2e"}
+
+
+def test_mutate_observer_fixture_source_stales_readers(tmp_path):
+    # learned_observer.py is imported by the host fixture checks, by
+    # build.sh's host-python steps (gen_vectors) and by qemu_test.py
+    root = _make_sandbox(tmp_path)
+    st = _mutate(root, "learned_observer.py", _append_comment)
+    assert set(st["stale_checks"]) == {
+        "independent", "workflows", "baseline", "parity", "build", "qemu"}
+
+
+def test_mutate_flash_image_stales_qemu_only(tmp_path):
+    # qemu boots firmware/esp32/build/flash_image.bin as MTD; the image
+    # is generated, so it is recorded on a real tree before it can go
+    # stale (optional group: absent in a host-only sandbox record)
+    root = _make_sandbox(tmp_path)
+    img = root / "firmware/esp32/build/flash_image.bin"
+    img.parent.mkdir(parents=True, exist_ok=True)
+    img.write_bytes(b"\x00flash-v1")
+    EV.record(root=str(root),
+              results={c: {"result": "ok"} for c in ALL_CHECKS})
+    st = _mutate(root, "firmware/esp32/build/flash_image.bin",
+                 lambda d: d + b"\x00drift")
+    assert set(st["stale_checks"]) == {"qemu"}
+
+
+def test_mutate_generated_cxx_stales_build_only(tmp_path):
+    # the compiled adapter C++ is a declared build input (over-
+    # approximation): editing a stale build output warrants a rebuild
+    root = _make_sandbox(tmp_path)  # the sandbox fabricates generated_cxx
+    st = _mutate(root, "build/model_adapters.cpp", _append_comment)
+    assert set(st["stale_checks"]) == {"build"}
 
 
 # ---------------------------------------------------------------------------

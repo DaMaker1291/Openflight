@@ -1,10 +1,10 @@
 """Evidence graph: hash the artifacts each check reads; detect staleness.
 
-Checks (battery, held-out, independent, workflows, baseline, parity, build,
-qemu) declare which artifact groups they read. `record` hashes those
-artifacts into results/evidence.json; `status` re-hashes and reports each
-check as fresh / stale / failed / never run, plus the CLAIMS.md claim ids
-that depend on stale, failed, or never-run checks.
+Checks (battery, held-out, independent, workflows, baseline, parity, e2e,
+importers, build, qemu) declare which artifact groups they read. `record`
+hashes those artifacts into results/evidence.json; `status` re-hashes and
+reports each check as fresh / stale / failed / never run, plus the
+CLAIMS.md claim ids that depend on stale, failed, or never-run checks.
 
 Truth rules (2026-10-15, independent probes + import tracing):
 - Dependencies are derived from what the producing test module actually
@@ -31,7 +31,11 @@ Truth rules (2026-10-15, independent probes + import tracing):
 - Over-approximations kept on purpose (commented): the shipped contract
   YAMLs are declared for the challenge checks even though the challenge
   cases are embedded in the tests; editing the shipped pair policy-
-  warrants re-running the challenges.
+  warrants re-running the challenges; the graph module itself
+  (evidence_source) is an input to every check, so editing how staleness
+  is computed invalidates every recorded verdict; generated C++ is a
+  declared build input, so editing a stale build output warrants a
+  rebuild.
 
 Design: docs/superpowers (Phase 1 evidence graph, advisor prompt
 2026-10-14; dependency-true revision 2026-10-15; root-resolution +
@@ -137,10 +141,23 @@ ARTIFACT_GROUPS: dict[str, list[str]] = {
     # recorded their content is a claim-level input: C11 cannot look
     # fully supported while the confirmation record drifts
     "provenance_sidecars": ["**/*.provenance.json"],
+    # the graph module itself: editing how staleness is computed must
+    # invalidate every recorded freshness verdict (deliberate
+    # over-approximation — one edit stales all checks, documented here)
+    "evidence_source": ["openflight/evidence.py"],
+    # e2e pipeline (C1 host half): the producing test, the merged report
+    # it reads back before rewriting, and the model it runs
+    "e2e_test": ["tests/openflight/test_e2e_pipeline.py"],
+    "e2e_report": ["results/e2e_pipeline.json"],
+    # qemu runtime images: flash/efuse produced by build.sh, read by
+    # qemu_test.py as MTD/efuse drives; absent until a real build
+    "qemu_runtime": ["firmware/esp32/build/flash_image.bin",
+                     "firmware/esp32/build/qemu_efuse.bin"],
 }
 
 # groups whose absence does not mean a check failed to run
-OPTIONAL_GROUPS = {"generated_cxx", "firmware_binary", "provenance_sidecars"}
+OPTIONAL_GROUPS = {"generated_cxx", "firmware_binary", "provenance_sidecars",
+                   "qemu_runtime"}
 
 # claims whose support depends on provenance sidecars (claim-level
 # inputs: no technical check reads a sidecar, so no check goes stale —
@@ -173,13 +190,36 @@ CHECK_DEPS = {
     "importers": ("importer_source", "importers_test", "conventions_doc",
                   "package_root", "checker_source", "adapters_source",
                   "cli_source"),
-    "build": ("firmware_esp32_source", "compiler_source"),
-    "qemu": ("firmware_esp32_source", "observer_weights"),
+    # e2e pipeline (C1 host half): the producing test reads the model
+    # weights, generates adapters, and merges its own report back; its
+    # import closure is cli + compiler + checker/units/errors (guards
+    # test_graph_declares_every_imported_input)
+    "e2e": ("e2e_test", "e2e_report", "observer_weights", "cli_source",
+            "compiler_source", "checker_source"),
+    # build.sh compiles learned_observer.pt through the CLI, imports the
+    # repo-root fixtures on host-python steps, and consumes the generated
+    # C++ (generated_cxx: over-approximation — editing a stale build
+    # output policy-warrants a rebuild)
+    "build": ("firmware_esp32_source", "compiler_source", "cli_source",
+              "package_root", "observer_weights", "observer_fixtures",
+              "generated_cxx"),
+    # qemu_test.py imports learned_observer/macondo_hover, the CLI arch
+    # factory and the benchmark protocol, loads the weights, and boots
+    # the generated flash/efuse images
+    "qemu": ("firmware_esp32_source", "observer_weights", "observer_fixtures",
+             "cli_source", "benchmark_source", "qemu_runtime"),
 }
 
+# every check reads the graph module itself: a change to how staleness is
+# computed must invalidate every recorded freshness verdict (documented
+# deliberate over-approximation — one edit stales all checks)
+CHECK_DEPS = {name: deps + ("evidence_source",)
+              for name, deps in CHECK_DEPS.items()}
+
 # checks whose numerical/compile behaviour depends on the interpreter
-# and library versions, not just on tracked files
-ENVIRONMENT_DEPENDENT = ("parity", "build", "qemu")  # parity loads torch
+# and library versions, not just on tracked files (e2e compares C++
+# against torch numerically under registered tolerances)
+ENVIRONMENT_DEPENDENT = ("parity", "build", "qemu", "e2e")
 
 # check -> CLAIMS.md claim ids it supports (C10 depends on everything).
 # C1 is split by evidence: the host half is backed by parity, the QEMU
@@ -192,6 +232,7 @@ CLAIM_DEPS = {
     "workflows": ("C6",),
     "baseline": ("C6",),
     "parity": ("C1",),
+    "e2e": ("C1",),  # C1's host half: registered/expanded tolerances + bypass
     "importers": ("C11",),
     "build": ("C2", "C3"),
     "qemu": ("C1", "C2", "C4", "C7", "C8"),

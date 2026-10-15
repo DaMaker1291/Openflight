@@ -1,4 +1,4 @@
-"""Independent reproduction entry point for OpenFlight v0.1.
+"""Independent reproduction entry point for OpenFlight (current version).
 
 Runs the full host-side evaluation from a clean checkout and checks each
 reported result. No hardware required. Fails loudly on any deviation.
@@ -29,6 +29,8 @@ CHECKS = {
                  "fault escapes baseline, blocked-or-converted by OpenFlight"),
     "importers": ("results/importers_report.json",
                   "6/6 importer/draft provenance pipeline cases"),
+    "e2e": ("results/e2e_pipeline.json",
+            "300-sample 4-band: registered abs 1e-4, expanded rel 1e-4"),
 }
 
 
@@ -39,7 +41,14 @@ def run(cmd, **kw):
 
 def main():
     failures = []
-    print("== OpenFlight v0.1 independent reproduction ==")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from openflight import __version__
+        version = __version__
+    except Exception:
+        version = "unknown"
+    print(f"== OpenFlight {version} independent reproduction ==")
     print(f"root: {ROOT}")
     r = run([sys.executable, "-m", "pytest", OPENFLIGHT_TESTS, "-q"])
     # Find the summary line ("N passed in Xs" / "N failed"); the naive
@@ -114,6 +123,19 @@ def verify(name, rep):
             o.get("unknown_unit_blocked") or
             o.get("declared_mismatch_converted"))
         return ok, "fault escapes baseline"
+    if name == "e2e":
+        reg = rep["bands"]["uniform_pm500"]
+        ok = (rep["n_samples"] == 300
+              and rep["max_rel_err_composed"] < rep["tolerance_expanded_rel"]
+              and reg["max_abs_err_composed"] < rep["tolerance_registered_abs"]
+              and rep["n_within_registered_abs_tol"] == reg["n"]
+              and isinstance(rep.get("n_within_abs_tol_all"), int)
+              and rep["bypass_unit_mismatch"]["silently_divergent"] is True)
+        bypass = rep["bypass_unit_mismatch"][
+            "max_abs_err_vs_correct_reference"]
+        return ok, (f"registered={reg['max_abs_err_composed']:.3e}, "
+                    f"rel={rep['max_rel_err_composed']:.3e}, "
+                    f"bypass={bypass:.3f}")
     return False, "unknown check"
 
 
