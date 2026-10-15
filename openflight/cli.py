@@ -607,15 +607,17 @@ def cmd_evidence_status(a):
             print(f"    - {r}")
     if st["stale_checks"]:
         print("stale checks: " + ", ".join(st["stale_checks"]))
-        print("claims at risk: " + ", ".join(st["claims_at_risk"]))
     if st["failed_checks"]:
         print("failed checks: " + ", ".join(st["failed_checks"]))
-        print("claims at risk: " + ", ".join(st["claims_at_risk"]))
     if st.get("stale_provenance"):
-        print("stale provenance sidecars (claims at risk, no check "
-              "stales — confirmation record drifted):")
+        print("stale provenance sidecars (no check stales — confirmation "
+              "record drifted):")
         for r in st["stale_provenance"]:
             print(f"    - {r}")
+    if st["claims_at_risk"] and (
+            st["stale_checks"] or st["failed_checks"]
+            or st.get("stale_provenance")):
+        print("claims at risk: " + ", ".join(st["claims_at_risk"]))
     if st["never_run_checks"]:
         if not (st["stale_checks"] or st["failed_checks"]):
             print("all recorded checks fresh; never run: "

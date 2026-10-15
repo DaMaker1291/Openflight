@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-15T16:04:26Z",
+  "recorded_at": "2026-10-15T16:11:15Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -51,7 +51,7 @@
       "openflight/compiler/operators/__init__.py": "53e0e8e3f95ce75e94cfedbdf71503785572afcc3118f84046ce73a41bc752a1"
     },
     "cli_source": {
-      "openflight/cli.py": "1c0079092dd4806c632c86b11d14a9c30814a23ddc48833453b2c07e6cdbe431"
+      "openflight/cli.py": "e525ffdf762c1af1b528db5bc540df0581430c25a2d594d38841d2a0f7ca5d17"
     },
     "benchmark_source": {
       "openflight/benchmark/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -119,7 +119,7 @@
         "firmware_host_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     },
     "battery": {
       "reads": [
@@ -130,7 +130,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     },
     "independent": {
       "reads": [
@@ -146,7 +146,7 @@
         "cli_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     },
     "heldout": {
       "reads": [
@@ -157,7 +157,7 @@
         "sensor_contract"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     },
     "workflows": {
       "reads": [
@@ -172,7 +172,7 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     },
     "baseline": {
       "reads": [
@@ -186,7 +186,7 @@
         "observer_fixtures"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T16:04:26Z"
+      "ran_at": "2026-10-15T16:11:15Z"
     }
   }
 }

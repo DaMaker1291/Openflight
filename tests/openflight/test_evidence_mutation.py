@@ -421,7 +421,7 @@ def test_new_sidecar_after_record_risks_c11(tmp_path):
     assert "C11" in st["claims_at_risk"]
 
 
-def test_sidecar_stale_exits_nonzero(tmp_path):
+def test_sidecar_stale_exits_nonzero(tmp_path, capsys):
     from openflight import cli
     root = _make_sandbox(tmp_path)
     _write_sidecar(root)
@@ -430,6 +430,9 @@ def test_sidecar_stale_exits_nonzero(tmp_path):
     _write_sidecar(root, confirm_mode="blanket", blanket=["gyro.units"])
     rc = cli.main(["evidence", "status", "--root", str(root)])
     assert rc == 1
+    out = capsys.readouterr().out
+    assert "stale provenance" in out
+    assert "C11" in out          # the affected claim is named, not silent
 
 
 # ---------------------------------------------------------------------------
