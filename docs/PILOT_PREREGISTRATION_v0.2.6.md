@@ -22,7 +22,7 @@ changes after data collection begins are prohibited (§7).
 | SHA-256 (published externally on the release page + `.sha256` asset) | `7b349871ffda4746b4a24297b48e6e29bb622b0f8ce007f1435299803fb5f2fd` |
 | Assets | https://github.com/DaMaker1291/openflight/releases/tag/v0.2.6-pilot |
 | Known host-only results | 242 passed / 0 skipped; `REPRODUCTION OK` (eight host checks); `evidence status` exit 0 with `build`/`qemu` "never run" |
-| Known outstanding | ESP32/QEMU target-side validation; second-machine reproduction; no physical-silicon data exists anywhere |
+| Known outstanding | ESP32/QEMU target-side validation; second-machine reproduction; independent reviewer's five-property re-audit of *this* archive (their environment could not retrieve the release as of 2026-10-15 — recorded as unverified, not verified); no physical-silicon data exists anywhere |
 
 Verify with `shasum -a 256 openflight-v0.2.6-pilot.tar.gz` against the full
 64-character hash above, obtained from the release page or the `.sha256`
