@@ -83,6 +83,9 @@ GUIs, and more targets are *low now*.
 
 ## 5. Fault benchmark requirements (design before execution)
 
+Candidate case list and pre-fixed scoring: `BENCHMARK_DRAFT.md` (37 cases,
+awaiting independent sign-off before any execution).
+
 - ~30–50 specified cases initially, expanding by identified fault category.
 - Categories: physical units, unit scaling, feature ordering, coordinate
   frames, quaternion ordering, normalisation, missing information, ambiguous
@@ -127,7 +130,8 @@ reported result.
 
 ## 7. Researcher discovery exercise (before building more)
 
-Interview ~3–5 researchers who actually deploy learned models into robotic
+Materials: `DISCOVERY_INTERVIEW_GUIDE.md` (consent preamble, questions,
+capture template). Interview ~3–5 researchers who actually deploy learned models into robotic
 systems, about their **most recent** deployment (concrete past events, not
 reactions to the idea): hardest part; what went wrong; how it was found;
 time to diagnose; tools used; automated vs manual checks; any case where the
