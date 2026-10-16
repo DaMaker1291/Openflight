@@ -70,6 +70,20 @@ claim — real device measurements, none of which this pilot provides.
 3. **This document reviewed and dated** (§8) with criteria unchanged since
    before the first session.
 
+### Gate status (evidence only; PASS/FAIL/NOT COMPLETED per gate)
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Independent second-machine reproduction | **NOT COMPLETED** | Awaiting an external verifier's verbatim commands/outputs/exit codes; the brief is issued, no results received |
+| Independent reviewer re-audit (five properties on this archive) | **NOT COMPLETED** | Reviewer environment could not retrieve the release (2026-10-15); no probe results exist |
+| Permissions and consent | **NOT COMPLETED** | No institutional/school confirmation received |
+| Supplemental: author-run verification of the downloaded release bytes | PASS (not independent — does not substitute for any gate above) | `reproduction/release_v0.2.6_author_verification_2026-10-15.log`: checksum match; version/doctor exit 0; 242 passed; 12 review+audit probes; 60 evidence-mutation; 19 battery/engine; CLI repros of the v0.2.5 audit faults on release bytes (mystery-unit → BLOCKED exit 2, U101 naming both tokens; duplicate `raw_layout` → BLOCKED exit 2, E002; baseline → PROCEED exit 0); `REPRODUCTION OK` (eight checks); `evidence status` exit 0 with build/qemu never run |
+
+A successful supplement does not establish audit or reproduction success:
+the three gates above stay **NOT COMPLETED** until their own evidence
+arrives. Failed attempts, when they arrive, are recorded as-is before any
+rerun is considered.
+
 ## 5. Tasks (observable, in order)
 
 | # | Task | What is observed |
