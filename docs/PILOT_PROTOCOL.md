@@ -25,6 +25,9 @@ workflows; no such claim is made or measured here (see `EVALUATION.md`:
 
 This file is the authoritative pilot protocol. The copy included inside a
 release archive is a convenience snapshot and may lag the repository version.
+The version-specific preregistration (research objective, tasks, scoring
+rules, analysis plan, frozen identifiers) lives outside the archive in
+`PILOT_PREREGISTRATION_v0.2.6.md`.
 
 **What you are NOT being asked to do.** No hardware, no MCU, no cross-compile.
 Everything runs on a laptop in ~10–15 minutes of compute; the human task is
