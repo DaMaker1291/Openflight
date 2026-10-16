@@ -1,13 +1,14 @@
 # Reproducing OpenFlight (independent reproduction guide)
 
-For a reviewer reproducing from a clean checkout. No hardware needed; no
-engineering-time claims are tested here.
+For a reviewer reproducing from a verified release archive or a clean
+checkout. No hardware needed; no engineering-time claims are tested here.
 
 ## Prerequisites
 
-- Python 3.10+ (verified on 3.10.16, 3.11.13, 3.12.9)
+- Python 3.10+ (verified on 3.10.16, 3.11.13, 3.12.9, and 3.13.2 —
+  the v0.2.6-pilot clean-room extraction)
 - A host C++ compiler (`c++`) and C compiler (`cc`) for the harness tests
-- The model files at the repo root: `learned_observer.pt`, `ppo_best.pt`,
+- The model files at the source root: `learned_observer.pt`, `ppo_best.pt`,
   `examples/mlp_observer/model_weights.pt`
 - ~10 minutes on a laptop; no network after install, no MCU, no
   cross-toolchain
@@ -28,7 +29,18 @@ Then install the project itself: `pip install -e . --no-deps`.
 
 ## Steps
 
-1. `git clone <repo> && cd <repo>` (record the commit hash).
+1. Obtain the source, exactly one of:
+   - **Release archive (recommended for verification):** download
+     `openflight-vX.Y.Z-pilot.tar.gz` and its `.sha256` asset from the
+     official release page, compare `shasum -a 256` against the published
+     hash (taken from the release notes/asset, never from inside the
+     archive), then extract into an empty directory and work there. There
+     is no `.git`; the verified archive checksum is the provenance anchor —
+     **do not `git clone` instead**, that tests development HEAD, not the
+     frozen release.
+   - **Git checkout:** `git clone <repo> && cd <repo>`, then check out the
+     release tag (e.g. `git checkout v0.2.6-pilot`) and record the commit
+     hash.
 2. (Optional, recommended) Verify the freeze manifest:
    `python3 openflight/freeze.py --out /tmp/freeze_check.json`, then compare
    `source_files` hashes and `models` hashes against
