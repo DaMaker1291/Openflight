@@ -15,6 +15,18 @@ checkout. No hardware needed; no engineering-time claims are tested here.
 
 ## Installing dependencies
 
+Always work inside an **isolated virtual environment** so the reproduction
+neither depends on nor modifies your existing Python installation:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+Then install the dependencies (record any installation problem before
+attempting a workaround — the point is to test the release as supplied).
+
 Two options:
 
 1. **Pinned (recommended):** `pip install -r requirements-lock.txt`
