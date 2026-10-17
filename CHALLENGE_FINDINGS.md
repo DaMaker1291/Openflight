@@ -1,0 +1,65 @@
+# Challenge-round findings — `openflight diagnose` @ `e8187af`
+
+Scope: adversarial acceptance testing of the frozen diagnosis candidate
+`e8187af` (branch `challenge/diagnose-acceptance`, test-only commits).
+`openflight/diagnose.py` and `openflight/cli.py` are unchanged throughout.
+
+## Result
+
+- Acceptance matrix: **10 / 10 checks pass** (no false diagnosis;
+  preprocessing localisation; model-stage earliest divergence; simultaneous
+  faults report the earliest observed divergence without a uniqueness claim;
+  in-tolerance noise passes; tolerance rule and non-finite handling at the
+  engine and CLI levels; stale/altered-evidence detection; fresh-workspace
+  reproduction via `reproduce.py`).
+- Three earlier failures were **test-expectation discrepancies**, now
+  corrected (summary.md is always written; a finite reference side is
+  reported numerically; `--full` needs the original files and reproduces
+  when they are present). None were implementation defects.
+- One **implementation review finding** is confirmed (below).
+
+## Confirmed finding — `reproduce.py --full` does not verify all artifacts or the actual diagnosis
+
+`full_rerun()` in the generated `reproduce.py`:
+
+1. verifies the recorded hashes of the original `model`, `trace` and
+   `reference` files, but **not** the deployment build artifacts, even though
+   `report["inputs"]["build"]["artifacts"]` records their hashes; and
+2. considers a rerun a match when **only the overall status** agrees — not
+   the first-divergence stage, feature, location or values.
+
+Consequently a change to the deployment build that leaves the status at
+`discrepancy` but moves the fault is reported as a faithful `MATCH`.
+
+Demonstration (`test_reproduction_integrity_changed_build_not_reported_as_match`):
+
+| | Recorded diagnosis | After the build changed |
+|---|---|---|
+| Stage | preprocessing | model |
+| Feature | acc_x | output[0] |
+| Status | discrepancy | discrepancy |
+
+`--full` verdict in both cases: `MATCH (exit 4)`, returncode 0 — the changed
+diagnosis is **not** surfaced.
+
+The self-check (`python reproduce.py`) still reproduces the *original*
+bundle correctly; the gap is specific to `--full`'s acceptance check.
+
+This is a **verification-integrity defect**, not a feature gap, and it does
+not invalidate the passing acceptance checks.
+
+## Desired property for a future (authorised) correction
+
+A full rerun should:
+
+- verify that all recorded source and deployment artifacts are unchanged
+  before re-executing (including the build directory);
+- use the original tolerances;
+- reproduce the same first-divergence stage and location, not merely the
+  same overall status; and
+- surface any material disagreement between the original and rerun reports
+  explicitly.
+
+No fix is applied in this round. The implementation stays frozen at
+`e8187af` pending reviewer examination of the implementation, the challenge
+suite and this finding together.

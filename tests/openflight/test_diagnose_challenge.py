@@ -167,9 +167,12 @@ def test_correct_pipeline_no_false_diagnosis(tmp_path):
     assert rep["status"] == "agree"
     assert rep["first_divergence"] is None
     assert all(s["status"] == "agree" for s in rep["stages"])
+    # summary.md is the human-readable report and is always written; the
+    # failure-bundle members must be absent on a passing run.
+    assert (out / "summary.md").exists()
     for name in ("failing_inputs.npz", "reference_values.npz",
                  "deployed_values.npz", "artifact_manifest.json",
-                 "summary.md", "reproduce.py", "post_fix_comparison.json"):
+                 "reproduce.py", "post_fix_comparison.json"):
         assert not (out / name).exists(), f"unexpected bundle member: {name}"
 
 
@@ -279,7 +282,9 @@ def test_non_finite_comparison_always_diverges():
     fd = out["first_divergence"]
     assert fd is not None
     assert (fd["row"], fd["col"]) == (0, 1)
-    assert fd["reference"] is None and fd["deployed"] is None  # _num(NaN)
+    # the reference side is finite here and is reported numerically; the
+    # non-finite deployed side is reported as null (_num(NaN) -> None).
+    assert fd["reference"] == 1.0 and fd["deployed"] is None
     assert out["stages"][0]["n_nonfinite"] == 1
     assert out["stages"][0]["status"] == "diverge"
 
@@ -383,7 +388,16 @@ def test_fresh_workspace_self_check_reproduces(tmp_path):
     assert "REPRODUCED:" in r.stdout, r.stdout
     assert "preprocessing divergence at sample 0 element 0" in r.stdout
 
-    # --full needs the original artifacts (absent here): refuses honestly.
+    # --full re-runs the diagnosis and is documented to require the original
+    # artifacts. With the originals still present it reproduces.
+    r = subprocess.run([sys.executable, str(clean / "reproduce.py"), "--full"],
+                       capture_output=True, text=True, cwd=clean)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "MATCH" in r.stdout, r.stdout
+
+    # With the originals gone (a true third-party workspace) --full refuses
+    # honestly instead of pretending.
+    shutil.rmtree(fx["work"])
     r = subprocess.run([sys.executable, str(clean / "reproduce.py"), "--full"],
                        capture_output=True, text=True, cwd=clean)
     assert r.returncode == 1, r.stdout + r.stderr
@@ -402,3 +416,46 @@ def test_fresh_workspace_self_check_reproduces(tmp_path):
     assert r.returncode == 1, r.stdout + r.stderr
     assert ("cell mismatch" in r.stdout
             or "bundle member hash mismatch" in r.stdout), r.stdout
+
+
+# ------------------------------------------------- additional review finding
+
+def test_reproduction_integrity_changed_build_not_reported_as_match(tmp_path):
+    """Finding (reviewer, 2026-10-17): reproduce.py --full verifies the
+    model/trace/reference hashes but NOT the deployment build artifacts that
+    the report records, and it compares only the overall status. A build
+    change that keeps status='discrepancy' but moves the first divergence is
+    therefore reported as a faithful MATCH.
+
+    Desired property (not yet implemented): a full rerun must either reject
+    a changed deployment artifact or surface a changed first divergence.
+
+    Against the frozen implementation this test FAILS (it observes MATCH),
+    recording the gap. It is a verification finding, not a feature request.
+    """
+    fx = _build_fixture(tmp_path)
+    out = tmp_path / "diagnosis"
+    h_path = fx["build"] / "contract_adapt.h"
+    original_adapter = h_path.read_text()
+
+    # original diagnosis: the preprocessing stage diverges (x100 gain)
+    _corrupt_first_gain(h_path)
+    rc = _run(fx, out)
+    assert rc == 4
+    rep = json.loads((out / "report.json").read_text())
+    assert rep["first_divergence"]["stage"] == "preprocessing"
+    # the report DOES record build-artifact hashes (used only for the record)
+    assert rep["inputs"]["build"]["artifacts"], "build hashes must be recorded"
+
+    # Change the build so the rerun is STILL a discrepancy, but at a
+    # different stage: repair the adapter and corrupt the model instead.
+    h_path.write_text(original_adapter)
+    _corrupt_model_output_bias(fx["build"])
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py"), "--full"],
+                       capture_output=True, text=True, cwd=out)
+    # desired: reject the changed build / detect the changed diagnosis
+    assert r.returncode == 1, (
+        "a changed build (same status, different first divergence) must not "
+        "be reported as a faithful reproduction:\n" + r.stdout)
+    assert "MATCH" not in r.stdout, r.stdout
