@@ -58,9 +58,10 @@ Then install the project itself: `pip install -e . --no-deps`.
    `source_files` hashes and `models` hashes against
    `results/freeze_v0.1.json`. Any source change shows up as a hash mismatch.
 3. Run the full evaluation: `python3 openflight/repro.py`.
-   This executes the full regression suite (255 passed, 0 skipped as of
-   2026-10-16, v0.2.7.dev0; the frozen v0.2.6-pilot archive reports 242 —
-   see CHANGELOG R1–R4; the former E050 skip `test_product.py:54` was
+   This executes the full regression suite (266 passed, 0 skipped as of
+   2026-10-17, v0.2.7.dev0; the frozen v0.2.6-pilot archive reports 242 —
+   see CHANGELOG R1–R4 (+13) and the `openflight diagnose` tests (+11);
+   the former E050 skip `test_product.py:54` was
    retired when the contract gate became required-by-default) plus the
    held-out challenge, then verifies each JSON report in `results/`
    against the claimed result. Expected final line: `REPRODUCTION OK`.

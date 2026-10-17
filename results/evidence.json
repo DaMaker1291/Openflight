@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-17T08:47:30Z",
+  "recorded_at": "2026-10-17T14:54:08Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -51,7 +51,7 @@
       "openflight/compiler/operators/__init__.py": "53e0e8e3f95ce75e94cfedbdf71503785572afcc3118f84046ce73a41bc752a1"
     },
     "cli_source": {
-      "openflight/cli.py": "43abb5b9b491d36ac5f9304db3b1de818ce04276286803b655ef0f7e1d0c2f3a"
+      "openflight/cli.py": "d8dccc8132ac02c5422b081db2ffa9fe232c0d042f6e1f764cfdcb930843a803"
     },
     "benchmark_source": {
       "openflight/benchmark/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -148,7 +148,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "battery": {
       "reads": [
@@ -160,7 +160,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "independent": {
       "reads": [
@@ -177,7 +177,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "heldout": {
       "reads": [
@@ -189,7 +189,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "workflows": {
       "reads": [
@@ -205,7 +205,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "baseline": {
       "reads": [
@@ -220,7 +220,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "importers": {
       "reads": [
@@ -234,7 +234,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     },
     "e2e": {
       "reads": [
@@ -247,7 +247,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T08:47:30Z"
+      "ran_at": "2026-10-17T14:54:08Z"
     }
   }
 }

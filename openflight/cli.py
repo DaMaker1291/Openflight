@@ -606,6 +606,14 @@ def cmd_deploy(a):
     return 0
 
 
+def cmd_diagnose(a):
+    """First-divergence diagnosis: reference vs deployed pipeline over a
+    recorded trace; writes a reproducible failure bundle. Exit 0 = agree,
+    4 = discrepancy reproduced (see diagnose.run)."""
+    from openflight import diagnose as D
+    return D.run(a)
+
+
 def cmd_import_gym(a):
     from openflight.contract import draft as D
     from openflight.importers import gym_importer as G
@@ -760,6 +768,30 @@ def build_parser():
                    help="deploy without semantic contract validation (records "
                         "a SKIPPED limitation; default requires contracts)")
     s.set_defaults(fn=cmd_deploy)
+    s = sub.add_parser(
+        "diagnose",
+        help="locate the first point where a deployed pipeline diverges "
+             "from its recorded reference, with a reproducible bundle")
+    s.add_argument("--model", required=True,
+                   help="trained reference weights (.pt)")
+    s.add_argument("--trace", required=True,
+                   help="recorded raw inputs (.npz with a 'raw' array)")
+    s.add_argument("--reference", required=True,
+                   help="recorded reference results (.npz: 'model_inputs', "
+                        "optionally 'outputs')")
+    s.add_argument("--build", required=True,
+                   help="deployment directory from `deploy` (model.* + "
+                        "contract_adapt.h)")
+    s.add_argument("--output", required=True,
+                   help="directory for report.json, summary.md and the "
+                        "failure bundle")
+    s.add_argument("--rtol", type=float, default=1e-4,
+                   help="relative tolerance for stage comparisons "
+                        "(default 1e-4, matching deploy/benchmark parity)")
+    s.add_argument("--atol", type=float, default=1e-4,
+                   help="absolute tolerance for stage comparisons "
+                        "(default 1e-4)")
+    s.set_defaults(fn=cmd_diagnose)
     s = sub.add_parser("version"); s.set_defaults(fn=cmd_version)
     s = sub.add_parser("doctor"); s.set_defaults(fn=cmd_doctor)
     s = sub.add_parser("import", help="importer drafts from offline artifacts")

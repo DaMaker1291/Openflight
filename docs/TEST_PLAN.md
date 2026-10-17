@@ -53,6 +53,18 @@ skipped** (`tests/openflight/`, CPython 3.12, torch 2.14). The frozen
 v0.2.6-pilot archive itself still reports 242; the +13 are new tests, not
 edits to the frozen suite. Registered below as R1–R4.
 
+Updated 2026-10-17 (Amendment 2, first and only feature authorised by the
+narrow coding-gate lift): `openflight diagnose` — 11 new tests in
+`tests/openflight/test_diagnose.py` covering the stage-comparison engine
+(localisation, non-finite handling, feature fallback), configuration-error
+codes (E051/E052/E057), and a three-condition demonstration run through
+the real CLI: clean pipelines agree (exit 0, no bundle), a ×100 gain
+corruption in the generated adapter disagrees with exit 4 localised to
+`preprocessing`/`acc_x` with a reproducible failure bundle
+(`reproduce.py` self-check and `--full` both re-verify), and the corrected
+pipeline agrees again with `post_fix_comparison.json` `resolved: true`:
+**266 passed, 0 skipped** (`tests/openflight/`, CPython 3.12, torch 2.14).
+
 ## Coverage map
 
 | Area | Test file | Tests | What they execute |

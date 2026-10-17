@@ -41,6 +41,40 @@ v0.2.6 tag/archive stay untouched.
   gained assertions only). Version 0.2.6 → **0.2.7.dev0** (dev marker; no
   0.2.7 release until the prereg gates and pilot complete).
 
+**New (2026-10-17) — `openflight diagnose`, the first feature under
+Amendment 2** (narrow authorisation: one feature, fail-first, recorded
+single-controller path; RESEARCH_PLAN Stage-1 row). Locates the *first*
+point where a deployed pipeline diverges from its recorded reference by
+comparing three stages in order — `preprocessing` (generated
+`contract_adapt` C++ vs recorded `model_inputs`), `model` (compiled C++
+`predict` vs PyTorch on the same inputs), `end_to_end` (composed C++ path
+vs recorded outputs) — over a recorded raw trace.
+
+- **CLI** `openflight diagnose --model --trace --reference --build
+  --output [--rtol --atol]` (defaults 1e-4/1e-4, matching deploy/benchmark
+  parity). Exit codes: **0** agree, **2** usage/invalid input, **3**
+  harness compile failure (E054), **4** discrepancy reproduced. Errors
+  E051 (trace), E052 (reference), E053 (build), E054 (harness), E057
+  (width); non-finite values always diverge.
+- **Failure bundle** on divergence: `failing_inputs.npz`,
+  `reference_values.npz`, `deployed_values.npz`, `artifact_manifest.json`,
+  `report.json` (with bundle SHAs + absolute input paths), `summary.md`
+  (with the "not established — numerical agreement only" disclaimer), and
+  `reproduce.py` (default self-check re-deriving the recorded first
+  divergence; `--full` re-runs the diagnosis from original artifacts).
+  A rerun over an existing report writes `post_fix_comparison.json`
+  (`resolved`/`regression`); a passing run removes stale bundle members.
+- **Fail-first**: the new tests were run against the tree before the
+  module existed (ImportError — red for the right reason), then the
+  corruption test locally a ×100 gain fault in the generated adapter and
+  the engine had to return exit 4 with
+  stage `preprocessing` / feature `acc_x` / row 0 / col 0 / ratio 100.
+- Suite: **255 → 266 passed** (11 new tests, including a three-condition
+  demonstration: agree → corrupted disagrees+bundle+`reproduce.py` →
+  corrected agrees with `resolved: true`). ruff scoped baseline unchanged
+  at 38. No planner/policy, sensor-contract, metric, or evaluation code
+  changed; v0.2.6 stays frozen.
+
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen
