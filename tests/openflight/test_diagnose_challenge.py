@@ -8,6 +8,7 @@ Each test below corresponds to a row of the diagnostic acceptance matrix.
 Any failure is a documented defect of the frozen candidate; it is recorded
 here and classified after the round, not fixed in-place.
 """
+import hashlib
 import importlib.util
 import json
 import re
@@ -583,3 +584,74 @@ def test_self_check_rejects_altered_report_shapes(tmp_path):
                        capture_output=True, text=True, cwd=out)
     assert r.returncode == 1, r.stdout + r.stderr
     assert "shapes" in r.stdout and "manifest" in r.stdout, r.stdout
+
+
+def test_self_check_rejects_unsupported_status(tmp_path):
+    """The overall status must be a supported value and agree with the saved
+    evidence. Setting it to an unsupported value while leaving all evidence
+    unchanged must be rejected."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    p = out / "report.json"
+    rep = json.loads(p.read_text())
+    assert rep["status"] == "discrepancy"
+    rep["status"] = "tampered"  # unsupported; evidence and manifest unchanged
+    p.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "unsupported report status" in r.stdout, r.stdout
+
+
+def test_valid_discrepancy_bundle_still_passes(tmp_path):
+    """A faithful discrepancy bundle must still self-check successfully."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "REPRODUCED:" in r.stdout, r.stdout
+
+
+def _sha(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def _rewrite_as_coherent_agree(out):
+    """Turn a discrepancy bundle into a coherent agree bundle: make the
+    deployed arrays equal the reference arrays, flip statuses, and recompute
+    the recorded hashes so the bundle is internally consistent."""
+    ref = np.load(out / "reference_values.npz")
+    np.savez(out / "deployed_values.npz",
+             model_inputs=ref["model_inputs"],
+             outputs=ref["outputs"],
+             model_outputs_on_reference=ref["model_outputs_pytorch"])
+    rep = json.loads((out / "report.json").read_text())
+    rep["status"] = "agree"
+    rep["first_divergence"] = None
+    for s in rep["stages"]:
+        s["status"] = "agree"
+        s["n_failing_cells"] = 0
+        s["n_failing_samples"] = 0
+    members = ("failing_inputs.npz", "reference_values.npz",
+               "deployed_values.npz", "artifact_manifest.json")
+    rep["bundle_shas"] = {m: _sha(out / m) for m in members}
+    (out / "report.json").write_text(json.dumps(rep))
+
+
+def test_valid_agree_bundle_still_passes(tmp_path):
+    """A coherent agree report (evidence agrees, statuses agree) must still
+    self-check successfully."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    _rewrite_as_coherent_agree(out)
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "agree" in r.stdout, r.stdout
+

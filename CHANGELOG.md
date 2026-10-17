@@ -123,6 +123,20 @@ fail-first tests (`test_self_check_rejects_altered_report_tolerances`,
 fix and green after. Suite **280 → 283 passed**; ruff scoped baseline 38;
 `repro.py` → `REPRODUCTION OK`. `e8187af` frozen; no other behaviour changed.
 
+**Follow-up correction (2026-10-17) — overall status validation**
+(reviewer source review). `self_check()` special-cased `status == "agree"`
+and let every other value fall through the discrepancy path, so an
+unsupported status (e.g. `"tampered"`) was accepted when the evidence
+genuinely diverged. The self-check now rejects any status outside
+`{"agree", "discrepancy"}` and requires the overall status to agree with the
+reconstructed evidence. Fail-first test
+`test_self_check_rejects_unsupported_status` was red before, green after;
+two further tests confirm a valid discrepancy bundle and a coherent agree
+bundle still pass. Suite **283 → 286 passed**; ruff scoped baseline 38;
+`repro.py` → `REPRODUCTION OK`. This is the last planned change to the
+diagnosis mechanism absent a new concrete defect found by independent
+verification.
+
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

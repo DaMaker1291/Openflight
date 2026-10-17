@@ -245,6 +245,10 @@ def self_check():
                   f"({recorded.get(stage)!r}) disagrees with the saved "
                   f"evidence ({statuses[stage]!r})")
             return 1
+    if rep["status"] not in ("agree", "discrepancy"):
+        print(f"FAIL: unsupported report status {rep['status']!r} "
+              "(expected 'agree' or 'discrepancy')")
+        return 1
     fd = rep.get("first_divergence")
     if rep["status"] == "agree":
         if recon is not None:

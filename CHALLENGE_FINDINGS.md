@@ -111,4 +111,24 @@ report *and* manifest together remains theoretically possible. The checks
 above protect against single-file tampering and against any report that no
 longer matches the recorded evidence.
 
+## Second follow-up finding and correction (2026-10-17)
+
+Reviewer source review found that `self_check()` special-cased
+`status == "agree"` and let every other value fall through the discrepancy
+path, so an unsupported status (e.g. `"tampered"`) was accepted while the
+evidence genuinely diverged.
+
+Corrected: the self-check now rejects any status outside
+`{"agree", "discrepancy"}` and requires the overall status to agree with the
+reconstructed evidence and per-stage statuses. Fail-first test
+`test_self_check_rejects_unsupported_status` was red before and green after;
+`test_valid_discrepancy_bundle_still_passes` and
+`test_valid_agree_bundle_still_passes` confirm valid reports are unaffected.
+Suite **283 → 286 passed**; ruff scoped baseline 38; `repro.py` →
+`REPRODUCTION OK`.
+
+This is the last planned change to the diagnosis mechanism unless
+independent verification finds a new concrete defect.
+
+
 
