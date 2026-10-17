@@ -20,7 +20,27 @@
   "cases": [
     {
       "category": "valid",
-      "fault": "pos=centimetres vel=kilometres_per_hour aff=False q=wxyz gyro=deg/s",
+      "fault": "pos=metres vel=metres_per_second aff=True q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=metres_per_second aff=True q=wxyz gyro=rad/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=kilometres_per_hour aff=False q=xyzw gyro=rad/s",
       "expected": "pass",
       "got": "pass",
       "expected_code": null,
@@ -40,47 +60,7 @@
     },
     {
       "category": "valid",
-      "fault": "pos=metres vel=kilometres_per_hour aff=False q=wxyz gyro=rad/s",
-      "expected": "pass",
-      "got": "pass",
-      "expected_code": null,
-      "codes": [],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "valid",
-      "fault": "pos=centimetres vel=kilometres_per_hour aff=True q=xyzw gyro=deg/s",
-      "expected": "pass",
-      "got": "pass",
-      "expected_code": null,
-      "codes": [],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "valid",
-      "fault": "pos=metres vel=kilometres_per_hour aff=True q=xyzw gyro=deg/s",
-      "expected": "pass",
-      "got": "pass",
-      "expected_code": null,
-      "codes": [],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "valid",
-      "fault": "pos=centimetres vel=metres_per_second aff=True q=wxyz gyro=deg/s",
-      "expected": "pass",
-      "got": "pass",
-      "expected_code": null,
-      "codes": [],
-      "ok": true,
-      "diag_ok": true
-    },
-    {
-      "category": "valid",
-      "fault": "pos=centimetres vel=metres_per_second aff=False q=wxyz gyro=deg/s",
+      "fault": "pos=metres vel=metres_per_second aff=True q=wxyz gyro=rad/s",
       "expected": "pass",
       "got": "pass",
       "expected_code": null,
@@ -91,6 +71,26 @@
     {
       "category": "valid",
       "fault": "pos=metres vel=metres_per_second aff=False q=xyzw gyro=rad/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=kilometres_per_hour aff=False q=wxyz gyro=deg/s",
+      "expected": "pass",
+      "got": "pass",
+      "expected_code": null,
+      "codes": [],
+      "ok": true,
+      "diag_ok": true
+    },
+    {
+      "category": "valid",
+      "fault": "pos=centimetres vel=kilometres_per_hour aff=False q=wxyz gyro=rad/s",
       "expected": "pass",
       "got": "pass",
       "expected_code": null,

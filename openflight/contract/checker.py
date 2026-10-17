@@ -379,7 +379,15 @@ def render_text(report: dict) -> str:
             if e.get("action"):
                 lines.append(f"      Action: {e['action']}")
     if report.get("conversions"):
-        lines += ["", "Generated conversions (verified by differential test):"]
+        if report.get("deployment") == "proceed":
+            lines += ["",
+                      "Generated conversions (verified by differential test):"]
+        else:
+            # A blocked deployment generated nothing; presenting these as
+            # verified would misstate which transformations are approved.
+            lines += ["",
+                      "Planned conversions (NOT applied - deployment "
+                      "blocked):"]
         for c in report["conversions"]:
             lines.append(f"  [{c['feature']}] {c['kind']}: " +
                          ", ".join(f"{k}={v}" for k, v in c.items()

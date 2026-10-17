@@ -2,10 +2,11 @@
 
 Status: host-validated prototype, frozen as **v0.1** (`results/freeze_v0.1.json`:
 65 hashes = 62 `source_files` + 3 `models`, dependency versions, git head).
-**97/97 tests pass** in the frozen snapshot suite (**242 passed, 0 skipped**
-in the current v0.2.6-pilot working tree: 97 frozen + product-quality, external-review
+**97/97 tests pass** in the frozen snapshot suite (**255 passed, 0 skipped**
+in the current v0.2.7.dev0 working tree: 97 frozen + product-quality, external-review
 probe, Task-1 refinement, draft-layer, importer, advisor-review strengthening,
-evidence-graph, v0.2.5-audit regression, and end-to-end composed-path tests
+evidence-graph, v0.2.5-audit regression, end-to-end composed-path, and
+v0.2.6 reproducibility-correction tests
 added since the freeze).
 The former single skip (`test_product.py:54`, an E050 path) was retired when
 the contract gate became required-by-default; with torch installed nothing

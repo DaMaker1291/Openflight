@@ -1,11 +1,12 @@
-# Exact dependency set verified for the v0.2.5-pilot three-command check:
+# Exact dependency set verified for the v0.2.6-pilot three-command check:
 #   pip install -r requirements-lock.txt
-#   python openflight/repro.py     (221 passed, 0 skipped, REPRODUCTION OK)
+#   python openflight/repro.py     (242 passed, 0 skipped, REPRODUCTION OK)
 #   openflight doctor              (exit 0)
 # Captured 2026-10-14 via `pip freeze` from a clean Python 3.12.9 venv
 # (macOS arm64) after `pip install '.[dev]'`; ruff (a lint tool, not needed
-# for reproduction) removed. Python 3.10.16 and 3.11.13 pass with the same
-# code but were not locked separately.
+# for reproduction) removed. Re-verified on Python 3.13.2 from the released
+# archive bytes 2026-10-15 (242 passed). Python 3.10.16 and 3.11.13 pass
+# with the same code but were not locked separately.
 contourpy==1.4.0
 cycler==0.12.1
 filelock==4.1.2

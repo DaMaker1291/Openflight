@@ -258,3 +258,45 @@ def test_check_fail_closed_on_nonstring_frame():
             f["frame"] = 42
     rep = checker.check(s, m)
     assert rep["status"] == "blocked", "non-string frames passed"
+
+
+# --------------------------------- render honesty (audit 2026-10-16)
+# Finding: a BLOCKED report still printed the header "Generated conversions
+# (verified by differential test)", implying transformations were produced
+# and approved when deployment was refused.
+
+def _blocked_report_with_conversions():
+    s = make_sensor()
+    m = make_model()
+    s["state"]["angular_velocity"]["units"] = 42
+    s["imu"]["accelerometer"]["units"] = 42
+    for f in m["features"]:
+        f["units"] = 42
+    rep = checker.check(s, m)
+    assert rep["status"] == "blocked"
+    return rep
+
+
+def test_blocked_render_does_not_present_conversions_as_generated():
+    rep = _blocked_report_with_conversions()
+    assert rep["conversions"], (
+        "precondition: the blocked report should still carry the planned "
+        "conversions so the render path is exercised"
+    )
+    text = checker.render_text(rep)
+    assert "Deployment status: BLOCKED" in text
+    assert "Generated conversions (verified by differential test)" not in text, (
+        "blocked report presents conversions as generated/verified"
+    )
+    assert "not applied" in text.lower(), (
+        "blocked conversions should be clarified as not applied"
+    )
+
+
+def test_passing_render_still_lists_conversions():
+    rep = checker.check(make_sensor(), make_model())
+    assert rep["status"] == "pass"
+    assert rep["conversions"], "precondition: valid example produces conversions"
+    text = checker.render_text(rep)
+    assert "Generated conversions (verified by differential test)" in text
+    assert "Deployment status: PROCEED" in text

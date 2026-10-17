@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-15T22:41:17Z",
+  "recorded_at": "2026-10-17T08:47:30Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -25,7 +25,7 @@
     },
     "checker_source": {
       "openflight/contract/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "openflight/contract/checker.py": "30765221ea472301f0318063a673e4b80fdb174f1a3f83f9013ad856083bd39b",
+      "openflight/contract/checker.py": "f18077e1077e35236fde1a27cc3758e406a571a151425035932cff58fcaf8d86",
       "openflight/contract/draft.py": "cac155f689b22d6dd40b7c8d88f2dfaeb48b756db65ac2ecd4af4bddc7624ab2",
       "openflight/contract/model_contract.py": "f895778ef3cb9ea3acce46886e60bcc76290cf0529a0260730aee5bade598585",
       "openflight/contract/pipeline.py": "05e30d6bbc72a4fa88ce879b0b2540725659a7baa3cea34d39a85bbdc83ac9b5",
@@ -82,13 +82,13 @@
       "firmware/esp32/sim_test.py": "3169553c8a45cf53c40e415882c6e8e79426cec09238c9300d051732d6de33a4"
     },
     "battery_test": {
-      "tests/openflight/test_contract_battery.py": "9541b4dd74426078ebde8a82c7a7e884031db2bd428d62224a1f2cb622cad41d"
+      "tests/openflight/test_contract_battery.py": "dce8bc98fcd5982844f5ca5f01aa2cee86322fcecac390a61b0b22054c7ed94e"
     },
     "heldout_test": {
       "tests/openflight/test_heldout_challenge.py": "fa0db12dd9fe9aaff450d3c828b2fc7a7b5dfa68f1daaab34bcf3a724c9873c7"
     },
     "independent_test": {
-      "tests/openflight/test_independent_challenge.py": "2828573e676c3ad95b6494f181d7c814f3b8b610f8750c907aaae4affa35326f"
+      "tests/openflight/test_independent_challenge.py": "6e6efecaf2d1bceee7d57137c5ab51b01e68a6517d9caec1a17b220fee435e3e"
     },
     "workflows_test": {
       "tests/openflight/test_three_workflows.py": "8a5d8fe96d0ed6e547eaccbb805df9adcbf3c0d000c2f76eeba8dca16ac7675a"
@@ -112,7 +112,7 @@
       "docs/CONVENTIONS.md": "816359655c92c80d34c71c1a4141d23c1957baf005740aa983d36a6dbad7e891"
     },
     "package_root": {
-      "openflight/__init__.py": "f3098bbc52b8915eabc2da9ec9741bab4f5536e447f2d4341ce6bff06a92f12b"
+      "openflight/__init__.py": "543ba1783dbf0bbb02127dcc777062d8e4bf213af2543bd7f1ffa865e859c313"
     },
     "generated_cxx": {
       "build/model_adapters.cpp": null
@@ -148,7 +148,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "battery": {
       "reads": [
@@ -160,7 +160,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "independent": {
       "reads": [
@@ -177,7 +177,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "heldout": {
       "reads": [
@@ -189,7 +189,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "workflows": {
       "reads": [
@@ -205,7 +205,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "baseline": {
       "reads": [
@@ -220,7 +220,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "importers": {
       "reads": [
@@ -234,7 +234,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     },
     "e2e": {
       "reads": [
@@ -247,7 +247,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-15T22:41:17Z"
+      "ran_at": "2026-10-17T08:47:30Z"
     }
   }
 }

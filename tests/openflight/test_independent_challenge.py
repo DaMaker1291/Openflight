@@ -111,11 +111,16 @@ def build_challenge():
     # ---- VALID (sampled conversions x norms, independent space) ----
     pos_u = ["metres", "centimetres"]
     vel_u = ["metres_per_second", "kilometres_per_hour"]
-    for _ in range(8):
-        pu, vu = rng.choice(pos_u), rng.choice(vel_u)
-        aff = bool(rng.integers(0, 2))
-        qo = rng.choice(["wxyz", "xyzw"])
-        go = rng.choice(["deg/s", "rad/s"])
+    combos = [(pu, vu, aff, qo, go)
+              for pu in pos_u for vu in vel_u
+              for aff in (False, True)
+              for qo in ("wxyz", "xyzw")
+              for go in ("deg/s", "rad/s")]
+    # Draw 8 DISTINCT combos. Per-draw i.i.d. sampling collided once in the
+    # frozen v0.2.6 report (21 cases, 20 distinct) — discovered 2026-10-16
+    # by the duplicate-identity check in repro.verify().
+    for idx in rng.choice(len(combos), size=8, replace=False):
+        pu, vu, aff, qo, go = combos[int(idx)]
         cases.append(run_case(
             "valid", f"pos={pu} vel={vu} aff={aff} q={qo} gyro={go}",
             indep_sensor(pos_units="metres",
@@ -197,6 +202,11 @@ def test_challenge_rates():
     for cat in ("valid", "invalid", "ambiguous"):
         bad = [c for c in by_cat[cat] if not c["ok"]]
         assert not bad, (cat, bad)
+    faults = [c["fault"] for c in cases]
+    assert len(faults) == len(set(faults)), (
+        "duplicate case identity in independent challenge:",
+        [f for f in faults if faults.count(f) > 1],
+    )
     print("\nindependent challenge: " +
           ", ".join(f"{k} {v['correct']}/{v['n']}" for k, v in
                     sorted(summary.items())))

@@ -3,6 +3,44 @@
 All notable changes to OpenFlight. Versions follow `0.2.x-pilot`; the tag
 named here is the version the supervised pilot runs against.
 
+## Unreleased (0.2.7.dev0) — reproducibility corrections (2026-10-16)
+
+NOT a pilot release (prereg gates not yet complete — see
+PILOT_PREREGISTRATION). Corrections proved by an independent advisor's
+review of the v0.2.6 release verification: the v0.2.6 *results* were
+correct, but the verification tooling had integrity gaps that could mask a
+future regression. Each defect was first reproduced as a test failing
+against the v0.2.6 code, then fixed (TEST_PLAN R1–R4). The frozen
+v0.2.6 tag/archive stay untouched.
+
+- **R1 (high) — repro.py accepted truncated reports.** `verify()` compared
+  only self-reported `summary.n == summary.correct > 0`; a synthetic 1-of-1
+  battery report verified OK. Now checked against pre-fixed case
+  inventories (battery 25, independent 21, heldout 156, importers 6), unique
+  case identities, exact seed/schema_version, and summary-vs-cases
+  (n/correct/diag) agreement. `test_repro_verifier.py` (11 tests).
+- **R2 (medium) — blocked validation presented conversions as approved.**
+  `render_text` printed "Generated conversions (verified by differential
+  test)" even when deployment was BLOCKED. Blocked reports now show
+  "Planned conversions (NOT applied - deployment blocked)". 2 render tests.
+- **R3 — a failed reproduction left prior evidence standing.** Failed runs
+  recorded nothing, so the previous successful record remained displayed as
+  current. `repro.py` now records this attempt: each check `ok` only if it
+  reproduced this run, otherwise `fail` (claims at risk).
+- **Lockfile comment** corrected from "v0.2.5-pilot / 221 passed" to its
+  actual verification history (v0.2.6-pilot, 242 passed; re-verified on
+  Python 3.13.2 from release bytes).
+- **R4 (discovered by R1) — the v0.2.6 independent-challenge report held
+  21 cases but only 20 distinct.** The valid section drew 8 i.i.d. samples
+  from a 32-combo space and one collided (the two copies were identical and
+  both passed — every score and total unchanged, benign, but a real
+  integrity defect). Sampling is now without replacement with a
+  generation-side uniqueness guard. **The frozen v0.2.6 archive retains the
+  duplicate — disclosed here rather than silently re-cut.**
+- Suite: **242 → 255 passed, 0 skipped** (13 new tests; existing tests
+  gained assertions only). Version 0.2.6 → **0.2.7.dev0** (dev marker; no
+  0.2.7 release until the prereg gates and pilot complete).
+
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

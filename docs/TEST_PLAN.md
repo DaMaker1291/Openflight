@@ -43,6 +43,16 @@ hardening, staged deploys, and the evidence-graph repair round wiring the
 e2e check as the eighth host check): **242 passed, 0 skipped**
 (`tests/openflight/`, CPython 3.12, torch 2.14).
 
+Updated 2026-10-16 (reproducibility-correction round, fail-first against
+the v0.2.6 tree per the RESEARCH_PLAN Stage-1 demonstrated-defect clause):
+report-integrity verification in `repro.py` (pre-fixed case inventories,
+duplicate identities, seed/schema agreement, summary-vs-cases agreement,
+failed-run evidence recording), blocked-render conversion honesty, and
+independent-challenge sampling without replacement: **255 passed, 0
+skipped** (`tests/openflight/`, CPython 3.12, torch 2.14). The frozen
+v0.2.6-pilot archive itself still reports 242; the +13 are new tests, not
+edits to the frozen suite. Registered below as R1–R4.
+
 ## Coverage map
 
 | Area | Test file | Tests | What they execute |
@@ -99,6 +109,24 @@ Permanent regressions: `test_reviewer_probes.py` (5 audit probes),
 | A3 | Contract width vs model width (6 features, 60-wide model) | compiled first, blocked last — adapters, manifests and reports already published | caught at the gate before generation; every deployable staged and published only on success, so any non-zero exit leaves exactly the failed report (`result: failed`) | E203 |
 | A4 | Weight/arch shape mismatch (keys align, dims do not) | raw torch RuntimeError traceback escaped the CLI | diagnosed E030 exit 3, staging discarded, report `result: failed` | E030 |
 | A5 | Malformed schema types (width "three"; units/frame non-string on both sides) | uncaught ValueError from `check()`, or false PROCEED on equal malformed values | structured diagnostics; width → E207, units → U101, frame → E303 | E207 / U101 / E303 |
+
+### Reproducibility-correction defects (registered 2026-10-16)
+
+An independent advisor reviewed the v0.2.6 release verification and proved
+three defects in the verification tooling itself (the v0.2.6 results were
+correct — these are integrity gaps that could mask a FUTURE regression).
+Each was first reproduced as a failing test against the v0.2.6 code, then
+fixed. R4 was discovered by the new R1 check against the real report.
+Permanent regressions: `test_repro_verifier.py` (11 tests),
+`test_contract_battery.py` (2 render tests), `test_independent_challenge.py`
+(uniqueness guard inside `test_challenge_rates`).
+
+| ID | Fault class | Pre-fix behavior | Post-fix behavior | Code |
+|---|---|---|---|---|
+| R1 | Truncated/internally consistent benchmark report (e.g. 1-of-1) | accepted: verify() compared only `summary.n == summary.correct > 0` | rejected against pre-fixed inventories (25/21/156/6), unique case identities, exact seed/schema, and summary-vs-cases/diag agreement | `repro.py` `EXPECTED_REPORTS` |
+| R2 | Blocked validation rendering planned conversions | printed "Generated conversions (verified by differential test)" regardless of deployment status | proceed → same header; blocked → "Planned conversions (NOT applied - deployment blocked)" | `checker.py` `render_text` |
+| R3 | Failed reproduction run | recorded nothing, leaving the previous success displayed as the current evidence state | records this attempt: each check `ok` only if it reproduced, else `fail` (claims at risk) | `repro.py` `_record` |
+| R4 | Independent challenge valid-case sampling (discovered by R1's duplicate check) | 8 i.i.d. draws from 32 combos collided: the v0.2.6 report held 21 cases but only 20 distinct (benign — both copies passed, 21/21 unchanged) | sampled without replacement; generation-side uniqueness guard; frozen archive left untouched and this is disclosed in CHANGELOG | `test_independent_challenge.py` `build_challenge` |
 
 ## Deliberately not covered (need hardware or are future work)
 
