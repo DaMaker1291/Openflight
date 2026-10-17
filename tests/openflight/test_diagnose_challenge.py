@@ -8,14 +8,12 @@ Each test below corresponds to a row of the diagnostic acceptance matrix.
 Any failure is a documented defect of the frozen candidate; it is recorded
 here and classified after the round, not fixed in-place.
 """
-import hashlib
 import importlib.util
 import json
 import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -56,7 +54,6 @@ def _build_fixture(tmp_path):
     """Validated deployment builddir + recorded trace/reference from the
     shipped quadrotor example contracts and a tiny MLP (same as the
     released feature test)."""
-    import sys as _sys
     work = tmp_path / "work"
     work.mkdir()
     sensor_path = work / "drone_contract.yaml"
@@ -329,7 +326,7 @@ def _copy_bundle(src_outdir: Path, dst: Path):
     dst.mkdir(parents=True, exist_ok=True)
     for name in ("report.json", "reference_values.npz",
                  "deployed_values.npz", "failing_inputs.npz",
-                 "reproduce.py"):
+                 "artifact_manifest.json", "reproduce.py"):
         shutil.copy(src_outdir / name, dst / name)
 
 
@@ -342,7 +339,6 @@ def test_changed_artifact_not_accepted_as_current(tmp_path):
     _corrupt_first_gain(fx["build"] / "contract_adapt.h")
     rc = _run(fx, out)
     assert rc == 4
-    rep = json.loads((out / "report.json").read_text())
 
     # 1) original model altered -> full re-run detects the change
     with open(fx["weights"], "ab") as f:
@@ -459,3 +455,68 @@ def test_reproduction_integrity_changed_build_not_reported_as_match(tmp_path):
         "a changed build (same status, different first divergence) must not "
         "be reported as a faithful reproduction:\n" + r.stdout)
     assert "MATCH" not in r.stdout, r.stdout
+
+
+def _bundle_out(tmp_path, fx):
+    out = tmp_path / "diagnosis"
+    _corrupt_first_gain(fx["build"] / "contract_adapt.h")
+    assert _run(fx, out) == 4
+    return out
+
+
+def test_self_check_rejects_report_pointing_to_later_cell(tmp_path):
+    """The self-check must recompute the FIRST divergence from the saved
+    arrays, not merely trust the recorded cell. A tampered report that points
+    to a later (still divergent) cell must be rejected."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    rep_path = out / "report.json"
+    rep = json.loads(rep_path.read_text())
+    assert rep["first_divergence"]["row"] == 0
+    ref = np.load(out / "reference_values.npz")["model_inputs"]
+    dep = np.load(out / "deployed_values.npz")["model_inputs"]
+    rep["first_divergence"]["row"] = 1  # a later, also-divergent row
+    rep["first_divergence"]["reference"] = float(ref[1, 0])
+    rep["first_divergence"]["deployed"] = float(dep[1, 0])
+    rep_path.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "reconstructed first divergence differs" in r.stdout, r.stdout
+
+
+def test_self_check_rejects_report_contradicting_evidence(tmp_path):
+    """A report claiming agreement while the saved evidence diverges must
+    be rejected."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    rep_path = out / "report.json"
+    rep = json.loads(rep_path.read_text())
+    rep["status"] = "agree"
+    rep["first_divergence"] = None
+    rep_path.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "claims agreement but saved evidence diverges" in r.stdout, r.stdout
+
+
+def test_full_rerun_uses_recorded_tolerances(tmp_path):
+    """--full must reuse the tolerances recorded at diagnosis time. A clean
+    pipeline diagnosed at atol=rtol=1e-9 diverges; a rerun at the default
+    1e-4 tolerances would agree, so a faithful rerun (same tolerances) is
+    distinguishable."""
+    fx = _build_fixture(tmp_path)
+    out = tmp_path / "diagnosis"
+    rc = cli.main(_diagnose_args(fx, out) + ["--rtol", "1e-9", "--atol", "1e-9"])
+    assert rc == 4, f"tight tolerance on a clean pipeline must diverge, got {rc}"
+    rep = json.loads((out / "report.json").read_text())
+    assert rep["tolerances"]["rtol"] == pytest.approx(1e-9)
+    assert rep["tolerances"]["atol"] == pytest.approx(1e-9)
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py"), "--full"],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "MATCH" in r.stdout, r.stdout

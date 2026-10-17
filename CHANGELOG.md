@@ -75,6 +75,39 @@ vs recorded outputs) — over a recorded raw trace.
   at 38. No planner/policy, sensor-contract, metric, or evaluation code
   changed; v0.2.6 stays frozen.
 
+**Correction (2026-10-17) — `reproduce.py` integrity and faithful
+reproduction** (branch `fix/reproduction-integrity`, base `e8187af`; found
+by the reviewer's source review of the challenge round, not a new feature).
+The generated `reproduce.py` verified only the model/trace/reference hashes
+and compared only the overall status, so a changed deployment build that
+kept `status=discrepancy` but moved the first divergence (e.g.
+`preprocessing`→`model`) was reported as a faithful `MATCH`. A tampered
+report (a later divergent cell, or a status contradicting the saved
+evidence) was also accepted. Fixed to establish four properties:
+
+- **Full artifact integrity** — before a `--full` rerun, verify every
+  recorded source *and deployment* artifact (the build directory hashes the
+  report already recorded) are unchanged; a changed build is refused
+  (`deployment artifact changed since diagnosis`).
+- **Faithful reproduction** — re-run with the *recorded* tolerances and
+  compare the full diagnosis (status, first-divergence stage/feature/sample/
+  element/values, and every stage status), not merely the overall status.
+- **Independent reconstruction** — the self-check recomputes the first
+  divergence from the saved stage arrays in stage order using the recorded
+  tolerances (the bundle now stores the full stage arrays, not a failing
+  subset, plus the manifest in its hashes), rather than trusting the
+  recorded cell.
+- **Adversarial regression tests** (`test_diagnose_challenge.py`) prove the
+  corrected mechanism rejects a moved-divergence build, a report pointing to
+  a later cell, a report contradicting the saved evidence, a changed build
+  under `--full`, changed tolerances (reruns reuse the recorded ones), and
+  modified bundle members. The original failing regression test is kept.
+
+Suite: **266 → 280 passed** on this branch (14 challenge tests; the
+released `test_diagnose.py` unchanged and still green). ruff scoped baseline
+38. `e8187af` remains frozen; v0.2.6 and its archive untouched. Pending
+independent verification before this becomes the new candidate.
+
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

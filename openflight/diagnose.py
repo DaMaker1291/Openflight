@@ -114,11 +114,14 @@ import tempfile
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+STAGE_ORDER = ("preprocessing", "model", "end_to_end")
 STAGE_ARRAYS = {
     "preprocessing": ("model_inputs", "model_inputs"),
     "model": ("model_outputs_pytorch", "model_outputs_on_reference"),
     "end_to_end": ("outputs", "outputs"),
 }
+REQUIRED_REPORT_KEYS = ("schema_version", "status", "tolerances",
+                        "first_divergence", "stages")
 
 
 def sha(path):
@@ -129,66 +132,176 @@ def sha(path):
     return h.hexdigest()
 
 
-def self_check():
-    rep = json.load(open(os.path.join(HERE, "report.json")))
+def _num(x):
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return v if np.isfinite(v) else None
+
+
+def _feature_name(rep, stage, col):
+    if stage == "preprocessing":
+        names = rep.get("feature_names")
+        if names and col < len(names):
+            return names[col]
+        return f"feature[{col}]"
+    return f"output[{col}]"
+
+
+def reconstruct(rep):
+    """Independently recompute the first divergence from the saved stage
+    arrays, searching stages in order with the recorded tolerances."""
     tol = rep["tolerances"]
-    if rep["status"] == "agree":
-        print("recorded status: agree (nothing to reproduce)")
-        return 0
-    fd = rep.get("first_divergence")
-    if fd is None:
-        print("FAIL: recorded discrepancy has no first_divergence")
-        return 1
-    refk, depk = STAGE_ARRAYS[fd["stage"]]
-    ref = np.load(os.path.join(HERE, "reference_values.npz"))[refk]
-    dep = np.load(os.path.join(HERE, "deployed_values.npz"))[depk]
-    r, c = fd["row"], fd["col"]
-    a, b = float(ref[r, c]), float(dep[r, c])
-    rec_a, rec_b = fd["reference"], fd["deployed"]
-    if rec_a is None or rec_b is None:
-        if np.isfinite(a) or np.isfinite(b):
-            print("FAIL: recorded non-finite cell is now finite")
-            return 1
-    else:
-        if a != rec_a or b != rec_b:
-            print(f"FAIL: cell mismatch: {a}!={rec_a} or {b}!={rec_b}")
-            return 1
-        bound = tol["atol"] + tol["rtol"] * abs(a)
-        if not (np.isfinite(a) and np.isfinite(b) and abs(a - b) > bound):
-            print("FAIL: recorded divergence is within tolerance")
+    rtol, atol = float(tol["rtol"]), float(tol["atol"])
+    refz = np.load(os.path.join(HERE, "reference_values.npz"))
+    depz = np.load(os.path.join(HERE, "deployed_values.npz"))
+    for stage in STAGE_ORDER:
+        refk, depk = STAGE_ARRAYS[stage]
+        if refk not in refz.files or depk not in depz.files:
+            raise RuntimeError(f"saved evidence missing for stage {stage}")
+        a = np.asarray(refz[refk], dtype=np.float64)
+        b = np.asarray(depz[depk], dtype=np.float64)
+        if a.shape != b.shape:
+            raise RuntimeError(
+                f"stage {stage}: saved shapes differ {a.shape} vs {b.shape}")
+        bound = atol + rtol * np.abs(a)
+        bad = ~np.isfinite(a) | ~np.isfinite(b) | (np.abs(a - b) > bound)
+        rows, cols = np.nonzero(bad)
+        if rows.size:
+            r, c = int(rows[0]), int(cols[0])
+            return {"stage": stage, "row": r, "col": c,
+                    "feature": _feature_name(rep, stage, c),
+                    "reference": _num(a[r, c]), "deployed": _num(b[r, c])}
+    return None
+
+
+def self_check():
+    with open(os.path.join(HERE, "report.json")) as f:
+        rep = json.load(f)
+    for k in REQUIRED_REPORT_KEYS:
+        if k not in rep:
+            print(f"FAIL: report is missing field '{k}'")
             return 1
     for name, want in (rep.get("bundle_shas") or {}).items():
-        if sha(os.path.join(HERE, name)) != want:
+        p = os.path.join(HERE, name)
+        if not os.path.exists(p):
+            print(f"FAIL: bundle member missing: {name}")
+            return 1
+        if sha(p) != want:
             print(f"FAIL: bundle member hash mismatch: {name}")
             return 1
-    print(f"REPRODUCED: {fd['stage']} divergence at sample {r} element {c} "
-          f"({fd['feature']}): reference={rec_a}, deployed={rec_b}")
+    try:
+        recon = reconstruct(rep)
+    except Exception as e:
+        print(f"FAIL: cannot reconstruct from saved evidence: {e}")
+        return 1
+    fd = rep.get("first_divergence")
+    if rep["status"] == "agree":
+        if recon is not None:
+            print("FAIL: report claims agreement but saved evidence diverges "
+                  f"at {recon['stage']} (sample {recon['row']}, "
+                  f"element {recon['col']})")
+            return 1
+        print("recorded status: agree; saved evidence agrees "
+              "(reconstruction found no divergence)")
+        return 0
+    if fd is None:
+        print("FAIL: status is discrepancy but no first_divergence recorded")
+        return 1
+    if recon is None:
+        print("FAIL: report claims a divergence but saved evidence agrees")
+        return 1
+    for k in ("stage", "row", "col", "feature"):
+        if recon[k] != fd.get(k):
+            print("FAIL: reconstructed first divergence differs from the "
+                  f"recorded report ({k}: reconstructed={recon[k]!r}, "
+                  f"recorded={fd.get(k)!r})")
+            return 1
+    if recon["reference"] != fd.get("reference") or \
+            recon["deployed"] != fd.get("deployed"):
+        print("FAIL: recorded cell values disagree with saved evidence "
+              f"(reconstructed=({recon['reference']}, {recon['deployed']}), "
+              f"recorded=({fd.get('reference')}, {fd.get('deployed')}))")
+        return 1
+    print(f"REPRODUCED: {recon['stage']} divergence at sample {recon['row']} "
+          f"element {recon['col']} ({recon['feature']}): "
+          f"reference={fd['reference']}, deployed={fd['deployed']}")
     return 0
 
 
-def full_rerun():
-    rep = json.load(open(os.path.join(HERE, "report.json")))
-    inp = rep["inputs"]
+def _verify_artifacts(inp):
     for key in ("model", "trace", "reference"):
         path = inp[key]["path"]
         if not os.path.exists(path):
             print(f"missing original artifact: {path}")
-            return 1
+            return False
         if sha(path) != inp[key]["sha256"]:
             print(f"artifact changed since diagnosis: {path}")
-            return 1
+            return False
+    build = inp["build"]["path"]
+    if not os.path.isdir(build):
+        print(f"missing deployment directory: {build}")
+        return False
+    for rel, want in inp["build"].get("artifacts", {}).items():
+        p = os.path.join(build, rel)
+        if not os.path.exists(p):
+            print(f"deployment artifact missing: {p}")
+            return False
+        if sha(p) != want:
+            print(f"deployment artifact changed since diagnosis: {p}")
+            return False
+    return True
+
+
+def _same_diagnosis(rep, rerun):
+    if rep["status"] != rerun["status"]:
+        return False
+    a, b = rep.get("first_divergence"), rerun.get("first_divergence")
+    if (a is None) != (b is None):
+        return False
+    if a is not None:
+        for k in ("stage", "row", "col", "feature"):
+            if a.get(k) != b.get(k):
+                return False
+        if a.get("reference") != b.get("reference") or \
+                a.get("deployed") != b.get("deployed"):
+            return False
+    ra = {s["name"]: s["status"] for s in rep["stages"]}
+    rb = {s["name"]: s["status"] for s in rerun["stages"]}
+    return ra == rb
+
+
+def full_rerun():
+    with open(os.path.join(HERE, "report.json")) as f:
+        rep = json.load(f)
+    inp = rep["inputs"]
+    if not _verify_artifacts(inp):
+        return 1
+    tol = rep["tolerances"]
     outdir = tempfile.mkdtemp(prefix="of_diagnose_rerun_")
     cmd = [sys.executable, "-m", "openflight.cli", "diagnose",
            "--model", inp["model"]["path"],
            "--trace", inp["trace"]["path"],
            "--reference", inp["reference"]["path"],
            "--build", inp["build"]["path"],
-           "--output", outdir]
+           "--output", outdir,
+           "--rtol", repr(tol["rtol"]), "--atol", repr(tol["atol"])]
     rc = subprocess.run(cmd).returncode
-    rerun = json.load(open(os.path.join(outdir, "report.json")))
-    ok = rerun["status"] == rep["status"]
+    with open(os.path.join(outdir, "report.json")) as f:
+        rerun = json.load(f)
+    ok = _same_diagnosis(rep, rerun)
+    a = rep.get("first_divergence") or {}
+    b = rerun.get("first_divergence") or {}
     print(f"full re-run: recorded={rep['status']} rerun={rerun['status']} "
           f"-> {'MATCH' if ok else 'MISMATCH'} (exit {rc})")
+    if not ok:
+        print("  recorded first divergence: "
+              f"{a.get('stage')}/{a.get('feature')} "
+              f"(sample {a.get('row')}, element {a.get('col')})")
+        print("  rerun    first divergence: "
+              f"{b.get('stage')}/{b.get('feature')} "
+              f"(sample {b.get('row')}, element {b.get('col')})")
     return 0 if ok else 1
 
 
@@ -588,15 +701,17 @@ def _write_bundle(outdir: str, report: dict, failing_rows: list[int],
                   arrays: dict) -> None:
     idx = np.asarray(failing_rows, dtype=int)
     np.savez(os.path.join(outdir, "failing_inputs.npz"),
-             raw=arrays["raw"][idx])
+             raw=arrays["raw"][idx], sample_index=idx)
+    # full stage arrays: the self-check independently reconstructs the first
+    # divergence from these in stage order, so they must not be subset
     np.savez(os.path.join(outdir, "reference_values.npz"),
-             model_inputs=arrays["ref_model_inputs"][idx],
-             outputs=arrays["ref_outputs"][idx],
-             model_outputs_pytorch=arrays["pytorch_on_ref"][idx])
+             model_inputs=arrays["ref_model_inputs"],
+             outputs=arrays["ref_outputs"],
+             model_outputs_pytorch=arrays["pytorch_on_ref"])
     np.savez(os.path.join(outdir, "deployed_values.npz"),
-             model_inputs=arrays["dep_model_inputs"][idx],
-             outputs=arrays["dep_outputs"][idx],
-             model_outputs_on_reference=arrays["cpp_on_ref"][idx])
+             model_inputs=arrays["dep_model_inputs"],
+             outputs=arrays["dep_outputs"],
+             model_outputs_on_reference=arrays["cpp_on_ref"])
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "created_at": report["created_at"],
@@ -617,7 +732,7 @@ def _write_bundle(outdir: str, report: dict, failing_rows: list[int],
     report["bundle_shas"] = {
         name: _sha(os.path.join(outdir, name))
         for name in ("failing_inputs.npz", "reference_values.npz",
-                     "deployed_values.npz")}
+                     "deployed_values.npz", "artifact_manifest.json")}
 
 
 # ------------------------------------------------------------ presentation

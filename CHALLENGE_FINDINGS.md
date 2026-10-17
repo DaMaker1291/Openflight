@@ -63,3 +63,27 @@ A full rerun should:
 No fix is applied in this round. The implementation stays frozen at
 `e8187af` pending reviewer examination of the implementation, the challenge
 suite and this finding together.
+
+## Correction (2026-10-17, branch `fix/reproduction-integrity`)
+
+The reviewer authorised the fix ("Fix the reproduction-integrity defect.
+Nothing else comes first."). A separate corrective commit addresses it
+without touching `e8187af` or the release artifacts:
+
+- `--full` now verifies **all** recorded source and deployment artifacts
+  (including the build directory the report already hashes) before rerunning;
+- it re-runs with the **recorded tolerances** and compares the **full
+  diagnosis** (status, first-divergence stage/feature/sample/element/values,
+  and every stage status), not just the overall status;
+- the self-check now **independently reconstructs** the first divergence from
+  the saved stage arrays in stage order (the bundle stores the full arrays
+  now, plus the manifest in its recorded hashes), rather than trusting the
+  recorded cell;
+- adversarial regression tests cover a moved-divergence build, a report
+  pointing to a later cell, a report contradicting the evidence, a changed
+  build under `--full`, changed tolerances, and modified bundle members. The
+  original failing regression test is retained and now passes.
+
+Status: **addressed on `fix/reproduction-integrity`; pending independent
+verification before it replaces `e8187af` as the candidate.**
+
