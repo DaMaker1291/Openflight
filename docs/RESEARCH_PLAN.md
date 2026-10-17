@@ -11,6 +11,23 @@ project now carries two candidate problems under adjudication (§1). No new
 planning document was created; the amendment is in-place. All gates,
 preregistration, and the feature gate are unchanged.
 
+**Amendment 2 (2026-10-17) — narrow coding authorisation, decided by the
+project owner** on the advisor's recommendation ("build this feature in a
+separate development version" once requirements are met *or the protocol
+is explicitly amended"): the Stage-1 code freeze is lifted **for one
+feature only** — `openflight diagnose`, automatic first-divergence
+diagnosis with a reproducible failure bundle, built fail-first in the
+0.2.7.dev0 development version along one supported path (recorded raw
+inputs → generated preprocessing adapter → reference inference vs
+deployed C++ inference). Scope constraints: one trained controller for
+the demonstration; three conditions (clean / corrupted preprocessing /
+corrected); no other coding, no architecture-list expansion, no new
+planning documents. The v0.2.6 tag and archives stay frozen; the three
+validation gates and the pilot remain outstanding and unchanged, and
+Stage 2+ work stays blocked on them. This amendment does not adopt H2 —
+the §1 adjudication still happens on interview evidence; diagnose is
+evidence for that adjudication, not a substitute for it.
+
 ## 1. The problem space (two candidates under adjudication)
 
 ### H1 — the validated fallback (current engineering identity)
@@ -242,7 +259,7 @@ by benchmark and user evidence, not anticipation.
 
 | Stage | Content | Exit condition |
 |---|---|---|
-| 1. Finish validating v0.2.6 | Second-machine reproduction (verbatim outputs/env/exit codes); reviewer's five-property re-audit once the artefact is retrievable; permissions/consent in parallel; code frozen unless a demonstrated defect forces a separately documented correction | Known which behaviours are independently reproduced vs unverified; any release-blocking defect found and reproduced before changes |
+| 1. Finish validating v0.2.6 | Second-machine reproduction (verbatim outputs/env/exit codes); reviewer's five-property re-audit once the artefact is retrievable; permissions/consent in parallel; code frozen unless a demonstrated defect forces a separately documented correction, or under the Amendment-2 diagnose authorisation (header) | Known which behaviours are independently reproduced vs unverified; any release-blocking defect found and reproduced before changes |
 | 2. Host-only pilot (2–3 participants) | Preregistered tasks T1–T7; record false accepts/rejects, diagnosis quality, install friction, interventions | Prioritised, observation-backed list of real usability/correctness problems |
 | 3. Discovery + benchmark + adjudication | Researcher interviews (§7, incl. the five H2 probes); 30–50-case benchmark with blind-reviewed expected outcomes; run workflows A/B/C under fixed scoring | Reproducible dataset, raw results, analysis script, account of strengths/weaknesses/unresolved cases; **explicit H1-vs-H2 adjudication decision recorded in this plan** |
 | 3b. *Conditional* — H2 deployment-failure prototype | Only if Stage 3 adopts H2. Advisor's order: (1) minimal differential-testing example for ONE supported learned controller (reference vs deployed implementation, identical defined inputs; first meaningful divergence located across input pipeline → preprocessing → network output → timing); (2) simple closed-loop simulator for that example (does the divergence change the simulated trajectory?); (3) controlled deployment perturbations (precision, inference latency, sensor timing/jitter, input noise, dropped observations, resource budget) with measured performance envelope; (4) automatic failure-case preservation (model, inputs, transforms, config, environment, discrepancy — rerunnable by another person); (5) diagnostic value measured against a competent baseline (export checks + manual debugging + ordinary inference benchmarks) | First milestone is not a feature release: one real deployment failure identified, reproduced end-to-end, and diagnosed with evidence the researcher's existing tools did not provide; then a second distinct control task to test generalisation beyond the original example |
