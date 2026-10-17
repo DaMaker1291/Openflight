@@ -88,6 +88,14 @@ Then install the project itself: `pip install -e . --no-deps`.
 - Engineering-time savings (no human study).
 - External review of the held-out set (seed-published but author-generated).
 
+## Verifying the `diagnose` reproduction-integrity corrections
+
+The reproduction-integrity corrections to `openflight diagnose` (branch
+`fix/reproduction-integrity`, commits `3b44a2d`, `8d40267`, `ed03d0e`) have
+their own independent-verification procedure and harness:
+see `docs/INDEPENDENT_VERIFICATION.md` and
+`reproduction/verify_diagnose_integrity.py`.
+
 ## Reporting problems
 
 Record: commit hash, `results/freeze_v0.1.json` `dependencies` block, the
