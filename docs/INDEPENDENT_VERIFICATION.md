@@ -4,11 +4,11 @@ This guide is for a reviewer verifying, **independently of the author**, the
 reproduction-integrity corrections to `openflight diagnose`. It specifies a
 clean pinned environment, the exact commands, and the expected observations.
 
-The author's own run of this harness is recorded in
-`reproduction/verify_diagnose_integrity_author_2026-10-17.log`. That log is
-**not** independent verification; it exists only so you can compare your run
-against a reference. Do not treat it as evidence until you have reproduced it
-in your own environment.
+The author has run this harness (25 checks, 0 failed, `VERDICT: PASS`). Logs
+are gitignored (`*.log` is not tracked), so that run is a local artifact you
+will not find in a clone. In any case it is **not** independent verification;
+reproduce the run in your own environment and treat only your own result as
+evidence.
 
 ## What is being verified
 
