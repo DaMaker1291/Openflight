@@ -15,6 +15,12 @@ and where automation might help. This is discovery, not persuasion: we are
 gathering evidence that could **narrow or change the research question**
 (`RESEARCH_PLAN.md` §3, possibility 3 is an allowed outcome).
 
+Amended 2026-10-17: the plan now carries a second candidate problem —
+*diagnosing why a learned controller changes behaviour when deployed*
+(`RESEARCH_PLAN.md` §1 H2). The same interviews adjudicate between the two:
+the five deployment-failure probes below exist for that decision. Ask all
+questions; never hint which answer we want.
+
 ## Who to approach
 
 - Target: ~3–5 researchers (PhD students, postdocs, or faculty) who have
@@ -37,9 +43,10 @@ gathering evidence that could **narrow or change the research question**
 
 ## Consent preamble (plain language, read before questions)
 
-> I'm studying how researchers verify sensor-to-model integration when
-> deploying learned models to embedded systems. I'd like to ask about your
-> most recent such deployment — what was hard, what went wrong, how you
+> I'm studying how researchers deploy learned models to embedded and
+> robotic systems — what they verify before deployment, what goes wrong,
+> and how they diagnose it. I'd like to ask about your most recent such
+> deployment — what was hard, what went wrong, how you
 > found out. Your answers will be summarised in research notes; [no
 > recording / recording only if separately authorised]. Participation is
 > voluntary, you can skip any question or stop at any time, and nothing you
@@ -67,6 +74,23 @@ Context first — the most recent deployment only:
 10. If you could automate one part of the process, which part would you
     choose?
 
+H2-adjudication probes (added 2026-10-17 — ask everyone; past events only):
+
+11. Have you had a controller that worked in simulation, or in the original
+    framework (PyTorch or similar), behave differently once it was
+    deployed? Walk me through a specific episode.
+12. In that episode, what turned out to be the cause — the model,
+    preprocessing, numerical conversion, timing, resource limits, hardware
+    dynamics, or something else?
+13. How long did the diagnosis take, and what experiments did it take to
+    isolate the cause?
+14. Which tools did you use during that diagnosis, and what were they
+    unable to establish?
+15. If an automated tool had replayed that exact situation, compared the
+    original and deployed implementations on identical inputs, and
+    produced a rerunnable failure case — would that have changed how the
+    investigation went?
+
 Follow-up probes (only to extract specifics, never to suggest answers):
 "Walk me through what you actually did that day." · "What did the failure
 look like when you first saw it?" · "What was the fix, and how did you
@@ -88,6 +112,11 @@ confirm it was right?" · "Did anything like that happen again later?"
 | Evidence they'd need to trust automation | |
 | What they'd automate first | |
 | Tooling they currently use | |
+| Sim-vs-deploy failure episode (Q11: y/n + detail) | |
+| Cause category if any (Q12) | |
+| Diagnosis time + isolating experiments (Q13) | |
+| Tooling gap in that diagnosis (Q14) | |
+| Differential-test value, their judgement (Q15: y/n + detail) | |
 | Surprises / answers we didn't anticipate | |
 
 ## After the interviews (fixed analysis steps)
@@ -100,3 +129,9 @@ confirm it was right?" · "Did anything like that happen again later?"
    (`BENCHMARK_DRAFT.md` revision window, before independent sign-off).
 5. Report raw counts (how many participants reported each category), not
    impressions.
+6. Tally the H2 probes (Q11–Q15): how many participants report a
+   sim-vs-deployment behaviour change, the distribution of causes, median
+   diagnosis time, which tools failed to establish what, and how many
+   judge an automated differential replay valuable. These raw counts are
+   the input to the H1-vs-H2 adjudication in `RESEARCH_PLAN.md` §1 —
+   record them even if they favour keeping H1.
