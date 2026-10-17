@@ -176,9 +176,42 @@ def reconstruct(rep):
     return None
 
 
+def _stage_statuses(rep):
+    """Independently recompute each stage's agree/diverge status from the
+    saved arrays (stage order, recorded tolerances)."""
+    tol = rep["tolerances"]
+    rtol, atol = float(tol["rtol"]), float(tol["atol"])
+    refz = np.load(os.path.join(HERE, "reference_values.npz"))
+    depz = np.load(os.path.join(HERE, "deployed_values.npz"))
+    out = {}
+    for stage in STAGE_ORDER:
+        refk, depk = STAGE_ARRAYS[stage]
+        if refk not in refz.files or depk not in depz.files:
+            raise RuntimeError(f"saved evidence missing for stage {stage}")
+        a = np.asarray(refz[refk], dtype=np.float64)
+        b = np.asarray(depz[depk], dtype=np.float64)
+        if a.shape != b.shape:
+            raise RuntimeError(
+                f"stage {stage}: saved shapes differ {a.shape} vs {b.shape}")
+        bound = atol + rtol * np.abs(a)
+        bad = ~np.isfinite(a) | ~np.isfinite(b) | (np.abs(a - b) > bound)
+        out[stage] = "diverge" if bool(bad.any()) else "agree"
+    return out
+
+
+DUP_FIELDS = ("schema_version", "created_at", "openflight_version",
+              "tolerances", "inputs", "shapes")
+
+
 def self_check():
     with open(os.path.join(HERE, "report.json")) as f:
         rep = json.load(f)
+    man_p = os.path.join(HERE, "artifact_manifest.json")
+    if not os.path.exists(man_p):
+        print("FAIL: artifact_manifest.json missing")
+        return 1
+    with open(man_p) as f:
+        man = json.load(f)
     for k in REQUIRED_REPORT_KEYS:
         if k not in rep:
             print(f"FAIL: report is missing field '{k}'")
@@ -191,11 +224,27 @@ def self_check():
         if sha(p) != want:
             print(f"FAIL: bundle member hash mismatch: {name}")
             return 1
+    # the report duplicates several fields from the manifest; the manifest
+    # is covered by the recorded hashes, so any disagreement means the
+    # report no longer faithfully records the original experiment
+    for k in DUP_FIELDS:
+        if rep.get(k) != man.get(k):
+            print(f"FAIL: report field '{k}' disagrees with the recorded "
+                  f"manifest")
+            return 1
     try:
         recon = reconstruct(rep)
+        statuses = _stage_statuses(rep)
     except Exception as e:
         print(f"FAIL: cannot reconstruct from saved evidence: {e}")
         return 1
+    recorded = {s["name"]: s["status"] for s in rep.get("stages", [])}
+    for stage in STAGE_ORDER:
+        if recorded.get(stage) != statuses[stage]:
+            print(f"FAIL: recorded stage status for '{stage}' "
+                  f"({recorded.get(stage)!r}) disagrees with the saved "
+                  f"evidence ({statuses[stage]!r})")
+            return 1
     fd = rep.get("first_divergence")
     if rep["status"] == "agree":
         if recon is not None:

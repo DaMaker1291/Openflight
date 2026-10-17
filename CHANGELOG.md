@@ -108,6 +108,21 @@ released `test_diagnose.py` unchanged and still green). ruff scoped baseline
 38. `e8187af` remains frozen; v0.2.6 and its archive untouched. Pending
 independent verification before this becomes the new candidate.
 
+**Follow-up correction (2026-10-17) — bundle metadata consistency**
+(reviewer source review). `self_check()` took its tolerances from
+`report.json` and never checked them against the separately recorded,
+hash-protected `artifact_manifest.json`; changing only the report's
+tolerances (or other duplicated metadata) was accepted as long as the same
+first divergence reconstructed. Fixed: the self-check now (a) requires every
+field the report duplicates from the manifest — `schema_version`,
+`created_at`, `openflight_version`, `tolerances`, `inputs`, `shapes` — to
+match the manifest, and (b) re-derives each stage's agree/diverge status
+from the saved arrays so a tampered per-stage status is rejected. Three new
+fail-first tests (`test_self_check_rejects_altered_report_tolerances`,
+`..._altered_stage_status`, `..._altered_report_shapes`) were red before the
+fix and green after. Suite **280 → 283 passed**; ruff scoped baseline 38;
+`repro.py` → `REPRODUCTION OK`. `e8187af` frozen; no other behaviour changed.
+
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

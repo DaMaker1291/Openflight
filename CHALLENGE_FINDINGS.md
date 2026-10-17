@@ -87,3 +87,28 @@ without touching `e8187af` or the release artifacts:
 Status: **addressed on `fix/reproduction-integrity`; pending independent
 verification before it replaces `e8187af` as the candidate.**
 
+## Follow-up finding and correction (2026-10-17)
+
+Reviewer source review of the correction found a residual metadata gap:
+`self_check()` read its tolerances from `report.json` and never compared them
+with the separately recorded, hash-protected `artifact_manifest.json`.
+Changing only the report's tolerances — even by an amount small enough to
+keep the same first divergence — was therefore accepted, and a tampered
+per-stage status was not checked at all.
+
+Corrected in the same branch: the self-check now requires every duplicated
+metadata field (`schema_version`, `created_at`, `openflight_version`,
+`tolerances`, `inputs`, `shapes`) to match the manifest, and independently
+re-derives each stage's agree/diverge status from the saved arrays. Three
+fail-first tests cover altered tolerances, an altered stage status and
+altered shapes; all were red before the fix and green after. Suite
+**280 → 283 passed**; ruff scoped baseline 38; `repro.py` →
+`REPRODUCTION OK`.
+
+Residual limitation (documented, not fixed): offline bundles cannot
+cryptographically anchor `report.json` itself; a coherent re-forge of the
+report *and* manifest together remains theoretically possible. The checks
+above protect against single-file tampering and against any report that no
+longer matches the recorded evidence.
+
+

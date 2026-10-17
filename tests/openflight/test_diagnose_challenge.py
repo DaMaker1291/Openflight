@@ -520,3 +520,66 @@ def test_full_rerun_uses_recorded_tolerances(tmp_path):
                        capture_output=True, text=True, cwd=out)
     assert r.returncode == 0, r.stdout + r.stderr
     assert "MATCH" in r.stdout, r.stdout
+
+
+# ------------------------------------------ bundle metadata consistency
+
+def test_self_check_rejects_altered_report_tolerances(tmp_path):
+    """Altering only report.json's tolerances (evidence and manifest
+    untouched) must be rejected: the report duplicates the manifest's
+    tolerances and must still agree with the hash-protected manifest."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    rep_path = out / "report.json"
+    man_path = out / "artifact_manifest.json"
+    rep = json.loads(rep_path.read_text())
+    man = json.loads(man_path.read_text())
+    assert rep["tolerances"] == man["tolerances"]
+    # a small change that keeps the same first divergence
+    rep["tolerances"]["atol"] = rep["tolerances"]["atol"] * 1.5
+    assert rep["tolerances"] != man["tolerances"]
+    rep_path.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "tolerances" in r.stdout and "manifest" in r.stdout, r.stdout
+
+
+def test_self_check_rejects_altered_stage_status(tmp_path):
+    """Flipping a recorded stage status while the evidence is unchanged must
+    be rejected: per-stage statuses are re-derived from the saved arrays."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    rep_path = out / "report.json"
+    rep = json.loads(rep_path.read_text())
+    first_stage = rep["first_divergence"]["stage"]
+    flipped = None
+    for s in rep["stages"]:
+        if s["status"] == "diverge" and s["name"] != first_stage:
+            s["status"] = "agree"
+            flipped = s["name"]
+            break
+    assert flipped is not None, "expected a non-first diverged stage"
+    rep_path.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "stage status" in r.stdout and flipped in r.stdout, r.stdout
+
+
+def test_self_check_rejects_altered_report_shapes(tmp_path):
+    """Other duplicated metadata (e.g. shapes) must also agree with the
+    manifest."""
+    fx = _build_fixture(tmp_path)
+    out = _bundle_out(tmp_path, fx)
+    rep_path = out / "report.json"
+    rep = json.loads(rep_path.read_text())
+    rep["shapes"]["n_samples"] = rep["shapes"]["n_samples"] + 1
+    rep_path.write_text(json.dumps(rep))
+
+    r = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                       capture_output=True, text=True, cwd=out)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "shapes" in r.stdout and "manifest" in r.stdout, r.stdout
