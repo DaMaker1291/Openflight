@@ -9,6 +9,14 @@ things of the *same* evidence:
   * how does it compare with a hand-written staged comparison (the baseline a
     researcher would script from the deployed artifacts)?
 
+The 60 inputs are the observer's real features: a 20-sample window, newest
+sample first, of measured acceleration ``a_meas``, applied control
+acceleration ``u_act`` (actuator state, not the command), and velocity ``v``;
+each feature is standardised with the checkpoint's mean/std. The contract
+declares the temporal offsets and the actuator quantity, so the deployed
+adapter reproduces the training-time input pipeline rather than an invented
+one.
+
 Everything here is SIMULATED host-side evidence. It is not physical-robot
 validation and says nothing about on-hardware behaviour.
 
@@ -37,7 +45,16 @@ REPO = Path(__file__).resolve().parents[2]
 EXAMPLES = REPO / "examples" / "quadrotor_adapter"
 MODEL = "learned_observer.pt"
 ARCH = "mlp:60,128,64,1"
-N_ACC, N_GYRO, N_IN = 20, 40, 60
+# The observer consumes a W-sample window of three signals, newest sample
+# first: measured acceleration, applied control acceleration, velocity.
+W = 20
+SIGNAL_BLOCKS = (
+    ("a_meas", "acceleration", "metres_per_second_squared", None),
+    ("u_act", "applied_control_acceleration",
+     "metres_per_second_squared", "world"),
+    ("v", "velocity", "metres_per_second", "world"),
+)
+N_IN = W * len(SIGNAL_BLOCKS)
 N_OUT = 1
 RTOL = ATOL = 1e-4
 SEED = 7
@@ -48,40 +65,60 @@ LABEL = "SIMULATED (host-side deployment evidence; not physical-robot validation
 
 # ------------------------------------------------------------- contracts
 
-def sensor_contract(acc_units="centimetres_per_second_squared",
-                    gyro_units="radians_per_second"):
+def checkpoint_meta():
+    """The training-time standardisation constants, stored in the checkpoint.
+
+    Single source of truth for what the network expects: each input feature is
+    standardised as (x - mean)/std, and the target is stored de-standardised as
+    y*t_std + t_mean (``learned_observer.py``).
+    """
+    import torch
+    obj = torch.load(REPO / MODEL, map_location="cpu", weights_only=True)
+    return {"mean": np.asarray(obj["mean"], dtype=np.float64),
+            "std": np.asarray(obj["std"], dtype=np.float64),
+            "t_mean": float(obj["t_mean"]), "t_std": float(obj["t_std"]),
+            "W": int(obj["W"]), "H": int(obj["H"])}
+
+
+def sensor_contract(acc_units="metres_per_second_squared",
+                    control_units="metres_per_second_squared",
+                    velocity_units="metres_per_second"):
     sensor = yaml.safe_load((EXAMPLES / "drone_contract.yaml").read_text())
     sensor["imu"]["accelerometer"]["units"] = acc_units
-    sensor["imu"]["gyroscope"]["units"] = gyro_units
-    # the adapter resolves angular_velocity through state.angular_velocity
-    sensor["state"]["angular_velocity"]["units"] = gyro_units
+    sensor["state"]["velocity"]["units"] = velocity_units
+    # the control signal is actuator state, not an accelerometer reading
+    sensor["actuator"] = {"applied_control_acceleration": {
+        "units": control_units, "frame": "world",
+        "provenance": "simulator_state",
+        "semantics": "actual actuator contribution to horizontal "
+                     "acceleration after lag/saturation (not the command)"}}
     return sensor
 
 
-def model_contract(swap_channels=False):
-    acc_c = [f"a{i}" for i in range(N_ACC)]
-    gyro_c = [f"g{i}" for i in range(N_GYRO)]
-    raw = ([{"quantity": "acceleration", "component": c} for c in acc_c]
-           + [{"quantity": "angular_velocity", "component": c}
-              for c in gyro_c])
-    if swap_channels:
+def model_contract(meta, swap_offsets=False):
+    mean, std = meta["mean"], meta["std"]
+    raw = [{"quantity": qty, "component": "x", "sample_offset_steps": i}
+           for _name, qty, _units, _frame in SIGNAL_BLOCKS for i in range(W)]
+    feats = []
+    j = 0
+    for name, qty, units, frame in SIGNAL_BLOCKS:
+        for i in range(W):
+            feats.append({
+                "name": f"{name}_t{i}",
+                "source": {"quantity": qty, "component": "x",
+                           "sample_offset_steps": i},
+                "units": units, "frame": frame,
+                "normalization": {"method": "affine",
+                                  "scale": float(1.0 / std[j]),
+                                  "offset": float(-mean[j] / std[j])}})
+            j += 1
+    if swap_offsets:
+        # relabel raw slots t0/t1: each window sample claims the other's slot
         raw[0], raw[1] = raw[1], raw[0]
-    features = ([{"name": f"acc{i}",
-                  "source": {"quantity": "acceleration", "component": acc_c[i]},
-                  "units": "metres_per_second_squared", "frame": None,
-                  "normalization": {"method": "affine", "scale": 0.05,
-                                    "offset": 0.0}}
-                 for i in range(N_ACC)]
-                + [{"name": f"gyro{i}",
-                    "source": {"quantity": "angular_velocity",
-                               "component": gyro_c[i]},
-                    "units": "radians_per_second", "frame": "body",
-                    "normalization": {"method": "none"}}
-                   for i in range(N_GYRO)])
     return {"schema_version": 2,
             "model": {"name": "observer60", "input_size": N_IN,
                       "dtype": "float32"},
-            "raw_layout": raw, "features": features}
+            "raw_layout": raw, "features": feats}
 
 
 def _write_contracts(d, sensor, model):
@@ -109,6 +146,14 @@ def deploy(contract_dir, out):
 
 
 def torch_reference(model_inputs):
+    """The trained network on the contract-standardised inputs.
+
+    ``model_inputs`` are already ``(x - mean)/std`` (the contract applies the
+    checkpoint's mean/std), so this is exactly the training-time evaluation.
+    The output is the standardised ``w_hat``; de-standardising it
+    (``y*t_std + t_mean``) is a caller-side step the codegen leaves open, so
+    the diagnosis compares in the model's standardised output space.
+    """
     import torch
     from openflight.cli import _arch_for_example
     from openflight.compiler.loader import load_model
@@ -254,37 +299,37 @@ def diagnose(build, trace, reference, out):
 
 # ------------------------------------------------------------- fault set
 
-def build_clean(work):
+def build_clean(work, meta):
     cdir = work / "c_clean"
-    sp, mp = _write_contracts(cdir, sensor_contract(), model_contract())
+    sp, mp = _write_contracts(cdir, sensor_contract(), model_contract(meta))
     return deploy(cdir, work / "build_clean")
 
 
-def _deploy_variant(work, name, sensor_kw=None, model_kw=None):
+def _deploy_variant(work, name, meta, sensor_kw=None, model_kw=None):
     cdir = work / f"c_{name}"
     sp, mp = _write_contracts(cdir, sensor_contract(**(sensor_kw or {})),
-                              model_contract(**(model_kw or {})))
+                              model_contract(meta, **(model_kw or {})))
     return deploy(cdir, work / f"build_{name}")
 
 
-def build_acc_units(work, clean):
+def build_acc_units(work, clean, meta):
     return _deploy_variant(
-        work, "acc_units",
-        sensor_kw={"acc_units": "metres_per_second_squared"})
+        work, "acc_units", meta,
+        sensor_kw={"acc_units": "centimetres_per_second_squared"})
 
 
-def build_gyro_units(work, clean):
+def build_control_units(work, clean, meta):
     return _deploy_variant(
-        work, "gyro_units",
-        sensor_kw={"gyro_units": "degrees_per_second"})
+        work, "control_units", meta,
+        sensor_kw={"control_units": "centimetres_per_second_squared"})
 
 
-def build_order_swap(work, clean):
+def build_order_swap(work, clean, meta):
     return _deploy_variant(
-        work, "order_swap", model_kw={"swap_channels": True})
+        work, "order_swap", meta, model_kw={"swap_offsets": True})
 
 
-def build_preproc_gain(work, clean):
+def build_preproc_gain(work, clean, meta):
     b = work / "build_preproc_gain"
     shutil.copytree(clean, b)
     h = b / "contract_adapt.h"
@@ -296,7 +341,7 @@ def build_preproc_gain(work, clean):
     return b
 
 
-def build_compiled_infer(work, clean):
+def build_compiled_infer(work, clean, meta):
     b = work / "build_compiled_infer"
     shutil.copytree(clean, b)
     src = b / "model.cpp"
@@ -314,18 +359,52 @@ def build_compiled_infer(work, clean):
 # id -> (family, expected stage, builder)
 FAULTS = {
     "acc_units": ("sensor units", "preprocessing", build_acc_units),
-    "gyro_units": ("sensor units", "preprocessing", build_gyro_units),
-    "order_swap": ("feature ordering", "preprocessing", build_order_swap),
+    "control_units": ("sensor units", "preprocessing", build_control_units),
+    "order_swap": ("temporal ordering", "preprocessing", build_order_swap),
     "preproc_gain": ("preprocessing", "preprocessing", build_preproc_gain),
     "compiled_infer": ("compiled inference", "model", build_compiled_infer),
 }
 
 
+def _observer_module():
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
+    import learned_observer as L
+    return L
+
+
 def _trace(work, n_samples, seed):
-    rng = np.random.default_rng(seed)
-    raw = np.empty((n_samples, N_IN), dtype=np.float32)
-    raw[:, :N_ACC] = rng.uniform(-1500, 1500, (n_samples, N_ACC))  # cm/s^2
-    raw[:, N_ACC:] = rng.uniform(-5, 5, (n_samples, N_GYRO))       # rad/s
+    """Raw deployment input: real windows from simulated trajectories.
+
+    Each row is a W-sample window of [a_meas, u_act, v], newest sample first,
+    exactly as ``learned_observer`` builds training features. Drawn from the
+    same domain-randomised plant (mass, drag, actuator/sensor lag, wind)."""
+    L = _observer_module()
+    td = L.TRAIN_DOMAINS
+    rng_master = np.random.default_rng(seed)
+    cols, total = [], 0
+    while total < n_samples:
+        rng = np.random.default_rng(int(rng_master.integers(0, 2 ** 31)))
+        mass = rng.uniform(*td["mass_kg"])
+        cd_a = rng.uniform(*td["cd_a"])
+        tau_rot = rng.uniform(*td["tau_rot_s"])
+        tau_sens = rng.uniform(*td["tau_sens_s"])
+        noise = rng.uniform(*td["noise_ms2"])
+        v_steady = rng.uniform(*td["v_steady_ms"])
+        kind = str(rng.choice(["step", "turb"]))
+        kw = (dict(rise=float(rng.uniform(*td["gust_rise_s"])),
+                   t_gust=float(rng.uniform(0.3, 0.8)))
+              if kind == "step"
+              else dict(tau_turb=float(rng.uniform(*td["turb_tau_s"])),
+                        amp=float(rng.uniform(*td["turb_amp"]))))
+        af = L.Airframe(mass_kg=mass, twr=5.0, cd_a=cd_a)
+        t = np.arange(int(round(5.0 * L.LOOP_HZ))) / L.LOOP_HZ
+        wind = L.wind_array(kind, t, v_steady, rng, **kw)
+        r = L.rollout(af, tau_rot, tau_sens, 0.030, wind, "analytic",
+                      noise_sigma=noise, rng=rng, collect=True)
+        cols.append(r["X"].astype(np.float32))
+        total += cols[-1].shape[0]
+    raw = np.concatenate(cols, axis=0)[:n_samples]
     trace = work / "trace.npz"
     np.savez(trace, raw=raw)
     return raw, trace
@@ -345,8 +424,17 @@ def _equivalent_report(a, b):
 
 def run(out_dir=None, n_samples=200, case_ids=None, seed=SEED, verbose=True):
     case_ids = list(case_ids) if case_ids else (["clean"] + list(FAULTS))
+    meta = checkpoint_meta()
     result = {"schema_version": 1, "label": LABEL, "model": MODEL,
               "arch": ARCH, "seed": seed, "n_samples": n_samples,
+              "window": {"length": W, "signals": [b[0] for b in SIGNAL_BLOCKS],
+                         "order": "newest-first"},
+              "standardisation": {
+                  "input": "per-feature (x-mean)/std from the checkpoint",
+                  "output": "model output is standardised; the physical "
+                            "estimate is y*t_std + t_mean (caller-side)",
+                  "t_mean": round(meta["t_mean"], 6),
+                  "t_std": round(meta["t_std"], 6)},
               "tolerances": {"rtol": RTOL, "atol": ATOL},
               "environment": {"python": platform.python_version(),
                               "platform": platform.platform()},
@@ -355,7 +443,7 @@ def run(out_dir=None, n_samples=200, case_ids=None, seed=SEED, verbose=True):
     tmp_ctx = tempfile.TemporaryDirectory(prefix="of_trained_")
     work = Path(tmp_ctx.name)
     try:
-        clean = build_clean(work)
+        clean = build_clean(work, meta)
         raw, trace = _trace(work, n_samples, seed)
         model_inputs, outputs = record_reference(clean, raw)
         reference_npz = work / "reference.npz"
@@ -366,7 +454,7 @@ def run(out_dir=None, n_samples=200, case_ids=None, seed=SEED, verbose=True):
         for cid in case_ids:
             if cid == "clean":
                 continue
-            builds[cid] = FAULTS[cid][2](work, clean)
+            builds[cid] = FAULTS[cid][2](work, clean, meta)
 
         for cid in case_ids:
             case = {"id": cid}
@@ -467,6 +555,9 @@ def render_report(r):
         f"**{LABEL}**",
         "",
         f"- Model: `{r['model']}` ({r['arch']}), trained by `learned_observer.py`",
+        f"- Input: {r['window']['length']}-sample window of "
+        f"{', '.join(r['window']['signals'])} ({r['window']['order']}), "
+        "standardised with the checkpoint mean/std",
         f"- Trace: {r['n_samples']} samples, tolerances rtol=atol={r['tolerances']['atol']}",
         f"- Environment: Python {r['environment']['python']}",
         "",
@@ -505,6 +596,14 @@ def render_report(r):
         "",
         "- All evidence is **simulated host-side**. No hardware, no physical",
         "  controller, no on-MCU timing.",
+        "- Inputs are real windows of `[a_meas, u_act, v]` from simulated",
+        "  trajectories, standardised with the **checkpoint's** mean/std — the",
+        "  same transform `learned_observer.py` trains with. `u_act` is a",
+        "  simulator state; it is shown here because the simulator exposes it,",
+        "  which does not establish it is directly measurable on a real drone.",
+        "- Model outputs are compared **standardised**; the physical estimate is",
+        "  `y*t_std + t_mean`, a caller-side de-normalisation the codegen leaves",
+        "  open. A divergence in standardised output implies one in physical.",
         "- Wall-clock is a compute proxy, not a human time-to-resolution study;",
         "  it excludes the engineer time to build the baseline harness.",
         "- The reference is recorded from the clean adapter + the trained model;",

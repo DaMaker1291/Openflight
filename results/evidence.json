@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-17T16:50:14Z",
+  "recorded_at": "2026-10-18T15:35:15Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -25,11 +25,11 @@
     },
     "checker_source": {
       "openflight/contract/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "openflight/contract/checker.py": "f18077e1077e35236fde1a27cc3758e406a571a151425035932cff58fcaf8d86",
+      "openflight/contract/checker.py": "e32f18bbd84f142b506464c0365c79919c0eb99a7fe768f235eb0dba32813a31",
       "openflight/contract/draft.py": "cac155f689b22d6dd40b7c8d88f2dfaeb48b756db65ac2ecd4af4bddc7624ab2",
-      "openflight/contract/model_contract.py": "f895778ef3cb9ea3acce46886e60bcc76290cf0529a0260730aee5bade598585",
-      "openflight/contract/pipeline.py": "05e30d6bbc72a4fa88ce879b0b2540725659a7baa3cea34d39a85bbdc83ac9b5",
-      "openflight/contract/units.py": "a8d26ba2c390b998be53ec840a2f62a26a992f6dacfd5db3af8a7ebd47cf2d55",
+      "openflight/contract/model_contract.py": "f9f36d63f56b7883e00d9d3d095fcc81ae7b613ec9cae1031d9d2974b906f6ef",
+      "openflight/contract/pipeline.py": "ed3e151117da56ae1bc6f91a71b70b6abc47b060d238bd244c624eaead86bedd",
+      "openflight/contract/units.py": "fb0a9129c777064712ed0823f60d3064118a0c8e5e706e5480196311a8ee2c2e",
       "openflight/errors.py": "39ee6ee26c075edac26cb5ed89decf031a4fe6ed59312d920f4519464e182c3e"
     },
     "adapters_source": {
@@ -148,7 +148,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "battery": {
       "reads": [
@@ -160,7 +160,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "independent": {
       "reads": [
@@ -177,7 +177,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "heldout": {
       "reads": [
@@ -189,7 +189,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "workflows": {
       "reads": [
@@ -205,7 +205,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "baseline": {
       "reads": [
@@ -220,7 +220,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "importers": {
       "reads": [
@@ -234,7 +234,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     },
     "e2e": {
       "reads": [
@@ -247,7 +247,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-17T16:50:14Z"
+      "ran_at": "2026-10-18T15:35:15Z"
     }
   }
 }

@@ -31,6 +31,19 @@ def load_model_contract(path: str) -> dict:
 NORM_METHODS = ("affine", "none")
 
 
+def _offset(binding: dict) -> int:
+    """Temporal position (sample_offset_steps); absent means 0."""
+    o = binding.get("sample_offset_steps", 0)
+    return o if isinstance(o, int) and not isinstance(o, bool) else 0
+
+
+def _require_offset(value, where: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(
+            f"{where}.sample_offset_steps must be a non-negative integer "
+            f"(got {value!r})")
+
+
 def validate_model_contract(c: dict) -> dict:
     if not isinstance(c, dict) or c.get("schema_version") != 2:
         raise ValueError("model contract needs schema_version: 2")
@@ -46,11 +59,14 @@ def validate_model_contract(c: dict) -> dict:
     for i, r in enumerate(raw):
         if not isinstance(r, dict) or "quantity" not in r or "component" not in r:
             raise ValueError(f"raw_layout[{i}] needs quantity + component")
-        k = (r["quantity"], r["component"])
+        if "sample_offset_steps" in r:
+            _require_offset(r["sample_offset_steps"], f"raw_layout[{i}]")
+        k = (r["quantity"], r["component"], _offset(r))
         if k in raw_keys:
             raise ValueError(
-                f"duplicate raw_layout binding {k[0]!r}/{k[1]!r}: each "
-                "(quantity, component) pair may appear at most once")
+                f"duplicate raw_layout binding {k[0]!r}/{k[1]!r}"
+                f"@{k[2]}: each (quantity, component, sample_offset_steps) "
+                "triple may appear at most once")
         raw_keys.add(k)
     feats = c.get("features")
     if not isinstance(feats, list) or not feats:
@@ -76,6 +92,8 @@ def validate_model_contract(c: dict) -> dict:
         src = f["source"]
         if not isinstance(src, dict) or "quantity" not in src:
             raise ValueError(f"{where}.source needs 'quantity'")
+        if "sample_offset_steps" in src:
+            _require_offset(src["sample_offset_steps"], f"{where}.source")
         width = int(f.get("width", 1))
         if width not in (1, 4):
             raise ValueError(f"{where}: width must be 1 or 4")

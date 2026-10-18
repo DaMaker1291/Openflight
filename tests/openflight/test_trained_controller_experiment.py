@@ -24,6 +24,24 @@ def _experiment():
     return mod
 
 
+def test_contract_declares_observer_input_semantics():
+    # the deployed contract must match the trained model's real features:
+    # 20 windows of [a_meas, u_act, v], newest-first, checkpoint mean/std
+    mod = _experiment()
+    meta = mod.checkpoint_meta()
+    m = mod.model_contract(meta)
+    qs = [f["source"]["quantity"] for f in m["features"]]
+    assert qs[:20] == ["acceleration"] * 20
+    assert qs[20:40] == ["applied_control_acceleration"] * 20
+    assert qs[40:] == ["velocity"] * 20
+    offsets = [f["source"]["sample_offset_steps"] for f in m["features"][:20]]
+    assert offsets == list(range(20))
+    mean, std = meta["mean"], meta["std"]
+    assert m["features"][0]["normalization"]["scale"] == pytest.approx(1.0 / std[0])
+    assert m["features"][0]["normalization"]["offset"] == pytest.approx(
+        -mean[0] / std[0])
+
+
 def test_faults_localised_clean_agrees():
     mod = _experiment()
     res = mod.run(out_dir=None, n_samples=8, verbose=False)

@@ -20,6 +20,9 @@ QUANTITY_PATHS = {
     "accelerometer": ("imu", "accelerometer"),
     "gyro": ("imu", "gyroscope"),
     "gyroscope": ("imu", "gyroscope"),
+    # actuator state: the control actually applied, after actuator lag and
+    # saturation (a command, u_cmd, is a different signal)
+    "applied_control_acceleration": ("actuator", "applied_control_acceleration"),
 }
 
 
@@ -121,9 +124,15 @@ def check(sensor: dict, model: dict,
              f"contract feature widths sum to {width_sum} but compiled model "
              f"takes {model_input_size} inputs",
              source=width_sum, target=model_input_size)
-    # duplicate (quantity, component) bindings are ambiguous: fail closed
-    # instead of letting dict indexing silently drop the first entry
-    raw_keys = [(r.get("quantity"), r.get("component"))
+    # duplicate (quantity, component, sample_offset_steps) bindings are
+    # ambiguous: fail closed instead of letting dict indexing silently drop
+    # the first entry. The temporal offset is part of the identity — the same
+    # signal at two points in a window is two distinct raw inputs.
+    def _off(d):
+        o = d.get("sample_offset_steps", 0)
+        return o if isinstance(o, int) and not isinstance(o, bool) else 0
+
+    raw_keys = [(r.get("quantity"), r.get("component"), _off(r))
                 for r in model.get("raw_layout", []) if isinstance(r, dict)]
     seen_keys, dup_keys = set(), []
     for k in raw_keys:
@@ -133,9 +142,9 @@ def check(sensor: dict, model: dict,
     if dup_keys:
         fail("features", "E206", "<model>",
              "duplicate raw_layout binding(s): "
-             + ", ".join(f"{q!r}/{c!r}" for q, c in dup_keys)
-             + "; each (quantity, component) pair may appear at most once, "
-             "or feature ordering is ambiguous",
+             + ", ".join(f"{q!r}/{c!r}@{o}" for q, c, o in dup_keys)
+             + "; each (quantity, component, sample_offset_steps) triple may "
+             "appear at most once, or feature ordering is ambiguous",
              source=dup_keys[0], target=None)
     raw_index = {k: i for i, k in enumerate(raw_keys)}
 
@@ -154,7 +163,8 @@ def check(sensor: dict, model: dict,
         if width is None:
             continue  # malformed width already recorded as E207
         if width == 1:
-            key = (qty, (f.get("source") or {}).get("component"))
+            src = f.get("source") or {}
+            key = (qty, src.get("component"), _off(src))
             if key not in raw_index:
                 fail("features", "E402", name,
                      f"source {key} not present in raw_layout; feature order "
@@ -164,7 +174,7 @@ def check(sensor: dict, model: dict,
             sorder_declared = sens.get("ordering")
             sorder = sorder_declared or "wxyz"
             comps = list(sorder) if sorder in ("wxyz", "xyzw") else None
-            if comps is None or any((qty, k) not in raw_index for k in comps):
+            if comps is None or any((qty, k, 0) not in raw_index for k in comps):
                 fail("features", "E402", name,
                      f"quaternion source entries for {qty!r} not fully "
                      f"present in raw_layout", source=qty, target=None)

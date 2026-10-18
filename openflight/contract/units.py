@@ -53,6 +53,7 @@ QUANTITY_DIMENSION: dict[str, set[str]] = {
     "gyroscope": {"angular_velocity"},
     "acceleration": {"acceleration"},
     "accelerometer": {"acceleration"},
+    "applied_control_acceleration": {"acceleration"},
 }
 
 

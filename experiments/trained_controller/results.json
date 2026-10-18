@@ -5,6 +5,21 @@
   "arch": "mlp:60,128,64,1",
   "seed": 7,
   "n_samples": 200,
+  "window": {
+    "length": 20,
+    "signals": [
+      "a_meas",
+      "u_act",
+      "v"
+    ],
+    "order": "newest-first"
+  },
+  "standardisation": {
+    "input": "per-feature (x-mean)/std from the checkpoint",
+    "output": "model output is standardised; the physical estimate is y*t_std + t_mean (caller-side)",
+    "t_mean": 19.683969,
+    "t_std": 17.489496
+  },
   "tolerances": {
     "rtol": 0.0001,
     "atol": 0.0001
@@ -24,12 +39,12 @@
         "feature": null,
         "ratio": null,
         "exit_code": 0,
-        "seconds": 1.787
+        "seconds": 2.354
       },
       "baseline": {
         "stage": null,
         "feature": null,
-        "seconds": 0.577
+        "seconds": 0.644
       }
     },
     {
@@ -39,15 +54,15 @@
       "diagnose": {
         "status": "discrepancy",
         "stage": "preprocessing",
-        "feature": "acc0",
-        "ratio": 100.0,
+        "feature": "a_meas_t0",
+        "ratio": -0.020253989578842207,
         "exit_code": 4,
-        "seconds": 1.926
+        "seconds": 2.314
       },
       "baseline": {
         "stage": "preprocessing",
         "feature": "feature[0]",
-        "seconds": 0.553
+        "seconds": 0.597
       },
       "correct": {
         "diagnose": true,
@@ -55,21 +70,21 @@
       }
     },
     {
-      "id": "gyro_units",
+      "id": "control_units",
       "family": "sensor units",
       "expected_stage": "preprocessing",
       "diagnose": {
         "status": "discrepancy",
         "stage": "preprocessing",
-        "feature": "gyro0",
-        "ratio": 0.01745329238067914,
+        "feature": "u_act_t0",
+        "ratio": 1.176552888338063,
         "exit_code": 4,
-        "seconds": 1.914
+        "seconds": 2.01
       },
       "baseline": {
         "stage": "preprocessing",
         "feature": "feature[20]",
-        "seconds": 0.549
+        "seconds": 0.554
       },
       "correct": {
         "diagnose": true,
@@ -78,20 +93,20 @@
     },
     {
       "id": "order_swap",
-      "family": "feature ordering",
+      "family": "temporal ordering",
       "expected_stage": "preprocessing",
       "diagnose": {
         "status": "discrepancy",
         "stage": "preprocessing",
-        "feature": "acc0",
-        "ratio": 3.175285398582707,
+        "feature": "a_meas_t0",
+        "ratio": -0.03055958567834197,
         "exit_code": 4,
-        "seconds": 2.206
+        "seconds": 1.914
       },
       "baseline": {
         "stage": "preprocessing",
         "feature": "feature[0]",
-        "seconds": 0.528
+        "seconds": 0.57
       },
       "correct": {
         "diagnose": true,
@@ -105,15 +120,15 @@
       "diagnose": {
         "status": "discrepancy",
         "stage": "preprocessing",
-        "feature": "acc0",
-        "ratio": 2.0000001207065567,
+        "feature": "a_meas_t0",
+        "ratio": 2.0305595714932694,
         "exit_code": 4,
-        "seconds": 2.012
+        "seconds": 1.921
       },
       "baseline": {
         "stage": "preprocessing",
         "feature": "feature[0]",
-        "seconds": 0.546
+        "seconds": 0.568
       },
       "correct": {
         "diagnose": true,
@@ -128,14 +143,14 @@
         "status": "discrepancy",
         "stage": "model",
         "feature": "output[0]",
-        "ratio": 1.1104563679764683,
+        "ratio": 0.8783825435886908,
         "exit_code": 4,
-        "seconds": 2.201
+        "seconds": 1.882
       },
       "baseline": {
         "stage": "model",
         "feature": "feature[0]",
-        "seconds": 0.531
+        "seconds": 0.567
       },
       "correct": {
         "diagnose": true,
@@ -154,8 +169,8 @@
       "baseline": 0
     },
     "seconds_median": {
-      "diagnose": 1.969,
-      "baseline": 0.548
+      "diagnose": 1.966,
+      "baseline": 0.569
     },
     "time_note": "wall-clock proxy only; excludes the engineer time to write and maintain the baseline harness",
     "reproducibility": {

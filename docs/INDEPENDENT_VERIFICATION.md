@@ -93,7 +93,7 @@ The pre-fix comparison in step 3 adds seven checks, for a combined total of
 This runs, in order: provenance checks (tag `v0.2.6-pilot` and ref `e8187af`
 unchanged), a pinned-dependency check over **every** package and version in
 `requirements-lock.txt` (a missing **or** mismatched dependency fails the
-run; names are normalised), the full test suite (expects **290 passed**;
+run; names are normalised), the full test suite (expects **298 passed**;
 override with `--expect-passed N` if you are verifying a different commit),
 `openflight/repro.py` (`REPRODUCTION OK`), and, finally, builds a genuine
 discrepancy bundle with the CLI and applies six scenarios:
@@ -127,7 +127,7 @@ corrections fix real defects rather than adding decorative checks.
 ### 4. Optional manual cross-checks
 
 ```bash
-python -m pytest tests/openflight -q     # 290 passed
+python -m pytest tests/openflight -q     # 298 passed
 python openflight/repro.py               # REPRODUCTION OK
 ```
 
@@ -139,9 +139,13 @@ id, and the `reproduce.py` stdout/stderr for that case, and open an issue.
 
 ## Verifying the experiment
 
-The branch also carries the first research experiment (`bd36b77`,
-2026-10-18): a genuinely trained controller deployed through the real
-pipeline with five injected faults plus a clean control.
+The branch also carries the first research experiment: a genuinely trained
+controller deployed through the real pipeline with five injected faults plus a
+clean control. The deployed contract reproduces the observer's **real** input
+pipeline — a 20-sample window (newest-first) of `[a_meas, u_act, v]`,
+standardised with the checkpoint's mean/std — with the temporal offsets
+(`sample_offset_steps`) and the actuator quantity
+(`applied_control_acceleration`) declared explicitly.
 
 ```bash
 python experiments/trained_controller/experiment.py --n-samples 200 \
@@ -173,7 +177,7 @@ fills the second in a clean environment.
 revision:        <git rev-parse HEAD>
 branch:          fix/reproduction-integrity
 author result:   candidate 39 / combined 46 checks, 0 failed, VERDICT PASS;
-                 suite 290 passed; experiment 5/5 localised, 0 false
+                 suite 298 passed; experiment 5/5 localised, 0 false
 verifier:        <name, date, machine>
 verifier env:    <paste `pip freeze`>
 verifier result: <harness tail + experiment metrics + PASS/FAIL>

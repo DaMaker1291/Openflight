@@ -17,6 +17,17 @@ from openflight.contract import units as U
 ORDER_COMPS = {"wxyz": ["w", "x", "y", "z"], "xyzw": ["x", "y", "z", "w"]}
 
 
+def _offset(binding: dict) -> int:
+    """Temporal position of a raw/feature binding (sample_offset_steps).
+
+    Absent means 0 (the current sample). Malformed values were already
+    rejected by the schema validator; defaulting here keeps the checker and
+    pipeline consistent when called directly.
+    """
+    o = binding.get("sample_offset_steps", 0)
+    return o if isinstance(o, int) and not isinstance(o, bool) else 0
+
+
 def _sensor_units(sensor: dict, qty: str) -> str | None:
     from openflight.contract.checker import _sensor_field
     node = _sensor_field(sensor, qty)
@@ -33,7 +44,7 @@ def build_ops(sensor: dict, model: dict) -> list[dict]:
     """One op per model-input element. Requires a passing checker report
     (call check() first); raises a diagnosed ValueError (never a bare
     KeyError) on anything unresolvable."""
-    raw_index = {(r["quantity"], r["component"]): i
+    raw_index = {(r["quantity"], r["component"], _offset(r)): i
                  for i, r in enumerate(model.get("raw_layout", []))}
     ops: list[dict] = []
     for f in model["features"]:
@@ -72,7 +83,7 @@ def build_ops(sensor: dict, model: dict) -> list[dict]:
             s, o = 1.0, 0.0
         gain, off = a * s, o
         if width == 1:
-            key = (qty, f["source"]["component"])
+            key = (qty, f["source"]["component"], _offset(f["source"]))
             if key not in raw_index:
                 raise ValueError(f"[{f['name']}] source {key} not in raw_layout")
             ops.append({"feature": f["name"], "raw": raw_index[key],
@@ -87,7 +98,7 @@ def build_ops(sensor: dict, model: dict) -> list[dict]:
             # permutation; the raw indices below ARE the reorder.
             idx = []
             for mc in mcomps:
-                rk = (qty, mc)
+                rk = (qty, mc, _offset(f["source"]))
                 if rk not in raw_index:
                     raise ValueError(
                         f"[{f['name']}] quaternion entry {rk} not in raw_layout")
