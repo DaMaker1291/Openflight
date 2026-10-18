@@ -83,7 +83,7 @@ def spawn():
            "-nic", "user,model=open_eth",
            "-display", "none", "-monitor", "none", "-serial", "stdio"]
     return subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.DEVNULL)
+                            stderr=subprocess.PIPE)
 
 
 def wait_selftest(proc, timeout=120):
@@ -100,7 +100,14 @@ def wait_selftest(proc, timeout=120):
             raise TimeoutError("no SELFTEST line from sim")
         chunk = os.read(proc.stdout.fileno(), 65536)
         if not chunk:
-            raise EOFError("sim exited before SELFTEST")
+            err = b""
+            try:
+                err = proc.stderr.read() or b""
+            except Exception:
+                pass
+            raise EOFError(
+                "sim exited before SELFTEST; qemu stderr: "
+                + err.decode(errors="replace")[-2000:])
         data += chunk
         if st is None:
             st = re.search(
