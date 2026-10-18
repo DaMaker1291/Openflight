@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "label": "SIMULATED (host-side deployment evidence; not physical-robot validation)",
+  "model": "learned_observer.pt",
+  "arch": "mlp:60,128,64,1",
+  "seed": 7,
+  "n_samples": 200,
+  "tolerances": {
+    "rtol": 0.0001,
+    "atol": 0.0001
+  },
+  "environment": {
+    "python": "3.12.9",
+    "platform": "macOS-15.6-arm64-arm-64bit"
+  },
+  "cases": [
+    {
+      "id": "clean",
+      "family": "control (no fault)",
+      "expected_stage": null,
+      "diagnose": {
+        "status": "agree",
+        "stage": null,
+        "feature": null,
+        "ratio": null,
+        "exit_code": 0,
+        "seconds": 1.787
+      },
+      "baseline": {
+        "stage": null,
+        "feature": null,
+        "seconds": 0.577
+      }
+    },
+    {
+      "id": "acc_units",
+      "family": "sensor units",
+      "expected_stage": "preprocessing",
+      "diagnose": {
+        "status": "discrepancy",
+        "stage": "preprocessing",
+        "feature": "acc0",
+        "ratio": 100.0,
+        "exit_code": 4,
+        "seconds": 1.926
+      },
+      "baseline": {
+        "stage": "preprocessing",
+        "feature": "feature[0]",
+        "seconds": 0.553
+      },
+      "correct": {
+        "diagnose": true,
+        "baseline": true
+      }
+    },
+    {
+      "id": "gyro_units",
+      "family": "sensor units",
+      "expected_stage": "preprocessing",
+      "diagnose": {
+        "status": "discrepancy",
+        "stage": "preprocessing",
+        "feature": "gyro0",
+        "ratio": 0.01745329238067914,
+        "exit_code": 4,
+        "seconds": 1.914
+      },
+      "baseline": {
+        "stage": "preprocessing",
+        "feature": "feature[20]",
+        "seconds": 0.549
+      },
+      "correct": {
+        "diagnose": true,
+        "baseline": true
+      }
+    },
+    {
+      "id": "order_swap",
+      "family": "feature ordering",
+      "expected_stage": "preprocessing",
+      "diagnose": {
+        "status": "discrepancy",
+        "stage": "preprocessing",
+        "feature": "acc0",
+        "ratio": 3.175285398582707,
+        "exit_code": 4,
+        "seconds": 2.206
+      },
+      "baseline": {
+        "stage": "preprocessing",
+        "feature": "feature[0]",
+        "seconds": 0.528
+      },
+      "correct": {
+        "diagnose": true,
+        "baseline": true
+      }
+    },
+    {
+      "id": "preproc_gain",
+      "family": "preprocessing",
+      "expected_stage": "preprocessing",
+      "diagnose": {
+        "status": "discrepancy",
+        "stage": "preprocessing",
+        "feature": "acc0",
+        "ratio": 2.0000001207065567,
+        "exit_code": 4,
+        "seconds": 2.012
+      },
+      "baseline": {
+        "stage": "preprocessing",
+        "feature": "feature[0]",
+        "seconds": 0.546
+      },
+      "correct": {
+        "diagnose": true,
+        "baseline": true
+      }
+    },
+    {
+      "id": "compiled_infer",
+      "family": "compiled inference",
+      "expected_stage": "model",
+      "diagnose": {
+        "status": "discrepancy",
+        "stage": "model",
+        "feature": "output[0]",
+        "ratio": 1.1104563679764683,
+        "exit_code": 4,
+        "seconds": 2.201
+      },
+      "baseline": {
+        "stage": "model",
+        "feature": "feature[0]",
+        "seconds": 0.531
+      },
+      "correct": {
+        "diagnose": true,
+        "baseline": true
+      }
+    }
+  ],
+  "metrics": {
+    "faults": 5,
+    "localisation_accuracy": {
+      "diagnose": 1.0,
+      "baseline": 1.0
+    },
+    "false_diagnoses_on_clean": {
+      "diagnose": 0,
+      "baseline": 0
+    },
+    "seconds_median": {
+      "diagnose": 1.969,
+      "baseline": 0.548
+    },
+    "time_note": "wall-clock proxy only; excludes the engineer time to write and maintain the baseline harness",
+    "reproducibility": {
+      "case": "acc_units",
+      "second_run_equivalent": true
+    }
+  }
+}

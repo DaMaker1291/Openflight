@@ -92,7 +92,7 @@ The pre-fix comparison in step 3 adds seven checks, for a combined total of
 This runs, in order: provenance checks (tag `v0.2.6-pilot` and ref `e8187af`
 unchanged), a pinned-dependency check over **every** package and version in
 `requirements-lock.txt` (a missing **or** mismatched dependency fails the
-run; names are normalised), the full test suite (expects **288 passed**;
+run; names are normalised), the full test suite (expects **290 passed**;
 override with `--expect-passed N` if you are verifying a different commit),
 `openflight/repro.py` (`REPRODUCTION OK`), and, finally, builds a genuine
 discrepancy bundle with the CLI and applies six scenarios:
@@ -126,7 +126,7 @@ corrections fix real defects rather than adding decorative checks.
 ### 4. Optional manual cross-checks
 
 ```bash
-python -m pytest tests/openflight -q     # 288 passed
+python -m pytest tests/openflight -q     # 290 passed
 python openflight/repro.py               # REPRODUCTION OK
 ```
 

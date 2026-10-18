@@ -137,6 +137,24 @@ bundle still pass. Suite **283 → 286 passed**; ruff scoped baseline 38;
 diagnosis mechanism absent a new concrete defect found by independent
 verification.
 
+### Trained-controller fault-localisation experiment (2026-10-18)
+
+First experiment milestone (replacing further verification work): a genuinely
+trained controller (`learned_observer.pt`, MLP 60→128→64→1, trained by
+`learned_observer.py`) is deployed through the real `openflight deploy`
+pipeline, and five realistic deployment faults plus a clean control are
+injected — accelerometer unit mismatch, gyroscope unit mismatch, feature-order
+swap, preprocessing gain error, compiled-inference bias.
+`experiments/trained_controller/experiment.py` records a reference from the
+clean adapter + trained model, runs `openflight diagnose` and a hand-written
+staged comparison (the baseline a researcher would script), and writes
+`results.json` + `REPORT.md`. Result (SIMULATED, host-side): both localise
+5/5 faults to the correct stage, 0 false diagnoses on the control, diagnosis
+reproducible; the scripted baseline is faster on raw compute (≈0.5s vs ≈2.0s
+median), so the advantage is engineering (bundle, exit-code contract,
+reproducibility), not accuracy — stated rather than hidden.
+`tests/openflight/test_trained_controller_experiment.py` (2 tests). Suite
+**286 → 290 passed**; ruff scoped baseline 38. No physical-robot validation.
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen
