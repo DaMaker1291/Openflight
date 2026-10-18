@@ -44,6 +44,23 @@ python3 -m esptool --chip esp32 merge_bin -o "$BUILD/flash_image.bin" \
   0x1000 "$BUILD/bootloader/bootloader.bin" \
   0x8000 "$BUILD/partition_table/partition-table.bin" \
   0x10000 "$BUILD/openflight_bench.bin" 2>&1 | tail -n 5
+echo "--- efuse image (QEMU needs this drive; ESP-IDF default blob, 124 B) ---"
+# QEMU's nvram.esp32.efuse drive points at qemu_efuse.bin and fails to start
+# if the file is absent. ESP-IDF's `idf.py qemu` writes this exact default
+# blob (chip revision bits set) when the file is missing; mirror that so a
+# clean build works without a manual dd.
+python3 - "$BUILD/qemu_efuse.bin" <<'PYEOF'
+import sys
+blob = bytes.fromhex(
+    "00000000000000000000000000800000000000000000100000000000000000000000000000000000"
+    "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    "00000000")
+assert len(blob) == 124, len(blob)
+with open(sys.argv[1], "wb") as f:
+    f.write(blob)
+print(f"wrote {sys.argv[1]} ({len(blob)} bytes)")
+PYEOF
 echo "--- size summary ---"
 python3 "$IDF_PATH/tools/idf_size.py" "$BUILD/openflight_bench.map" 2>/dev/null \
   | head -n 25 || xtensa-esp32-elf-size "$BUILD"/openflight_bench.elf
