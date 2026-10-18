@@ -38,9 +38,22 @@ jobs:
             results/esp32/
             firmware/esp32/build/openflight_bench.map
 
+  # GitHub forbids the `secrets` context in a job-level `if`. A tiny gate job
+  # exposes whether the token exists as an output; the Wokwi job keys off it.
+  wokwi-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      have_token: ${{ steps.check.outputs.have_token }}
+    steps:
+      - id: check
+        env:
+          TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+        run: echo "have_token=${{ env.TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
   wokwi:
     runs-on: ubuntu-latest
-    if: ${{ secrets.WOKWI_CLI_TOKEN != '' }}
+    needs: wokwi-gate
+    if: needs.wokwi-gate.outputs.have_token == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

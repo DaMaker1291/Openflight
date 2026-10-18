@@ -2,9 +2,12 @@ name: openflight
 on:
   push:
     paths: ["openflight/**", "firmware/**", "tests/openflight/**",
-            "examples/mlp_observer/**", "examples/quadrotor_adapter/**"]
+            "experiments/**", "examples/mlp_observer/**",
+            "examples/quadrotor_adapter/**", "requirements-lock.txt",
+            ".github/workflows/openflight.yml"]
   pull_request:
-    paths: ["openflight/**", "firmware/**", "tests/openflight/**"]
+    paths: ["openflight/**", "firmware/**", "tests/openflight/**",
+            "experiments/**", "requirements-lock.txt"]
   workflow_dispatch:
 
 jobs:
@@ -14,9 +17,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: pip install numpy pytest
-      - run: python3 openflight/repro.py
+      - name: Install the pinned dependency set
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-lock.txt \
+            --index-url https://download.pytorch.org/whl/cpu \
+            --extra-index-url https://pypi.org/simple
+          python -m pip install -e . --no-deps
+      - name: Full test suite
+        run: python -m pytest tests/openflight -q
+      - name: Reproduce recorded evidence
+        run: python openflight/repro.py
 
   firmware-cross:
     runs-on: ubuntu-latest
