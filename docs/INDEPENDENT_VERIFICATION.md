@@ -4,11 +4,11 @@ This guide is for a reviewer verifying, **independently of the author**, the
 reproduction-integrity corrections to `openflight diagnose`. It specifies a
 clean pinned environment, the exact commands, and the expected observations.
 
-The author has run this harness (25 checks, 0 failed, `VERDICT: PASS`). Logs
-are gitignored (`*.log` is not tracked), so that run is a local artifact you
-will not find in a clone. In any case it is **not** independent verification;
-reproduce the run in your own environment and treat only your own result as
-evidence.
+The author has run the full procedure below (25 checks across the candidate
+and pre-fix stages, 0 failed). Logs are gitignored (`*.log` is not tracked),
+so that run is a local artifact you will not find in a clone. In any case it
+is **not** independent verification; reproduce the run in your own
+environment and treat only your own result as evidence.
 
 ## What is being verified
 
@@ -43,7 +43,13 @@ And one invariant that must hold throughout: the frozen candidate `e8187af`
 - A host C++ compiler (`c++`) and C compiler (`cc`).
 - The exact pinned dependency set: `requirements-lock.txt` (torch 2.14.1,
   numpy 2.5.4, matplotlib 3.11.2, PyYAML 6.0.3, pytest 9.1.1 + transitives).
-- The candidate at commit `ed03d0e` (branch `fix/reproduction-integrity`).
+  A missing dependency, or one whose version differs from the pin, **fails**
+  the run — a passing exit code means the pinned set was actually used.
+- The revision to check out: branch `fix/reproduction-integrity` at its tip
+  (`af48dae`). This contains **both** the diagnosis implementation under test
+  (last mechanism commit `ed03d0e`) and the verification materials
+  (`reproduction/verify_diagnose_integrity.py` and this guide).
+  `ed03d0e` alone predates the harness and cannot run the procedure.
 
 ## Procedure
 
@@ -63,18 +69,22 @@ pip install -e . --no-deps                # the candidate itself
 python reproduction/verify_diagnose_integrity.py
 ```
 
-Expected final lines:
+Expected final lines (candidate only — **18 checks**):
 
 ```
-checks: 25  failed: 0  warnings: 0
+checks: 18  failed: 0  warnings: 0
 VERDICT: PASS
 ```
 
+The pre-fix comparison in step 3 adds seven checks, for a combined total of
+25.
+
 This runs, in order: provenance checks (tag `v0.2.6-pilot` and ref `e8187af`
-unchanged), a pinned-dependency check, the full test suite (expects
-**286 passed**; override with `--expect-passed N` if you are verifying a
-different commit), `openflight/repro.py` (`REPRODUCTION OK`), and, finally,
-builds a genuine discrepancy bundle with the CLI and applies six scenarios:
+unchanged), a pinned-dependency check (a missing **or** mismatched dependency
+fails the run), the full test suite (expects **286 passed**; override with
+`--expect-passed N` if you are verifying a different commit),
+`openflight/repro.py` (`REPRODUCTION OK`), and, finally, builds a genuine
+discrepancy bundle with the CLI and applies six scenarios:
 
 | scenario | mutation | expected on candidate |
 | --- | --- | --- |
@@ -98,8 +108,9 @@ git worktree remove /tmp/openflight-e8187af --force
 
 Expected: every `prefix/*` scenario is **accepted** (the pre-fix code does not
 detect the tampering) while every `candidate/*` scenario is still **rejected**.
-This is the key independent evidence that the corrections fix real defects
-rather than adding decorative checks.
+The combined run ends with **25 checks** and the same `warnings: 0` /
+`VERDICT: PASS` line as step 2. This is the key independent evidence that the
+corrections fix real defects rather than adding decorative checks.
 
 ### 4. Optional manual cross-checks
 

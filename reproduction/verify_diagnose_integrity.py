@@ -297,8 +297,8 @@ def _check_environment():
         if got is None:
             _record(FAIL, f"dependency {name}", f"not installed (pin {want})")
         elif got != want:
-            _record(WARN, f"dependency {name}",
-                    f"{got} != pinned {want} (allowed, but not the pinned set)")
+            _record(FAIL, f"dependency {name}",
+                    f"{got} != pinned {want} (required pinned set)")
         else:
             _record(PASS, f"dependency {name}", got)
 
