@@ -27,15 +27,17 @@ jobs:
         run: |
           git clone --depth 1 --branch v5.3.2 https://github.com/espressif/esp-idf.git /tmp/esp-idf
           (cd /tmp/esp-idf && ./install.sh esp32)
-          /tmp/esp-idf/tools/idf_tools.py --non-interactive install qemu-xtensa || true
+          python3 /tmp/esp-idf/tools/idf_tools.py --non-interactive install qemu-xtensa
+          QEMU_BIN="$(find "$HOME/.espressif/tools/qemu-xtensa" -name qemu-system-xtensa -type f | head -1)"
+          test -n "$QEMU_BIN" || { echo "qemu-system-xtensa not installed" >&2; exit 1; }
+          echo "$(dirname "$QEMU_BIN")" >> "$GITHUB_PATH"
+          "$QEMU_BIN" --version
       - name: Build bench firmware
         run: |
           export IDF_PATH=/tmp/esp-idf
           bash firmware/esp32/build.sh
       - name: Run emulated firmware (scenarios A-D + parity)
-        run: |
-          export PATH="$HOME/.espressif/tools/qemu-xtensa/esp_develop_9.0.0_20240606/qemu/bin:$PATH"
-          python3 firmware/esp32/qemu_test.py
+        run: python3 firmware/esp32/qemu_test.py
       - uses: actions/upload-artifact@v4
         with:
           name: esp32-evidence
