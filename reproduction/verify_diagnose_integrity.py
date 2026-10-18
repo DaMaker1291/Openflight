@@ -35,6 +35,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -43,11 +44,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 LOCK = REPO / "requirements-lock.txt"
-CORE_PINS = ("torch", "numpy", "PyYAML", "pytest", "matplotlib")
 FROZEN_TAG = "v0.2.6-pilot"
 FROZEN_TAG_COMMIT = "5840dfe7ddb055cb962fee32bd82ba8419d27f51"
 FROZEN_CANDIDATE = "e8187af3dc3a05db581adecccdf6d229ce0638d2"
-DEFAULT_EXPECTED_PASSED = 286
+DEFAULT_EXPECTED_PASSED = 288
 
 PASS, FAIL, WARN = "PASS", "FAIL", "WARN"
 _results = []
@@ -278,29 +278,55 @@ def _check_provenance():
                 f"{got} (frozen candidate is {FROZEN_CANDIDATE})")
 
 
+def normalize(name):
+    """PEP 503 name normalisation: lowercase, runs of -_. -> single -."""
+    return re.sub(r"[-_.]+", "-", name).strip().lower()
+
+
+def parse_pins(text):
+    """Parse 'name==version' lines (pip freeze or the lock file) into a
+    {normalised_name: version} mapping; comments and non-pinned lines
+    (editable installs, VCS URLs) are ignored."""
+    pins = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "==" not in line:
+            continue
+        name, _, ver = line.partition("==")
+        pins[normalize(name)] = ver.strip()
+    return pins
+
+
+def check_pins(pins, installed):
+    """Return a (status, name, detail) record for every pinned package.
+    A package that is missing or at a different version is a FAIL."""
+    results = []
+    for canon in sorted(pins):
+        want = pins[canon]
+        got = installed.get(canon)
+        if got is None:
+            results.append((FAIL, f"dependency {canon}",
+                            f"not installed (pin {want})"))
+        elif got != want:
+            results.append((FAIL, f"dependency {canon}",
+                            f"{got} != pinned {want} (required pinned set)"))
+        else:
+            results.append((PASS, f"dependency {canon}", got))
+    return results
+
+
+def verdict(results):
+    """Nonzero iff any check failed."""
+    return 1 if any(s == FAIL for s, _n, _d in results) else 0
+
+
 def _check_environment():
     r = subprocess.run([sys.executable, "-m", "pip", "freeze"],
                        capture_output=True, text=True)
-    installed = {}
-    for line in r.stdout.splitlines():
-        if "==" in line:
-            name, _, ver = line.partition("==")
-            installed[name.strip()] = ver.strip()
-    wanted = {}
-    for line in LOCK.read_text().splitlines():
-        if "==" in line and not line.startswith("#"):
-            name, _, ver = line.partition("==")
-            wanted[name.strip()] = ver.strip()
-    for name in CORE_PINS:
-        got = installed.get(name)
-        want = wanted.get(name)
-        if got is None:
-            _record(FAIL, f"dependency {name}", f"not installed (pin {want})")
-        elif got != want:
-            _record(FAIL, f"dependency {name}",
-                    f"{got} != pinned {want} (required pinned set)")
-        else:
-            _record(PASS, f"dependency {name}", got)
+    installed = parse_pins(r.stdout)
+    pins = parse_pins(LOCK.read_text())
+    for status, name, detail in check_pins(pins, installed):
+        _record(status, name, detail)
 
 
 def _check_suite(expected):
@@ -387,7 +413,7 @@ def main():
         for status, name, detail in failed:
             print(f"  FAIL {name}: {detail}")
     print("VERDICT:", "FAIL" if failed else "PASSWITHWARNINGS" if warned else "PASS")
-    return 1 if failed else 0
+    return verdict(_results)
 
 
 if __name__ == "__main__":
