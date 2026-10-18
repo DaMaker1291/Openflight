@@ -1,8 +1,9 @@
 # Independent verification — `openflight diagnose` reproduction integrity
 
 This guide is for a reviewer verifying, **independently of the author**, the
-reproduction-integrity corrections to `openflight diagnose`. It specifies a
-clean pinned environment, the exact commands, and the expected observations.
+reproduction-integrity corrections to `openflight diagnose` and the
+trained-controller experiment. It specifies a clean pinned environment, the
+exact commands, and the expected observations.
 
 The author has run the full procedure below (46 checks across the candidate
 and pre-fix stages, 0 failed). Logs are gitignored (`*.log` is not tracked),
@@ -35,7 +36,7 @@ And one invariant that must hold throughout: the frozen candidate `e8187af`
   possible. These checks make tampering *detectable and testable*, not
   *impossible*.
 - A PASS says nothing about OpenFlight's research value. That is a separate
-  experiment (see "After verification").
+  experiment (see "Verifying the experiment").
 
 ## Prerequisites
 
@@ -136,10 +137,57 @@ If any scenario behaves differently from the table, record: the commit under
 test, your `pip freeze` output, the full harness output, the exact scenario
 id, and the `reproduce.py` stdout/stderr for that case, and open an issue.
 
+## Verifying the experiment
+
+The branch also carries the first research experiment (`bd36b77`,
+2026-10-18): a genuinely trained controller deployed through the real
+pipeline with five injected faults plus a clean control.
+
+```bash
+python experiments/trained_controller/experiment.py --n-samples 200 \
+    --out experiments/trained_controller
+```
+
+Expected: each case prints `diagnose=<stage>` equal to its `expected=<stage>`
+(the clean control prints `diagnose=None`), and the metrics JSON shows
+`localisation_accuracy.diagnose == 1.0`,
+`false_diagnoses_on_clean.diagnose == 0`, and
+`reproducibility.second_run_equivalent == true`. **Wall-clock seconds will
+differ per machine — do not compare them**; compare only the verdicts.
+`tests/openflight/test_trained_controller_experiment.py` re-checks this at a
+small sample count as part of the suite.
+
+This experiment is **SIMULATED** host-side. Verifying it means confirming that
+the pipeline localises the injected faults on *your* machine. It does **not**
+establish that OpenFlight beats any baseline: the recorded finding is that a
+scripted staged baseline matches it on accuracy and is faster on raw compute,
+so the claimed value is the self-contained bundle and reproducibility — accept
+or reject that claim on the evidence, not on the demo.
+
+## Handoff record
+
+The author fills the first block and hands over the exact SHA; the verifier
+fills the second in a clean environment.
+
+```
+revision:        <git rev-parse HEAD>
+branch:          fix/reproduction-integrity
+author result:   candidate 39 / combined 46 checks, 0 failed, VERDICT PASS;
+                 suite 290 passed; experiment 5/5 localised, 0 false
+verifier:        <name, date, machine>
+verifier env:    <paste `pip freeze`>
+verifier result: <harness tail + experiment metrics + PASS/FAIL>
+discrepancies:   <none, or issue link>
+```
+
+Independence means the verifier block is filled by someone other than the
+author, in a clean environment. An author run does not satisfy this gate.
+
 ## After verification
 
-Only once the above passes should the next gate be attempted: running
-OpenFlight on a genuinely **trained** controller and fault corpus, and
-comparing it against a researcher's existing manual/differential workflow.
-That experiment — not the count of detected tampering cases — is what
-establishes research value.
+Only once an independent PASS is recorded should the next gate be attempted:
+the preregistered pilot (the three prereg gates are not yet complete — see
+PILOT_PREREGISTRATION). The experiment above already answers the "does it do
+something a researcher needs" question at the simulated, single-controller
+level; scaling that to real hardware and outside researchers is what the
+remaining gates cover.
