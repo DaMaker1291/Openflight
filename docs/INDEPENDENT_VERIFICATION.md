@@ -197,6 +197,21 @@ OpenFlight outperforms existing tools. F1–F4 are described under "Supported
 environments" in `README.md`; only the UTF-8 defect (F1) is a confirmed code
 defect and it is fixed at the revision that follows `eff1bbf`.
 
+### Post-fix re-run (author, 2026-10-18)
+
+After the F1 fix, the affected checks were re-run in the documented environment
+(macOS, pinned set) on commit
+`0b8c60debf7beb33db177a8bbe2bf6e69166680b`:
+
+- `python -m pytest tests/openflight -q` → **299 passed**
+- `python openflight/repro.py` → **`REPRODUCTION OK`** (eight host checks)
+- `python experiments/trained_controller/experiment.py --n-samples 200`
+  → 5/5 localised, 0 false diagnoses on the clean control, reproducible
+
+This is an author re-run of the checks affected by the fix, **not** a second
+independent verification; the independent `PASS WITH FINDINGS` above stands for
+`eff1bbf`.
+
 ## Handoff record
 
 The author fills the first block and hands over the exact SHA; the verifier
