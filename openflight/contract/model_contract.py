@@ -31,6 +31,20 @@ def load_model_contract(path: str) -> dict:
 NORM_METHODS = ("affine", "none")
 
 
+class ModelContractError(ValueError):
+    """A contract violation that carries the documented engine error code.
+
+    Structural problems stay generic ``E002``; the semantic checks that
+    ``docs/CONTRACT_ENGINE.md`` assigns specific codes (E201/E203/E205) raise
+    this so the CLI reports the documented code instead of masking it as E002.
+    It subclasses ``ValueError`` so existing callers keep working.
+    """
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
 def _offset(binding: dict) -> int:
     """Temporal position (sample_offset_steps); absent means 0."""
     o = binding.get("sample_offset_steps", 0)
@@ -73,7 +87,8 @@ def validate_model_contract(c: dict) -> dict:
         raise ValueError("model contract needs a non-empty features list")
     if sum(int(f.get("width", 1)) for f in feats if isinstance(f, dict)) != int(
             m["input_size"]):
-        raise ValueError(
+        raise ModelContractError(
+            "E203",
             "sum of feature widths must equal model.input_size")
     seen = set()
     for i, f in enumerate(feats):
@@ -112,13 +127,16 @@ def validate_model_contract(c: dict) -> dict:
             for k in ("scale", "offset"):
                 if (k not in norm or not isinstance(norm[k], (int, float))
                         or isinstance(norm[k], bool)):
-                    raise ValueError(
+                    raise ModelContractError(
+                        "E201",
                         f"{where}.normalization affine needs numeric {k!r}")
                 if not math.isfinite(norm[k]):
-                    raise ValueError(
+                    raise ModelContractError(
+                        "E201",
                         f"{where}.normalization affine {k} must be finite")
             if norm["scale"] == 0:
-                raise ValueError(f"{where}.normalization scale must be nonzero")
+                raise ModelContractError(
+                    "E205", f"{where}.normalization scale must be nonzero")
         # quaternion features must declare ordering (Layer 1)
         if f.get("representation") == "quaternion" and "ordering" not in f:
             raise ValueError(

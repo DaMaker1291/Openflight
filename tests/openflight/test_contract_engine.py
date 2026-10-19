@@ -1,5 +1,6 @@
 """Contract engine tests: schema, checker codes, unit pipeline parity, stale."""
 import copy
+import json
 import os
 import subprocess
 
@@ -52,6 +53,37 @@ def test_schema_rejections(tmp_path):
     bad3["features"] = bad3["features"][:5]  # widths sum 5 != 6
     with pytest.raises(ValueError):
         MC.validate_model_contract(bad3)
+
+
+def test_semantic_schema_rejections_report_documented_codes(tmp_path):
+    """Finding from the 2026-10-18 two-agent evaluation: three gate cases were
+    correctly rejected but reported the generic schema code E002 instead of the
+    documented E201/E205/E203, because the schema layer raises before the
+    checker runs. Rejection must stay closed; only the code is aligned."""
+    from openflight import cli
+
+    _, m = _load()
+
+    def code(obj):
+        path = tmp_path / "model.json"
+        path.write_text(json.dumps(obj))
+        pair, errs = cli._load_contracts(SENSOR, str(path))
+        assert pair is None and errs, "malformed contract must block"
+        return errs[0]["code"]
+
+    nonfinite = copy.deepcopy(m)
+    nonfinite["features"][0]["normalization"] = {
+        "method": "affine", "scale": float("nan"), "offset": 0.0}
+    assert code(nonfinite) == "E201"
+
+    zero = copy.deepcopy(m)
+    zero["features"][0]["normalization"] = {
+        "method": "affine", "scale": 0.0, "offset": 0.0}
+    assert code(zero) == "E205"
+
+    short = copy.deepcopy(m)
+    short["features"] = short["features"][:5]  # widths sum 5 != input_size 6
+    assert code(short) == "E203"
 
 
 def _cflt(v: float) -> str:

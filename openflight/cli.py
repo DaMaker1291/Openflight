@@ -280,7 +280,10 @@ def _load_contracts(sensor_path, model_path):
     try:
         model = MC.load_model_contract(model_path)
     except Exception as e:
-        return None, [{"code": "E002", "feature": "<model-contract>",
+        # semantic violations carry their documented code (E201/E203/E205);
+        # everything else is a structural schema problem (E002)
+        return None, [{"code": getattr(e, "code", "E002"),
+                       "feature": "<model-contract>",
                        "reason": f"model contract invalid: {e}"}]
     return (sensor, model), []
 
