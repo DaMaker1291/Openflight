@@ -192,9 +192,10 @@ code `E002` instead of the documented `E201`/`E205`/`E203`: the model-contract
 schema layer raises before the checker runs. Semantic schema violations now
 carry their documented code (`ModelContractError` in `model_contract.py`,
 surfaced by `cli._load_contracts`); structural violations remain `E002`.
-Rejection is unchanged (still exit 2, no artifacts). New regression test
-asserts `E201` (non-finite scale), `E205` (zero scale) and `E203` (width sum)
-through the CLI load path. Suite **299 → 300 passed**.
+Rejection is unchanged (still exit 2, no artifacts). The regression test drives
+the real `deploy` command for all three cases and asserts the documented code,
+exit 2, and that the output contains only `deployment_report.json` — no staging
+directory and no deployable artifacts. Suite **299 → 300 passed**.
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

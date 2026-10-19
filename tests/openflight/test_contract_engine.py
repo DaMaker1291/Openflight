@@ -55,35 +55,39 @@ def test_schema_rejections(tmp_path):
         MC.validate_model_contract(bad3)
 
 
-def test_semantic_schema_rejections_report_documented_codes(tmp_path):
+def test_semantic_schema_rejections_report_documented_codes(tmp_path, capsys):
     """Finding from the 2026-10-18 two-agent evaluation: three gate cases were
     correctly rejected but reported the generic schema code E002 instead of the
     documented E201/E205/E203, because the schema layer raises before the
     checker runs. Rejection must stay closed; only the code is aligned."""
     from openflight import cli
 
+    pytest.importorskip("torch")  # deploy checks torch before the contract gate
     _, m = _load()
-
-    def code(obj):
-        path = tmp_path / "model.json"
-        path.write_text(json.dumps(obj))
-        pair, errs = cli._load_contracts(SENSOR, str(path))
-        assert pair is None and errs, "malformed contract must block"
-        return errs[0]["code"]
 
     nonfinite = copy.deepcopy(m)
     nonfinite["features"][0]["normalization"] = {
         "method": "affine", "scale": float("nan"), "offset": 0.0}
-    assert code(nonfinite) == "E201"
-
     zero = copy.deepcopy(m)
     zero["features"][0]["normalization"] = {
         "method": "affine", "scale": 0.0, "offset": 0.0}
-    assert code(zero) == "E205"
-
     short = copy.deepcopy(m)
     short["features"] = short["features"][:5]  # widths sum 5 != input_size 6
-    assert code(short) == "E203"
+
+    for obj, expected in ((nonfinite, "E201"), (zero, "E205"),
+                          (short, "E203")):
+        path = tmp_path / f"model-{expected}.json"
+        path.write_text(json.dumps(obj))
+        outdir = tmp_path / f"deploy-{expected}"
+        rc = cli.main(["deploy", "--model", "learned_observer.pt",
+                       "--arch", "mlp:6,16,2", "--contract", SENSOR,
+                       "--model-contract", str(path), "--output", str(outdir)])
+        captured = capsys.readouterr()
+        assert rc == 2, expected
+        assert expected in captured.out, (expected, captured.out)
+        names = set(os.listdir(outdir)) if os.path.isdir(outdir) else set()
+        assert names == {"deployment_report.json"}, (expected, names)
+        assert not outdir.with_name(outdir.name + ".staging").exists()
 
 
 def _cflt(v: float) -> str:
