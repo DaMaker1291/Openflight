@@ -41,6 +41,22 @@ pip install '.[torch,yaml]'     # + YAML contract validation
 Cross-compilers (`arm-none-eabi-g++`, `xtensa-esp32-elf-g++`) and `pyserial`
 are optional and only needed for hardware targets.
 
+## Supported environments
+
+- **Linux and macOS** — native, supported.
+- **Windows** — supported through **WSL** (i.e. a Linux environment).
+
+Native (non-WSL) Windows is **not** a supported target at this revision. An
+independent reviewer's native-Windows run surfaced platform-portability issues:
+generated artifacts written with the implicit platform encoding, POSIX-vs-Windows
+path normalisation, C++ path escaping in the generated harness, and the benchmark
+socket path. The encoding issue is fixed (generated diagnosis artifacts are now
+written as explicit UTF-8); the rest are out of scope until native Windows is
+prioritised — use WSL in the meantime.
+
+Prerequisites (supported environments): Python 3.10+ (verified 3.12.9) and a
+host C++ compiler (`c++`) plus C compiler (`cc`).
+
 ## Reproduce every result
 
 ```bash

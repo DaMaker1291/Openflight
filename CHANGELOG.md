@@ -163,6 +163,26 @@ advantage is engineering (bundle, exit-code contract, reproducibility), not
 accuracy — stated rather than hidden.
 `tests/openflight/test_trained_controller_experiment.py` (3 tests). Suite
 **286 → 298 passed**; ruff scoped baseline 38. No physical-robot validation.
+
+### Windows portability (F1) fix + independent verification (2026-10-18)
+
+Independent verification of `eff1bbf` in a fresh Linux/WSL environment
+reproduced the integrity checks (39/39, 46/46), the 298-test suite and
+`REPRODUCTION OK` — recorded as **PASS WITH FINDINGS**. The reviewer's
+native-Windows run then exposed portability issues; one is a confirmed code
+defect:
+
+- **F1 (fixed)** — the diagnosis bundle was written with the platform default
+  text encoding. On Windows (cp1252) the em dash in the generated
+  `reproduce.py` became a non-UTF-8 byte and the script failed to parse.
+  Generated `reproduce.py` and `summary.md` are now written as explicit UTF-8
+  (`openflight/diagnose.py`). Regression test generates the bundle under a
+  forced ASCII default text encoding and asserts the artifact is valid UTF-8,
+  parses and runs (`tests/openflight/test_diagnose.py`).
+- **F2–F4 (out of scope)** — POSIX-vs-Windows path normalisation, C++ path
+  escaping in the generated harness, and the benchmark socket path on native
+  Windows. Native Windows is documented as unsupported for now (Linux/macOS
+  native, Windows via WSL); see `README.md` "Supported environments".
 ## v0.2.6-pilot (2026-10-15) — candidate after the independent v0.2.5 audit
 
 Fixes defects an independent advisor proved by black-box testing the frozen

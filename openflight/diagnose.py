@@ -778,9 +778,11 @@ def _write_bundle(outdir: str, report: dict, failing_rows: list[int],
     }
     with open(os.path.join(outdir, "artifact_manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2, allow_nan=False)
-    with open(os.path.join(outdir, "reproduce.py"), "w") as f:
+    with open(os.path.join(outdir, "reproduce.py"), "w",
+              encoding="utf-8") as f:
         f.write(REPRODUCE_PY)
-    with open(os.path.join(outdir, "summary.md"), "w") as f:
+    with open(os.path.join(outdir, "summary.md"), "w",
+              encoding="utf-8") as f:
         f.write(render_summary(report))
     report["bundle_shas"] = {
         name: _sha(os.path.join(outdir, name))
@@ -993,7 +995,8 @@ def run(a) -> int:
     with open(prev_p, "w") as f:
         json.dump(report, f, indent=2, allow_nan=False)
     summary = render_summary(report)
-    with open(os.path.join(outdir, "summary.md"), "w") as f:
+    with open(os.path.join(outdir, "summary.md"), "w",
+              encoding="utf-8") as f:
         f.write(summary)
     print(summary)
     if status == "discrepancy":

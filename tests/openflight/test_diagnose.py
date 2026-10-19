@@ -11,8 +11,10 @@ three conditions required by the advisor's demonstration on 2026-10-17:
 transformation is localized as the first divergence, (3) the correction
 is verified by re-running the same recorded test.
 """
+import ast
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -286,3 +288,36 @@ def test_valid_configuration_produces_no_diagnostic(tmp_path):
     assert all(s["status"] == "agree" for s in rep["stages"])
     # preprocessing agreement is tight (float32 vs float64, ~1e-7)
     assert stages["preprocessing"]["max_abs_err"] < 1e-5
+
+
+def test_generated_artifacts_are_utf8_under_legacy_default_encoding(tmp_path):
+    """Regression (F1, found on native Windows): the generated bundle must be
+    written as UTF-8 regardless of the host's default text encoding. Windows'
+    cp1252 default wrote the em dash in ``reproduce.py`` as a non-UTF-8 byte,
+    so the generated script failed to parse. Force an ASCII file default (a
+    stricter superset of the Windows case) and assert the *artifact* is valid
+    UTF-8, parses, and runs — testing the generated file, not the template.
+    """
+    fx = _build_fixture(tmp_path)
+    out = tmp_path / "diagnosis"
+    _corrupt_first_gain(fx["build"] / "contract_adapt.h")
+    env = {**os.environ, "LC_ALL": "C", "LANG": "C",
+           "PYTHONCOERCECLOCALE": "0", "PYTHONUTF8": "0",
+           # isolate the *file* default: keep stdio UTF-8 so the run reaches
+           # the bundle writer rather than failing on a stdout print first
+           "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run(
+        [sys.executable, "-m", "openflight.cli", *_diagnose_args(fx, out)],
+        capture_output=True, text=True, env=env, cwd=str(ROOT))
+    assert r.returncode == 4, (
+        f"diagnose must reproduce the fault under {env}:\n"
+        f"{r.stdout}\n{r.stderr}")
+    text = (out / "reproduce.py").read_bytes().decode("utf-8")
+    ast.parse(text)               # SyntaxError if the bytes are not UTF-8 source
+    assert "\u2014" in text       # the em dash survived intact
+    summary = (out / "summary.md").read_bytes().decode("utf-8")
+    assert "DISCREPANCY REPRODUCED" in summary
+    r2 = subprocess.run([sys.executable, str(out / "reproduce.py")],
+                        capture_output=True, text=True, timeout=300)
+    assert r2.returncode == 0, (
+        f"generated reproduce.py failed:\n{r2.stdout}\n{r2.stderr}")

@@ -93,7 +93,7 @@ The pre-fix comparison in step 3 adds seven checks, for a combined total of
 This runs, in order: provenance checks (tag `v0.2.6-pilot` and ref `e8187af`
 unchanged), a pinned-dependency check over **every** package and version in
 `requirements-lock.txt` (a missing **or** mismatched dependency fails the
-run; names are normalised), the full test suite (expects **298 passed**;
+run; names are normalised), the full test suite (expects **299 passed**;
 override with `--expect-passed N` if you are verifying a different commit),
 `openflight/repro.py` (`REPRODUCTION OK`), and, finally, builds a genuine
 discrepancy bundle with the CLI and applies six scenarios:
@@ -127,7 +127,7 @@ corrections fix real defects rather than adding decorative checks.
 ### 4. Optional manual cross-checks
 
 ```bash
-python -m pytest tests/openflight -q     # 298 passed
+python -m pytest tests/openflight -q     # 299 passed
 python openflight/repro.py               # REPRODUCTION OK
 ```
 
@@ -168,16 +168,46 @@ scripted staged baseline matches it on accuracy and is faster on raw compute,
 so the claimed value is the self-contained bundle and reproducibility — accept
 or reject that claim on the evidence, not on the demo.
 
+## Independent verification result — 2026-10-18
+
+Recorded here from the independent verifier's report. The verifier ran the
+pinned procedure on commit
+`eff1bbf5bb215e02182ddadd8e887dbd91d98e47` in a **fresh Linux/WSL
+environment** (not the author's). The raw logs are held by the verifier; the
+table below is the reported outcome, not an author run.
+
+**Verdict: `PASS WITH FINDINGS`.**
+
+| Verification | Result |
+| --- | --- |
+| Independent integrity checks | 39/39 passed |
+| Pre-fix comparison | 46/46 checks passed |
+| Test suite (Linux/WSL) | 298 passed |
+| Overall reproduction | `REPRODUCTION OK` |
+| Injected faults correctly localised | 5/5 |
+| False diagnoses on clean control | 0 |
+| Repeated diagnosis equivalent | yes |
+| Independent check of all 60 normalisation transforms | passed |
+| Native Windows execution | failed — portability findings (F1 fixed; F2–F4 out of scope) |
+| ESP32/QEMU reproduction | not performed by that verifier |
+
+This is a pass **in the documented environment only**. It is not a
+cross-platform pass, not physical-drone validation, and not evidence that
+OpenFlight outperforms existing tools. F1–F4 are described under "Supported
+environments" in `README.md`; only the UTF-8 defect (F1) is a confirmed code
+defect and it is fixed at the revision that follows `eff1bbf`.
+
 ## Handoff record
 
 The author fills the first block and hands over the exact SHA; the verifier
-fills the second in a clean environment.
+fills the second in a clean environment. (The 2026-10-18 result for `eff1bbf`
+is recorded in the section above.)
 
 ```
 revision:        <git rev-parse HEAD>
 branch:          fix/reproduction-integrity
 author result:   candidate 39 / combined 46 checks, 0 failed, VERDICT PASS;
-                 suite 298 passed; experiment 5/5 localised, 0 false
+                 suite 299 passed; experiment 5/5 localised, 0 false
 verifier:        <name, date, machine>
 verifier env:    <paste `pip freeze`>
 verifier result: <harness tail + experiment metrics + PASS/FAIL>
@@ -189,9 +219,13 @@ author, in a clean environment. An author run does not satisfy this gate.
 
 ## After verification
 
-Only once an independent PASS is recorded should the next gate be attempted:
-the preregistered pilot (the three prereg gates are not yet complete — see
-PILOT_PREREGISTRATION). The experiment above already answers the "does it do
-something a researcher needs" question at the simulated, single-controller
-level; scaling that to real hardware and outside researchers is what the
-remaining gates cover.
+An independent `PASS WITH FINDINGS` is now recorded (2026-10-18, `eff1bbf`).
+The next milestone is **not** another feature or another immediate repeat of the
+same verification; it is a credible evaluation of *diagnostic usefulness*: a
+blinded benchmark where a reviewer contributes fault cases without seeing
+OpenFlight's answers, comparing OpenFlight against the hand-written baseline on
+correct localisation, false rejections of valid cases, and time-to-diagnosis.
+That is what distinguishes "detects its author's injected faults" from "helps
+someone diagnose unfamiliar faults". The preregistered pilot (three prereg
+gates not yet complete — see PILOT_PREREGISTRATION) and external researchers
+come after that, subject to the repository's approval/permission requirements.

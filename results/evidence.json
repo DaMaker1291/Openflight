@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "recorded_at": "2026-10-18T15:35:15Z",
+  "recorded_at": "2026-10-19T11:02:02Z",
   "environment": {
     "python": "3.12.9",
     "platform": "macOS-15.6-arm64-arm-64bit",
@@ -76,8 +76,8 @@
       "firmware/esp32/main/bench_main.cpp": "ab6e48e3a3b22f46724ac3915a8b66decc966ebd7446e14353efe8330ce8b65e",
       "firmware/esp32/sdkconfig.defaults": "a602b1434c28bdb2311e6d7861a5b799a22dc6a0f6d33494709a6a91e82934f3",
       "firmware/esp32/CMakeLists.txt": "1a0337b81bade7627d6e5a6a685b1e701931e1d8ea12f9795c3ced0935310fb7",
-      "firmware/esp32/build.sh": "a4d5d3b1dbcf3f77c5c4c74d72c5248661ef46724e513214789489d5a7555e08",
-      "firmware/esp32/qemu_test.py": "e7ba2c020274a4c4de034803417b2a29462a6097258b424f7d2abe7de9ef8838",
+      "firmware/esp32/build.sh": "5d80f877f8a4ea7f0f2399ea0a8e330d39ff7ef655de8e22ab048f0952e8c204",
+      "firmware/esp32/qemu_test.py": "4b33e491758a14d9c6afc379b96e5b302985ccb1e831f9bffbc6e66a85af75fc",
       "firmware/esp32/gen_vectors.py": "18b827ffaf0d3d1b8ba9c404ddd2fa8de20ff8b2a6fbd1cd50982c947eeac09b",
       "firmware/esp32/sim_test.py": "3169553c8a45cf53c40e415882c6e8e79426cec09238c9300d051732d6de33a4"
     },
@@ -148,7 +148,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "battery": {
       "reads": [
@@ -160,7 +160,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "independent": {
       "reads": [
@@ -177,7 +177,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "heldout": {
       "reads": [
@@ -189,7 +189,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "workflows": {
       "reads": [
@@ -205,7 +205,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "baseline": {
       "reads": [
@@ -220,7 +220,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "importers": {
       "reads": [
@@ -234,7 +234,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     },
     "e2e": {
       "reads": [
@@ -247,7 +247,7 @@
         "evidence_source"
       ],
       "result": "ok",
-      "ran_at": "2026-10-18T15:35:15Z"
+      "ran_at": "2026-10-19T11:02:02Z"
     }
   }
 }
