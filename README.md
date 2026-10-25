@@ -1,9 +1,9 @@
-# OpenFlight 🛫
+# OpenFlight 
 **A tool that automatically validates neural-network flight controllers before deployment —
 so you don't have to manually check every sensor configuration.**
 
 ---
-## 🎯 What Does This Tool Actually Do?
+##  What Does This Tool Actually Do?
 
 OpenFlight runs your neural-network-based flight controller through a battery of automated checks.
 It's like a linter for your sensor contracts — it catches problems you'd otherwise miss,
@@ -29,7 +29,7 @@ and produces clear diagnostics when something's wrong.
 That's the "make life easier" principle — the framework automates what you'd otherwise check manually.
 
 ---
-## 🚀 Quickstart — Run It in 3 Minutes
+##  Quickstart — Run It in 3 Minutes
 
 ```bash
 # 1. Install (requires Python 3.10+, a C compiler)
@@ -51,7 +51,7 @@ openflight doctor
 you'll get named diagnostics for any sensor contract issues in your own work.
 
 ---
-## 📊 What the Numbers Mean (Read This Before You Ask)
+##  What the Numbers Mean 
 
 | Metric | Value | What It Shows You |
 |---|---|---|
@@ -120,7 +120,7 @@ Best regards,
 - Open an issue or submit a PR if you find a test that could be improved
 
 ---
-## 📁 Repository Structure — What's Where
+## Repository Structure — What's Where
 
 | Directory | What's Inside |
 |---|---|
@@ -136,113 +136,11 @@ Best regards,
 | `experiment-package.json` | Format for documenting every experiment's environment, commands, and output |
 
 ---
-## 📬 Want to Email Professors? (The Proven Structure)
 
-All four email templates in this repo follow the same structure that works. Key elements:
-
-| Element | All 4 templates have it |
-|---|---|
-| **Specific commit reference** | `972e23e` (October 2026) |
-| **Concrete numbers** | 298/300 tests pass |
-| **`experiment-package.json` provenance** | Full schema documented |
-| **2-3 small concrete tasks** | "Reproduce one result," "implement variation," "write report" |
-| **3-4 hours/week commitment** | Realistic for Year 11, remote |
-| **CV + evidence attachments** | Always included |
-
-**How to use:** Pick the template whose professor best matches your interests,
-fill in the bracketed sections with 1-2 things from their paper, and send.
-
-**The 5-minute research step before emailing:**
-1. Google the professor's name + "paper" or "lab page"
-2. Find 1-2 specific things they work on (model architecture, dataset, evaluation metric)
-3. Insert those into the template where it says `[specific aspect]`
-
----
-## 📬 Want to Email Professors? (Your Personalized Template)
-
-Based on your investigation and the repo's proven templates, here's your fill-in-the-blanks email:
-
-```
-Subject: Year 11 student research inquiry — OpenFlight insights and [Professor's research area]
-
-Dear Professor [Name],
-
-I'm a Year 11 student at Merchant Taylors' School Northwood exploring research opportunities 
-in embedded machine learning. I independently investigated OpenFlight at commit `972e23e` 
-(October 2026) — a tool that automatically validates neural-network flight controllers.
-
-**Key insight:** The automated contract validation framework detects 64/64 invalid sensor 
-configurations with named diagnostics, while bare exports catch 0/5. This suggests automated 
-validation could significantly reduce false-acceptance rates in deployed neural-network 
-controllers — particularly relevant to your work on [specific aspect from their paper/publications].
-
-**What I've produced:**
-- One-page investigation summary (attached) — includes the 64/64 vs 0/5 comparison, 
-  three-workflow comparison (W1: 0/5, W2: 0/5, W3: 5/5), and fail-closed behavior principle
-- Experiment-package.json provenance format (documenting environment, commands, and output)
-- I also have experience reproducing inference results from DiTMoS checkpoints, achieving 
-  86.6% accuracy consistent with the paper's reported >86%
-
-**A concrete task I could carry out:**
-*Option A (if your work involves neural-network deployment):* Help evaluate whether 
-OpenFlight's automated contract validation approach could extend to [specific aspect of 
-their research, e.g., "sensor contract validation for your depth network," "framework for 
-evaluating unit plausibility in your models"]
-
-*Option B (general):* Reproduce one configured experiment from your published results, 
-recording the exact command, environment, and evaluation metric; implement a documented 
-variation and compare the resulting metric against the baseline; write a short reproducibility 
-report following the format of my previous reports
-
-*Option C (generalizable):* Design and document a small ablation study on [specific aspect], 
-or help prepare a test harness or evaluation script for an existing configuration
-
-I am available 3–4 hours per week during the school year, remote. I have access to Python, 
-PyTorch, NumPy, and the OpenFlight pipeline for experiment recording and verification.
-
-I would be grateful for any guidance on whether such a task would be useful, and I am happy 
-to provide my CV, the investigation summary (attached), and my DiTMoS reproduction report 
-for your review.
-
-Would 15–20 minutes be available for a brief chat about whether a student could contribute 
-a focused sub-problem to your group's existing work?
-
-Best regards,
-
-[Your Full Name]  
-Year 11, Merchant Taylors' School Northwood  
-GitHub: github.com/DaMaker1291/Openflight  
-Email: [your.email@school domain]
-
----\n\n*Attached:* \n- CV (one page) \n- OpenFlight_Investigation_Summary.md\n*Evidence:* OpenFlight at commit `972e23e`; DiTMoS reproduction report experience
-```
-
----
-## ❓ Need Help? (Step by Step)
-
-**Step 1:** Read the one-page investigation summary
-```bash
-cat OpenFlight_Investigation_Summary.md
-# (64 lines — key numbers, three-workflow comparison, what the suite validates)
-```
-
-**Step 2:** Run the battery test (30 seconds)
-```bash
-python3 -m pytest tests/openflight/test_contract_battery.py -q
-# Output: 25/25 correct, 0 false accepts/rejects
-```
-
-**Step 3:** Pick a professor, fill in the email template above,
-attach your CV + `OpenFlight_Investigation_Summary.md`, and send.
-
-**Step 4:** Wait for a response. (The structure in this repo has 4/4 success rate.)
-
----
-## 📜 License
 
 MIT — see `LICENSE`.
 
 ---
-*Generated October 2026. This README is intentionally step-by-step friendly:
+This README is intentionally step-by-step friendly:
 first-time users should be able to run the test suite in 3 minutes, understand the key
 numbers (298/300, 64/64 vs 0/5), and have a proven email template for professor outreach.*
