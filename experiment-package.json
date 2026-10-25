@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "generated": "2026-10-23T10:43:32Z",
+  "model": {},
+  "contracts": {},
+  "genome": null,
+  "compiler": {
+    "cxx_version": "Apple clang version 15.0.0 (clang-1500.0.40.1)",
+    "target": "esp32"
+  },
+  "parity": {
+    "max_abs_err": null,
+    "atol": null,
+    "rtol": null,
+    "pass": false
+  },
+  "evidence": {
+    "recorded_at": "2026-10-23T10:43:32Z",
+    "stale_checks": [],
+    "claims_at_risk": []
+  },
+  "artifacts": {
+    "model_weights": {
+      "examples/quadrotor_adapter/example_weights.pt": "165ad21af864d5418623d4e95def9b5d01e5ceb1d71bc2906d9fa9b5447f2a59"
+    },
+    "model_contract": {
+      "examples/quadrotor_adapter/model_contract.yaml": "d57b9f6850d9655e442f1d774a839b473773a4d8b71cfa62ebb318783fc845ed"
+    },
+    "sensor_contract": {
+      "examples/quadrotor_adapter/drone_contract.yaml": "30048cddd6ad1d8cddd748fc456e7ab276a48f1c51030f129703bf19901877d6"
+    },
+    "checker_source": {
+      "openflight/contract/checker.py": "e32f18bbd84f142b506464c0365c79919c0eb99a7fe768f235eb0dba32813a31",
+      "openflight/contract/units.py": "fb0a9129c777064712ed0823f60d3064118a0c8e5e706e5480196311a8ee2c2e",
+      "openflight/contract/pipeline.py": "ed3e151117da56ae1bc6f91a71b70b6abc47b060d238bd244c624eaead86bedd",
+      "openflight/contract/model_contract.py": "0170b9c53e55a148d2272ada4143555559249adfe41e85f39a7eb758e530ce65"
+    }
+  }
+}
