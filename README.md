@@ -1,9 +1,9 @@
-# OpenFlight 
+# OpenFlight 🛫
 **A tool that automatically validates neural-network flight controllers before deployment —
 so you don't have to manually check every sensor configuration.**
 
 ---
-##  What Does This Tool Actually Do?
+## 🎯 What Does This Tool Actually Do?
 
 OpenFlight runs your neural-network-based flight controller through a battery of automated checks.
 It's like a linter for your sensor contracts — it catches problems you'd otherwise miss,
@@ -29,7 +29,7 @@ and produces clear diagnostics when something's wrong.
 That's the "make life easier" principle — the framework automates what you'd otherwise check manually.
 
 ---
-##  Quickstart — Run It in 3 Minutes
+## 🚀 Quickstart — Run It in 3 Minutes
 
 ```bash
 # 1. Install (requires Python 3.10+, a C compiler)
@@ -51,7 +51,7 @@ openflight doctor
 you'll get named diagnostics for any sensor contract issues in your own work.
 
 ---
-##  What the Numbers Mean 
+## 📊 What the Numbers Mean (Read This Before You Ask)
 
 | Metric | Value | What It Shows You |
 |---|---|---|
@@ -76,43 +76,6 @@ python3 -m pytest tests/openflight/ -q
 # Key takeaway: 298/300 pass, and you now know what the suite validates
 ```
 
-### Path 2: "I want to produce an artifact for professor outreach" (Year 11 students)
-This is the most effective path if you're emailing professors for research experience.
-
-**What to do:**
-1. Run the battery test: `python3 -m pytest tests/openflight/test_contract_battery.py -q`
-2. Read the one-page investigation summary: `OpenFlight_Investigation_Summary.md` (just created in this repo)
-3. Use the email template from `email_dongma.md` (or the one I'll provide below)
-4. Attach: your CV + the investigation summary
-
-**Why this works:** Professors get a student who's done the homework, produced a concrete artifact,
-and is asking about extending the framework — not just "interested in AI."
-
-**Email template (adapted from 4 proven templates in this repo):**
-```
-Subject: Year 11 student research inquiry — OpenFlight insights
-
-Dear Professor [Name],
-
-I'm a Year 11 student exploring research opportunities in autonomous systems. 
-I independently investigated OpenFlight at commit `972e23e` (Oct 2026).
-
-Key insight: The automated contract validation framework detects 64/64 invalid sensor 
-configurations with named diagnostics, while bare exports catch 0/5. This suggests 
-automated validation could significantly reduce false-acceptance rates in deployed 
-neural-network controllers — particularly relevant to your work on [specific aspect 
-from their paper].
-
-I've written a one-page summary of what the test suite covers (attached). I'm interested 
-in how approaches like this could extend to [their specific research area].
-
-Would 15 minutes be available for a brief chat about whether a student could contribute 
-to extending this work?
-
-Best regards,
-[Your Name]
-```
-
 ### Path 3: "I want to contribute to the project itself"
 - Read `CHALLENGE_FINDINGS.md` — documented adversarial acceptance testing results
 - Read `docs/INDEPENDENT_VERIFICATION.md` — the verification procedure
@@ -120,7 +83,7 @@ Best regards,
 - Open an issue or submit a PR if you find a test that could be improved
 
 ---
-## Repository Structure — What's Where
+## 📁 Repository Structure — What's Where
 
 | Directory | What's Inside |
 |---|---|
@@ -131,16 +94,34 @@ Best regards,
 | `tests/openflight/` | The 300-test suite (298 pass on main) |
 | `examples/` | Quadrotor adapter and MLP-observer contracts + weights |
 | `tests/` | High-level test runner and verification scripts |
-| `email_dongma.md`, `email_karaman.md`, `email_senwang.md`, `email_kormushev.md` | **4 proven email templates** that all received research responses |
 | `OpenFlight_Investigation_Summary.md` | **One-page investigation summary** (64/64 vs 0/5, three-workflow comparison) |
 | `experiment-package.json` | Format for documenting every experiment's environment, commands, and output |
 
 ---
+## ❓ Need Help? (Step by Step)
 
+**Step 1:** Read the one-page investigation summary
+```bash
+cat OpenFlight_Investigation_Summary.md
+# (64 lines — key numbers, three-workflow comparison, what the suite validates)
+```
+
+**Step 2:** Run the battery test (30 seconds)
+```bash
+python3 -m pytest tests/openflight/test_contract_battery.py -q
+# Output: 25/25 correct, 0 false accepts/rejects
+```
+
+**Step 3:** Review the investigation summary and test results.
+
+**Step 4:** Ready to explore the repository further.
+
+---
+## 📜 License
 
 MIT — see `LICENSE`.
 
 ---
-This README is intentionally step-by-step friendly:
+*Generated October 2026. This README is intentionally step-by-step friendly:
 first-time users should be able to run the test suite in 3 minutes, understand the key
-numbers (298/300, 64/64 vs 0/5), and have a proven email template for professor outreach.*
+numbers (298/300, 64/64 vs 0/5), and focus on the tool's validation capabilities.*
