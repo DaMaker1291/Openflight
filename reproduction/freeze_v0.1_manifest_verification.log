@@ -1,0 +1,20 @@
+freeze_v0.1.json manifest verification, run 2026-10-14
+git_head recorded at freeze: d0d070a032f01044f59264acd8421ab8a4ff877b
+total=62 match=47 changed=15 missing=0
+NOTE: openflight-v0.1.tar.gz was never created; the manifest is the freeze.
+changed files (v0.2 divergence, all documented in CLAIMS.md/EVALUATION.md):
+  openflight/CONTRACT_ENGINE.md
+  openflight/EVALUATION.md
+  openflight/TEST_PLAN.md
+  openflight/__init__.py
+  openflight/cli.py
+  openflight/compiler/codegen.py
+  openflight/compiler/memory_planner.py
+  openflight/compiler/operators/__init__.py
+  openflight/contract/checker.py
+  openflight/contract/model_contract.py
+  openflight/contract/pipeline.py
+  openflight/contract/units.py
+  openflight/freeze.py
+  openflight/repro.py
+  tests/openflight/test_compiler_audit.py

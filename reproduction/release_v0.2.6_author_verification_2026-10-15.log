@@ -1,0 +1,173 @@
+=== OpenFlight v0.2.6 release-bytes verification (AUTHOR-RUN, NOT independent) ===
+date: 2026-10-16T21:59:49Z
+archive: downloaded from GitHub release v0.2.6-pilot; shasum -c OK (7b349871ffda4746b4a24297b48e6e29bb622b0f8ce007f1435299803fb5f2fd)
+host: macOS 15.6 / arm64; venv: Python 3.13.2, torch 2.14.1 numpy 2.5.4
+cwd: /var/folders/jv/99cytc8j2qq62x068bpfxd_40000gn/T/opencode/verify-026/openflight-v0.2.6-pilot
+
+--- 1. version + doctor ---
+openflight 0.2.6
+version exit=0
+doctor exit=0
+
+--- 2. full suite (expect 242 passed) ---
+..........................                                               [100%]
+242 passed in 23.69s
+
+--- 3. five-property audit probes + external-review probes (-v) ---
+tests/openflight/test_reviewer_probes.py::test_probe1_sensor_ordering_is_load_bearing PASSED [  8%]
+tests/openflight/test_reviewer_probes.py::test_probe2_model_frame_missing_fails_closed PASSED [ 16%]
+tests/openflight/test_reviewer_probes.py::test_probe3_units_plausible_for_quantity PASSED [ 25%]
+tests/openflight/test_reviewer_probes.py::test_probe4_malformed_normalization_blocks_not_crashes PASSED [ 33%]
+tests/openflight/test_reviewer_probes.py::test_probe5_checker_and_pipeline_agree_on_quat_units PASSED [ 41%]
+tests/openflight/test_reviewer_probes.py::test_probe6_units_and_norm_have_distinct_codes PASSED [ 50%]
+tests/openflight/test_reviewer_probes.py::test_probe7_deploy_without_contracts_is_blocked PASSED [ 58%]
+tests/openflight/test_reviewer_probes.py::test_audit_v025_unknown_equal_units_blocked PASSED [ 66%]
+tests/openflight/test_reviewer_probes.py::test_audit_v025_duplicate_raw_layout_refused PASSED [ 75%]
+tests/openflight/test_reviewer_probes.py::test_audit_v025_width_mismatch_no_artifacts PASSED [ 83%]
+tests/openflight/test_reviewer_probes.py::test_audit_v025_late_failure_no_artifacts PASSED [ 91%]
+tests/openflight/test_reviewer_probes.py::test_audit_v025_shape_mismatch_diagnosed_not_traceback PASSED [100%]
+============================== 12 passed in 1.56s ==============================
+
+--- 4. evidence-graph mutation suite (expect 60) ---
+............................................................             [100%]
+60 passed in 2.14s
+
+--- 5. schema/misuse regressions (battery + engine) ---
+...................                                                      [100%]
+19 passed in 1.30s
+
+--- 6. CLI demos on release bytes (advisor's original audit repros) ---
+
+[demo 1] baseline valid contracts:
+
+OPENFLIGHT CONTRACT VALIDATION
+
+Representation checks:  PASS
+Units checks:           PASS
+Frames checks:          PASS
+Features checks:        PASS
+Normalization checks:   PASS
+
+Warnings:
+W201: [acc_x] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [acc_y] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [acc_z] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_x] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_y] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_z] sensor bias not modeled for this quantity; estimates assume zero bias
+
+Generated conversions (verified by differential test):
+  [acc_x] normalize_affine: scale=0.05, offset=0.0
+  [acc_y] normalize_affine: scale=0.05, offset=0.0
+  [acc_z] normalize_affine: scale=0.05, offset=0.0
+  [gyro_x] normalize_affine: scale=0.1, offset=0.0
+  [gyro_y] normalize_affine: scale=0.1, offset=0.0
+  [gyro_z] normalize_affine: scale=0.1, offset=0.0
+
+Deployment status: PROCEED
+
+exit=0
+
+[demo 2] P0: both sides 'mystery_unit' (expect BLOCKED, exit 2):
+
+OPENFLIGHT CONTRACT VALIDATION
+
+Representation checks:  PASS
+Units checks:           FAIL
+Frames checks:          PASS
+Features checks:        PASS
+Normalization checks:   PASS
+
+Warnings:
+W201: [acc_x] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [acc_y] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [acc_z] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_x] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_y] sensor bias not modeled for this quantity; estimates assume zero bias
+W201: [gyro_z] sensor bias not modeled for this quantity; estimates assume zero bias
+
+Errors:
+U101: [acc_x] sensor units 'mystery_unit' are not a registered unit string; equality between unknown tokens does not establish compatibility
+      Source: mystery_unit
+      Target: mystery_unit
+      Action: Document the sensor's units (or the model feature's units) explicitly. Compatibility cannot be verified from an undocumented unit, so deployment stays blocked.
+U101: [acc_y] sensor units 'mystery_unit' are not a registered unit string; equality between unknown tokens does not establish compatibility
+      Source: mystery_unit
+      Target: mystery_unit
+      Action: Document the sensor's units (or the model feature's units) explicitly. Compatibility cannot be verified from an undocumented unit, so deployment stays blocked.
+U101: [acc_z] sensor units 'mystery_unit' are not a registered unit string; equality between unknown tokens does not establish compatibility
+      Source: mystery_unit
+      Target: mystery_unit
+      Action: Document the sensor's units (or the model feature's units) explicitly. Compatibility cannot be verified from an undocumented unit, so deployment stays blocked.
+
+Generated conversions (verified by differential test):
+  [acc_x] normalize_affine: scale=0.05, offset=0.0
+  [acc_y] normalize_affine: scale=0.05, offset=0.0
+  [acc_z] normalize_affine: scale=0.05, offset=0.0
+  [gyro_x] normalize_affine: scale=0.1, offset=0.0
+  [gyro_y] normalize_affine: scale=0.1, offset=0.0
+  [gyro_z] normalize_affine: scale=0.1, offset=0.0
+
+Deployment status: BLOCKED
+
+exit=2
+
+[demo 3] P1: duplicate raw_layout entry (expect BLOCKED, exit 2):
+
+OPENFLIGHT CONTRACT VALIDATION
+
+Representation checks:  N/A
+Units checks:           N/A
+Frames checks:          N/A
+Features checks:        N/A
+Normalization checks:   N/A
+
+Errors:
+E002: [<model-contract>] model contract invalid: duplicate raw_layout binding 'acceleration'/'x': each (quantity, component) pair may appear at most once
+
+Deployment status: BLOCKED
+
+exit=2
+
+--- 7. repro.py (expect REPRODUCTION OK, eight checks) ---
+root: /private/var/folders/jv/99cytc8j2qq62x068bpfxd_40000gn/T/opencode/verify-026/openflight-v0.2.6-pilot
+pytest: 242 passed in 18.79s
+parity: OK (firmware-path max_abs_err < 1e-4) max_abs_err=3.576e-07
+battery: OK (25/25 correct, 0 false accepts/rejects) 25/25
+independent: OK (21/21 correct) 21/21
+heldout: OK (156/156 correct, 0 false accepts/rejects) 156/156
+workflows: OK (5/5 semantic faults escape W1/W2, stopped by W3) 5 fault classes
+baseline: OK (fault escapes baseline, blocked-or-converted by OpenFlight) fault escapes baseline
+importers: OK (6/6 importer/draft provenance pipeline cases) 6/6
+e2e: OK (300-sample 4-band: registered abs 1e-4, expanded rel 1e-4) registered=4.578e-05, rel=4.436e-05, bypass=11.590
+freeze manifest: present
+
+REPRODUCTION OK: all reported results regenerated and verified.
+evidence graph: recorded results/evidence.json
+repro exit=
+
+--- 8. evidence status (expect exit 0; build/qemu never run) ---
+  parity: fresh
+  qemu: never run
+    - not recorded as run (repro.py records ran checks)
+  workflows: fresh
+all recorded checks fresh; never run: build, qemu
+claims without live evidence (check never ran): C1, C10, C2, C3, C4, C7, C8
+status exit=
+
+=== END author-run verification (supplemental; independent gates still open) ===
+
+[exit codes, corrected capture]
+evidence status exit=0
+repro.py: prints REPRODUCTION OK only on full success; script uses sys.exit nonzero on failure (see openflight/repro.py) — output above ended in REPRODUCTION OK => exit 0
+precision: main() returns 1 on any failed check (repro.py:85) and raise SystemExit(main()) (repro.py:143) => REPRODUCTION OK implies exit 0; any MISMATCH or failed pytest yields nonzero.
+
+[procedure note — evidence-preservation disclosure]
+An earlier capture attempt (2026-10-16T21:59:18Z header) ran WITHOUT cd'ing
+into the extraction, so it executed the ORIGINAL monorepo test tree instead
+of the release (it reported "162 passed", missing audit/mutation suites,
+version/doctor 127). That output was NOT preserved — the corrected run below
+overwrote this file via tee. Nothing about the release failed in that
+attempt; it was a verifier procedure error, disclosed here because the
+commit message b5cb8f0 inaccurately implied this file contains that first
+capture. All content above this note is from the corrected run only.

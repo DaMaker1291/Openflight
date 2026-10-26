@@ -1,0 +1,52 @@
+verify_diagnose_integrity: candidate root = /Users/shaurjeshbasu/Projects/openflight
+python 3.12.9
+[PASS] git HEAD — 0a4e8c1cbbedf47a761e0cc1bcf3756c09d739aa
+[PASS] tag v0.2.6-pilot unchanged — 5840dfe7ddb055cb962fee32bd82ba8419d27f51 (expected 5840dfe7ddb055cb962fee32bd82ba8419d27f51)
+[PASS] ref e8187af — e8187af3dc3a05db581adecccdf6d229ce0638d2 (frozen candidate is e8187af3dc3a05db581adecccdf6d229ce0638d2)
+[PASS] ref openflight-v0.2 — e8187af3dc3a05db581adecccdf6d229ce0638d2 (frozen candidate is e8187af3dc3a05db581adecccdf6d229ce0638d2)
+[PASS] dependency contourpy — 1.4.0
+[PASS] dependency cycler — 0.12.1
+[PASS] dependency filelock — 4.1.2
+[PASS] dependency fonttools — 4.67.0
+[PASS] dependency fsspec — 2026.9.0
+[PASS] dependency iniconfig — 2.3.1
+[PASS] dependency jinja2 — 3.1.6
+[PASS] dependency kiwisolver — 1.5.1
+[PASS] dependency markupsafe — 3.0.4
+[PASS] dependency matplotlib — 3.11.2
+[PASS] dependency mpmath — 1.3.0
+[PASS] dependency networkx — 3.7
+[PASS] dependency numpy — 2.5.4
+[PASS] dependency packaging — 26.3
+[PASS] dependency pillow — 12.3.0
+[PASS] dependency pluggy — 1.6.0
+[PASS] dependency pygments — 2.21.0
+[PASS] dependency pyparsing — 3.3.3
+[PASS] dependency pytest — 9.1.1
+[PASS] dependency python-dateutil — 2.9.0.post0
+[PASS] dependency pyyaml — 6.0.3
+[PASS] dependency setuptools — 84.0.0
+[PASS] dependency six — 1.17.0
+[PASS] dependency sympy — 1.14.0
+[PASS] dependency torch — 2.14.1
+[PASS] dependency typing-extensions — 4.16.0
+[PASS] test suite — 288 passed (expected 288); 288 passed in 38.84s
+[PASS] repro.py — REPRODUCTION OK
+[PASS] candidate/build — discrepancy bundle at /var/folders/jv/99cytc8j2qq62x068bpfxd_40000gn/T/of_verify_1r9wta03/build_candidate/diagnosis
+[PASS] candidate/baseline — faithful bundle, no tampering: accepted (expected accepted)
+[PASS] candidate/status — overall status set to unsupported value: rejected (expected rejected)
+[PASS] candidate/tolerances — report tolerances altered: rejected (expected rejected)
+[PASS] candidate/stage_status — one stage status flipped: rejected (expected rejected)
+[PASS] candidate/shapes — report shapes altered: rejected (expected rejected)
+[PASS] candidate/build_artifact — build artifact changed, checked with --full: rejected (expected rejected)
+[PASS] prefix/build — discrepancy bundle at /var/folders/jv/99cytc8j2qq62x068bpfxd_40000gn/T/of_verify_1r9wta03/build_prefix/diagnosis
+[PASS] prefix/baseline — faithful bundle, no tampering: accepted (expected accepted)
+[PASS] prefix/status — overall status set to unsupported value: accepted (expected accepted)
+[PASS] prefix/tolerances — report tolerances altered: accepted (expected accepted)
+[PASS] prefix/stage_status — one stage status flipped: accepted (expected accepted)
+[PASS] prefix/shapes — report shapes altered: accepted (expected accepted)
+[PASS] prefix/build_artifact — build artifact changed, checked with --full: accepted (expected accepted)
+
+================ summary ================
+checks: 46  failed: 0  warnings: 0
+VERDICT: PASS
